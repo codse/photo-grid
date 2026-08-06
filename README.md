@@ -25,7 +25,7 @@ npx expo run:android
 2. Soft size default — tap to change on `/size`
 3. Crop (optional), then sheet with exact copy count + cut guides
 4. Export PNG/PDF → print at **Actual size / Uncropped**
-5. **iOS/Android only:** exports also land in **Saved sheets** (`/saved`) for later revisit
+5. **iOS/Android only:** bookmark a sheet on Export to keep it in **Saved** (`/saved`)
 
 ## Architecture
 

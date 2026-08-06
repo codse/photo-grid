@@ -8,7 +8,8 @@ import {
   View,
 } from 'react-native';
 import { Image } from 'expo-image';
-import { Redirect, Stack } from 'expo-router';
+import { Redirect, Stack, router } from 'expo-router';
+import { ImagesIcon } from 'phosphor-react-native/src/icons/Images';
 import type { SavedSheet } from '@/features/library/types';
 import {
   SAVED_SHEETS_AVAILABLE,
@@ -17,6 +18,7 @@ import {
   listSavedSheets,
   shareSavedSheet,
 } from '@/platform/saved-sheets';
+import { Button } from '@/ui/primitives';
 import { colors, fonts, radii, space, type } from '@/ui/tokens';
 
 export default function SavedScreen() {
@@ -53,27 +55,19 @@ export default function SavedScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ title: 'Saved sheets' }} />
+      <Stack.Screen options={{ title: 'Saved' }} />
       <ScrollView
         contentInsetAdjustmentBehavior="automatic"
         contentContainerStyle={{
           padding: space.xl,
           gap: space.md,
           paddingBottom: 48,
+          flexGrow: 1,
         }}
       >
-        <Text style={{ ...type.body, color: colors.inkMuted }}>
-          Sheets you export are kept here so you can share or reprint later.
-          Nothing is uploaded.
-        </Text>
-
         {loading ? <ActivityIndicator color={colors.accent} /> : null}
 
-        {!loading && items.length === 0 ? (
-          <Text style={{ ...type.body, color: colors.inkFaint }}>
-            No saved sheets yet. Export a print sheet to create one.
-          </Text>
-        ) : null}
+        {!loading && items.length === 0 ? <SavedEmpty /> : null}
 
         {items.map((item) => (
           <View
@@ -142,7 +136,7 @@ export default function SavedScreen() {
                 <Pressable
                   accessibilityRole="button"
                   onPress={() => {
-                    Alert.alert('Delete sheet?', 'This cannot be undone.', [
+                    Alert.alert('Delete?', 'Remove this from Saved. Can’t undo.', [
                       { text: 'Cancel', style: 'cancel' },
                       {
                         text: 'Delete',
@@ -174,5 +168,86 @@ export default function SavedScreen() {
         ))}
       </ScrollView>
     </>
+  );
+}
+
+function SavedEmpty() {
+  return (
+    <View
+      style={{
+        flex: 1,
+        minHeight: 420,
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: space.xl,
+        paddingHorizontal: space.md,
+      }}
+    >
+      <EmptySheetArt />
+      <View style={{ alignItems: 'center', gap: 6, maxWidth: 260 }}>
+        <Text
+          style={{
+            ...type.title,
+            fontFamily: fonts.semibold,
+            color: colors.ink,
+            textAlign: 'center',
+          }}
+        >
+          Nothing saved yet
+        </Text>
+        <Text
+          style={{
+            ...type.caption,
+            color: colors.inkMuted,
+            textAlign: 'center',
+          }}
+        >
+          Tap the bookmark on Export when you want to keep a sheet here.
+        </Text>
+      </View>
+      <Button
+        label="Make a sheet"
+        icon={<ImagesIcon size={18} color="#fff" weight="bold" />}
+        onPress={() => router.replace('/')}
+      />
+    </View>
+  );
+}
+
+/** Mini printable sheet silhouette — show, don’t lecture. */
+function EmptySheetArt() {
+  const cell = { width: 28, height: 36, borderRadius: 4 };
+  return (
+    <View
+      style={{
+        width: 168,
+        height: 112,
+        borderRadius: radii.md,
+        borderCurve: 'continuous',
+        backgroundColor: colors.bgElevated,
+        borderWidth: 1.5,
+        borderColor: colors.line,
+        padding: 14,
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: 8,
+        justifyContent: 'center',
+        alignContent: 'center',
+        boxShadow: '0 10px 28px rgba(42,33,28,0.08)',
+      }}
+    >
+      {[0, 1, 2, 3, 4, 5].map((i) => (
+        <View
+          key={i}
+          style={{
+            ...cell,
+            backgroundColor: i < 2 ? colors.accentSoft : 'rgba(237,228,220,0.85)',
+            borderWidth: 1,
+            borderColor: colors.line,
+            borderStyle: 'dashed',
+          }}
+        />
+      ))}
+    </View>
   );
 }

@@ -1,5 +1,5 @@
 /**
- * Web stub — Saved sheets / local archive is native-only.
+ * Web stub — Saved / local archive is native-only.
  * Sharing/download still works via browser download.
  */
 import type { SavedSheet, SaveSheetInput } from '@/features/library/types';
@@ -11,7 +11,7 @@ export async function listSavedSheets(): Promise<SavedSheet[]> {
 }
 
 export async function saveSheet(_input: SaveSheetInput): Promise<SavedSheet> {
-  throw new Error('Saved sheets are available in the iOS/Android app.');
+  throw new Error('Saved is available in the iOS/Android app.');
 }
 
 export async function getSheetDataUrl(_uri: string): Promise<string | null> {
@@ -23,5 +23,5 @@ export async function deleteSavedSheet(_id: string): Promise<void> {
 }
 
 export async function shareSavedSheet(_uri: string): Promise<void> {
-  throw new Error('Saved sheets are available in the iOS/Android app.');
+  throw new Error('Saved is available in the iOS/Android app.');
 }

@@ -83,7 +83,7 @@ export async function shareSavedSheet(uri: string): Promise<void> {
     await Sharing.shareAsync(uri, {
       mimeType: 'image/png',
       UTI: 'public.png',
-      dialogTitle: 'Share saved sheet',
+      dialogTitle: 'Share',
     });
   }
 }

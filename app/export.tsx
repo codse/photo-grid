@@ -1,31 +1,38 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Platform,
   Pressable,
   ScrollView,
   Text,
   View,
 } from 'react-native';
-import { Image } from 'expo-image';
 import { router } from 'expo-router';
+import { BookmarkSimpleIcon } from 'phosphor-react-native/src/icons/BookmarkSimple';
+import { ExportIcon } from 'phosphor-react-native/src/icons/Export';
+import { ShareNetworkIcon } from 'phosphor-react-native/src/icons/ShareNetwork';
 import { PeopleStrip } from '@/features/people/people-strip';
 import { packSubjects } from '@/core/layout';
+import type { ExportImageExt } from '@/core/export-name';
 import { formatSize } from '@/core/units';
 import { PAPER_PRESETS, PHOTO_PRESETS } from '@/core/presets';
 import { getPaperSize, useSession } from '@/state/session';
 import {
-  exportAndSharePdf,
-  exportAndSharePng,
+  exportAndShareImage,
   exportSheetPngBase64,
   loadImageSource,
-  savePngToLibrary,
+  saveImageToLibrary,
   type ImageSource,
 } from '@/platform/render-sheet';
-import { saveSheet, SAVED_SHEETS_AVAILABLE } from '@/platform/saved-sheets';
-import { Button, ScreenIntro } from '@/ui/primitives';
-import { colors, radii, space, type } from '@/ui/tokens';
+import { saveSheet, deleteSavedSheet, SAVED_SHEETS_AVAILABLE } from '@/platform/saved-sheets';
+import { Button } from '@/ui/primitives';
+import { colors, fonts, radii, space, type } from '@/ui/tokens';
 import { RequirePhoto } from '@/features/session/require-photo';
+import { showInterstitialIfNeeded } from '@/monetization/ads';
+import { ProOffer } from '@/monetization/pro-offer';
+
+type Busy = 'save' | 'share' | 'bookmark' | null;
 
 export default function ExportScreen() {
   return (
@@ -45,11 +52,12 @@ function ExportBody() {
   const marginMm = useSession((s) => s.marginMm);
   const cutGuides = useSession((s) => s.cutGuides);
   const recordExportedConfig = useSession((s) => s.recordExportedConfig);
+  const completeSheet = useSession((s) => s.completeSheet);
 
   const paper = getPaperSize(paperId);
   const [images, setImages] = useState<Map<string, ImageSource>>(new Map());
-  const [busy, setBusy] = useState<string | null>(null);
-  const [showPrintTip, setShowPrintTip] = useState(false);
+  const [busy, setBusy] = useState<Busy>(null);
+  const [format, setFormat] = useState<ExportImageExt>('jpg');
   const [savedId, setSavedId] = useState<string | null>(null);
 
   const layout = useMemo(
@@ -72,10 +80,7 @@ function ExportBody() {
       .join(', ');
     const size =
       PHOTO_PRESETS.find((p) => p.id === photoId)?.label ??
-      formatSize(
-        subjects[0]?.widthMm ?? 35,
-        subjects[0]?.heightMm ?? 45,
-      );
+      formatSize(subjects[0]?.widthMm ?? 35, subjects[0]?.heightMm ?? 45);
     return named ? `${named} · ${size}` : size;
   }, [subjects, photoId]);
 
@@ -120,25 +125,58 @@ function ExportBody() {
     return meta;
   }, [layout, images, subjects, cutGuides, paperLabel, photoSummary]);
 
-  const run = async (label: string, fn: () => Promise<unknown>) => {
+  const empty = layout.cells.length === 0;
+
+  const run = async (label: Busy, fn: () => Promise<unknown>) => {
     setBusy(label);
     try {
       await fn();
       recordExportedConfig();
-      if (SAVED_SHEETS_AVAILABLE && !savedId) {
-        try {
-          await archive();
-        } catch {
-          // archive failure shouldn't block share
-        }
+      // End “In progress” on home — size/presets stay.
+      completeSheet();
+      if (Platform.OS !== 'web') {
+        void showInterstitialIfNeeded();
       }
-      setShowPrintTip(true);
+      router.replace('/');
     } catch (e) {
-      Alert.alert('Export failed', e instanceof Error ? e.message : 'Unknown error');
+      Alert.alert(
+        'Export failed',
+        e instanceof Error ? e.message : 'Unknown error',
+      );
     } finally {
       setBusy(null);
     }
   };
+
+  /** Toggle bookmark — filled = in Saved; tap again removes it. */
+  const toggleBookmark = async () => {
+    if (!SAVED_SHEETS_AVAILABLE || empty) return;
+    setBusy('bookmark');
+    try {
+      if (savedId) {
+        await deleteSavedSheet(savedId);
+        setSavedId(null);
+        return;
+      }
+      await archive();
+    } catch (e) {
+      Alert.alert(
+        'Couldn’t update Saved',
+        e instanceof Error ? e.message : 'Unknown error',
+      );
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const saveLabel =
+    Platform.OS === 'web'
+      ? busy === 'save'
+        ? 'Downloading…'
+        : 'Download'
+      : busy === 'save'
+        ? 'Saving…'
+        : 'Save to Photos';
 
   return (
     <View style={{ flex: 1 }}>
@@ -151,100 +189,196 @@ function ExportBody() {
           paddingBottom: 56,
         }}
       >
-        <ScreenIntro
-          title="Share"
-          body={
-            SAVED_SHEETS_AVAILABLE
-              ? `${layout.cells.length} photos on ${formatSize(layout.paperWidthMm, layout.paperHeightMm)}. Exports are archived in Saved sheets.`
-              : `${layout.cells.length} photos on ${formatSize(layout.paperWidthMm, layout.paperHeightMm)}. Download stays on this device.`
-          }
-        />
+        <Text selectable style={{ ...type.caption, color: colors.inkMuted }}>
+          {layout.cells.length} photos ·{' '}
+          {formatSize(layout.paperWidthMm, layout.paperHeightMm)} · 300 DPI
+        </Text>
 
-        <Button
-          label={busy === 'png' ? 'Exporting PNG…' : 'Share / download PNG @ 300 DPI'}
-          disabled={!!busy || layout.cells.length === 0}
-          onPress={() =>
-            run('png', () =>
-              exportAndSharePng(layout, images, subjects, cutGuides),
-            )
-          }
-        />
-        <Button
-          label={busy === 'pdf' ? 'Exporting PDF…' : 'Share / download PDF'}
-          variant="secondary"
-          disabled={!!busy || layout.cells.length === 0}
-          onPress={() =>
-            run('pdf', () =>
-              exportAndSharePdf(layout, images, subjects, cutGuides),
-            )
-          }
-        />
-        <Button
-          label={busy === 'save' ? 'Saving…' : 'Save PNG to Photos'}
-          variant="secondary"
-          disabled={!!busy || layout.cells.length === 0}
-          onPress={() =>
-            run('save', () =>
-              savePngToLibrary(layout, images, subjects, cutGuides),
-            )
-          }
-        />
-        {SAVED_SHEETS_AVAILABLE ? (
+        {Platform.OS !== 'web' ? <ProOffer variant="card" /> : null}
+
+        <View style={{ gap: space.md }}>
+          <FormatSegment
+            value={format}
+            disabled={!!busy || empty}
+            onChange={setFormat}
+          />
           <Button
-            label={
-              busy === 'folder'
-                ? 'Saving to folder…'
-                : savedId
-                  ? 'Saved to folder'
-                  : 'Save to folder only'
-            }
-            variant="ghost"
-            disabled={!!busy || layout.cells.length === 0 || !!savedId}
+            label={saveLabel}
+            disabled={!!busy || empty}
             onPress={() =>
-              run('folder', async () => {
-                await archive();
-              })
+              run('save', () =>
+                saveImageToLibrary(
+                  layout,
+                  images,
+                  subjects,
+                  cutGuides,
+                  format,
+                ),
+              )
             }
           />
-        ) : null}
+        </View>
+
+        <View
+          style={{
+            flexDirection: 'row',
+            justifyContent: 'center',
+            gap: space.xl,
+            paddingTop: space.sm,
+          }}
+        >
+          <IconAction
+            label="Share"
+            disabled={!!busy || empty}
+            busy={busy === 'share'}
+            onPress={() =>
+              run('share', () =>
+                exportAndShareImage(
+                  layout,
+                  images,
+                  subjects,
+                  cutGuides,
+                  format,
+                ),
+              )
+            }
+            icon={
+              Platform.OS === 'ios' ? (
+                <ExportIcon size={22} color={colors.ink} weight="bold" />
+              ) : (
+                <ShareNetworkIcon size={22} color={colors.ink} weight="bold" />
+              )
+            }
+          />
+          {SAVED_SHEETS_AVAILABLE ? (
+            <IconAction
+              label={savedId ? 'Saved' : 'Save'}
+              disabled={!!busy || empty}
+              busy={busy === 'bookmark'}
+              onPress={() => void toggleBookmark()}
+              icon={
+                <BookmarkSimpleIcon
+                  size={22}
+                  color={savedId ? colors.accent : colors.ink}
+                  weight={savedId ? 'fill' : 'bold'}
+                />
+              }
+            />
+          ) : null}
+        </View>
 
         {busy ? <ActivityIndicator color={colors.accent} /> : null}
-
-        {SAVED_SHEETS_AVAILABLE && savedId ? (
-          <Pressable onPress={() => router.push('/saved')}>
-            <Text style={{ ...type.caption, color: colors.accent }}>
-              View Saved sheets →
-            </Text>
-          </Pressable>
-        ) : null}
-
-        {showPrintTip ? (
-          <View
-            style={{
-              padding: space.lg,
-              backgroundColor: colors.accentSoft,
-              borderRadius: radii.md,
-              borderCurve: 'continuous',
-              gap: space.sm,
-            }}
-          >
-            <Text style={{ ...type.title, color: colors.ink, fontSize: 18 }}>
-              Print tip
-            </Text>
-            <Text style={{ ...type.body, color: colors.ink }}>
-              At CVS / Walgreens / home printers: choose matching paper size,
-              turn off Fit / Crop / Borderless, print at Actual size (100%).
-              Measure one photo before cutting the sheet.
-            </Text>
-          </View>
-        ) : null}
-
-        <Button
-          label="Back to sheet"
-          variant="ghost"
-          onPress={() => router.back()}
-        />
       </ScrollView>
     </View>
+  );
+}
+
+/** Quiet segmented control — not fused into the primary CTA. */
+function FormatSegment({
+  value,
+  onChange,
+  disabled,
+}: {
+  value: ExportImageExt;
+  onChange: (v: ExportImageExt) => void;
+  disabled?: boolean;
+}) {
+  const opts: { id: ExportImageExt; label: string }[] = [
+    { id: 'jpg', label: 'JPG' },
+    { id: 'png', label: 'PNG' },
+  ];
+  return (
+    <View style={{ gap: 6 }}>
+      <Text style={{ ...type.caption, color: colors.inkFaint }}>Format</Text>
+      <View
+        style={{
+          flexDirection: 'row',
+          padding: 3,
+          borderRadius: radii.sm,
+          borderCurve: 'continuous',
+          backgroundColor: colors.line,
+          opacity: disabled ? 0.5 : 1,
+        }}
+      >
+        {opts.map((opt) => {
+          const selected = value === opt.id;
+          return (
+            <Pressable
+              key={opt.id}
+              accessibilityRole="button"
+              accessibilityState={{ selected, disabled: !!disabled }}
+              accessibilityLabel={`Format ${opt.label}`}
+              disabled={disabled}
+              onPress={() => onChange(opt.id)}
+              style={{
+                flex: 1,
+                paddingVertical: 8,
+                alignItems: 'center',
+                borderRadius: radii.sm - 2,
+                borderCurve: 'continuous',
+                backgroundColor: selected ? colors.bgElevated : 'transparent',
+              }}
+            >
+              <Text
+                style={{
+                  fontFamily: fonts.semibold,
+                  fontSize: 14,
+                  fontWeight: '600',
+                  color: selected ? colors.ink : colors.inkMuted,
+                }}
+              >
+                {opt.label}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </View>
+    </View>
+  );
+}
+
+function IconAction({
+  label,
+  icon,
+  onPress,
+  disabled,
+  busy,
+}: {
+  label: string;
+  icon: ReactNode;
+  onPress: () => void;
+  disabled?: boolean;
+  busy?: boolean;
+}) {
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      disabled={disabled}
+      onPress={onPress}
+      style={({ pressed }) => ({
+        alignItems: 'center',
+        gap: 6,
+        opacity: disabled ? 0.4 : pressed ? 0.7 : 1,
+      })}
+    >
+      <View
+        style={{
+          width: 48,
+          height: 48,
+          borderRadius: 24,
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: colors.bgElevated,
+          borderWidth: 1,
+          borderColor: colors.line,
+        }}
+      >
+        {busy ? <ActivityIndicator color={colors.accent} /> : icon}
+      </View>
+      <Text style={{ ...type.caption, color: colors.inkMuted, fontSize: 12 }}>
+        {label}
+      </Text>
+    </Pressable>
   );
 }
