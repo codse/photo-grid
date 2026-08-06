@@ -314,7 +314,7 @@ const styles = StyleSheet.create({
     transform: [{ translateY: 2 }],
   },
   plateShadow: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     top: LIP,
     backgroundColor: colors.ink,
     borderRadius: R,
@@ -410,7 +410,7 @@ const styles = StyleSheet.create({
     marginBottom: LIP,
   },
   ctaShadow: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     top: LIP,
     backgroundColor: '#C44A1F',
     borderRadius: 12,
