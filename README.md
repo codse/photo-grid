@@ -1,38 +1,39 @@
-# SheetFit
+# Passport Photo Print
 
-Passport / ID photo grid printer. Multi-person sheets, mixed sizes, per-cell drag crop. Everything stays local.
-
-Inspired by tools like [idphoto4you](https://www.idphoto4you.com/) / [passportgrid](https://www.passportgrid.com/) — offline, no upload.
+Passport / ID photo grid printer — Expo (iOS, Android, web). Multi-person sheets, mixed sizes, on-device processing. No uploads.
 
 ## Run
 
 ```bash
-cd photo-grid
 npm install
-npm run dev
+npx expo start
 ```
 
-## Features
+- **Web:** `npx expo start --web`
+- **iOS/Android (Vision Camera + on-device BG removal):** needs a **dev client** (not Expo Go):
 
-- Multiple people on one sheet (each with own photo + size)
-- Mixed sizes packed automatically (shelf packer — e.g. 35×45 + 2×2)
-- Per-cell drag to pan, scroll to zoom (independent crops)
-- Brightness / contrast per person
-- Paper presets: 3.5×5, 4×6, 5×7, A4, Letter, single photo, …
-- Fill sheet or exact copy counts
-- PNG / PDF @ 300 DPI + Print
-- PWA offline (`npm run build`)
+```bash
+npx expo prebuild
+npx expo run:ios
+# or
+npx expo run:android
+```
 
-## How to use multi-person
+## Flow
 
-1. **+ Add person** for each face
-2. Drop a photo on each card, set size (or custom mm)
-3. Optional: set **Min copies**; **Fill sheet** packs the rest round-robin
-4. Click a cell on the preview → drag to pan that cell only
-5. **Apply crop to all of X** if you want matching crops for one person
+1. Home: **Take photo** / **Choose from library** / **Tile ready photos** (skip crop)
+2. Soft size default — tap to change on `/size`
+3. Crop (optional), then sheet with exact copy count + cut guides
+4. Export PNG/PDF → print at **Actual size / Uncropped**
+5. **iOS/Android only:** exports also land in **Saved sheets** (`/saved`) for later revisit
 
-## Later
+## Architecture
 
-- Country picker like idphoto4you (73 standards)
-- Background remove / white backdrop
-- Expo mobile shell
+- `src/core` — pure TS (presets, shelf packer, crop math, units)
+- `src/platform/*.native.ts(x)` / `*.web.ts(x)` — camera, render, BG removal
+- `app/` — Expo Router screens only
+- On-device BG: Apple Vision + ML Kit via `rn-remove-image-bg` (not IMG.LY / no upload APIs)
+
+## Privacy
+
+Photos never leave the device. Background removal is optional and local — some agencies reject digitally altered photos.
