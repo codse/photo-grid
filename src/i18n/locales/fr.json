@@ -76,6 +76,8 @@
   },
   "settings": {
     "title": "Réglages",
+    "blurb": "Format d’impression, langue et mentions légales — hors ligne.",
+    "preferences": "Préférences",
     "language": "Langue",
     "legal": "Mentions légales",
     "about": "À propos",
@@ -83,7 +85,8 @@
     "terms": "Conditions d’utilisation",
     "disclaimer": "Avertissement",
     "on": "Actif",
-    "savedHint": "Les feuilles marquées sont dans Enregistrés"
+    "savedHint": "Les feuilles marquées sont dans Enregistrés",
+    "version": "Version {{version}}"
   },
   "common": {
     "cancel": "Annuler",

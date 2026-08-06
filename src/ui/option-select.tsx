@@ -46,6 +46,149 @@ function OptionIcon({
   );
 }
 
+/** Shared picker sheet — use with a custom trigger (e.g. ListRow). */
+export function OptionPickerModal({
+  visible,
+  value,
+  options,
+  onChange,
+  onClose,
+  title,
+}: {
+  visible: boolean;
+  value: string;
+  options: SelectOption[];
+  onChange: (id: string) => void;
+  onClose: () => void;
+  title: string;
+}) {
+  const { height: winH } = useWindowDimensions();
+
+  useEffect(() => {
+    if (!visible || Platform.OS !== 'web') return;
+    if (typeof window.addEventListener !== 'function') return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [visible, onClose]);
+
+  return (
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      onRequestClose={onClose}
+    >
+      <Pressable
+        accessibilityLabel="Dismiss"
+        onPress={onClose}
+        style={{
+          flex: 1,
+          backgroundColor: 'rgba(42, 33, 28, 0.28)',
+          justifyContent: 'center',
+          padding: space.xl,
+        }}
+      >
+        <View
+          onStartShouldSetResponder={() => true}
+          style={{
+            maxHeight: Math.min(winH * 0.7, 480),
+            backgroundColor: colors.bgElevated,
+            borderRadius: radii.lg,
+            borderCurve: 'continuous',
+            borderWidth: 1,
+            borderColor: colors.line,
+            overflow: 'hidden',
+            boxShadow: '0 16px 40px rgba(28,27,25,0.18)',
+          }}
+        >
+          <View
+            style={{
+              paddingHorizontal: space.lg,
+              paddingVertical: space.md,
+              borderBottomWidth: 1,
+              borderBottomColor: colors.line,
+            }}
+          >
+            <Text
+              style={{
+                ...type.caption,
+                color: colors.inkFaint,
+                textTransform: 'uppercase',
+                letterSpacing: 0.8,
+              }}
+            >
+              {title}
+            </Text>
+          </View>
+          <ScrollView keyboardShouldPersistTaps="handled">
+            {options.map((opt) => {
+              const isOn = opt.id === value;
+              return (
+                <Pressable
+                  key={opt.id}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: isOn }}
+                  onPress={() => {
+                    onChange(opt.id);
+                    onClose();
+                  }}
+                  style={({ pressed }) => ({
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: space.md,
+                    paddingVertical: 12,
+                    paddingHorizontal: space.lg,
+                    backgroundColor: isOn
+                      ? colors.accentSoft
+                      : pressed
+                        ? 'rgba(0,0,0,0.03)'
+                        : 'transparent',
+                  })}
+                >
+                  {opt.Icon ? (
+                    <View style={{ width: 22, alignItems: 'center' }}>
+                      <opt.Icon
+                        size={18}
+                        color={colors.accent}
+                        weight={isOn ? 'fill' : 'duotone'}
+                      />
+                    </View>
+                  ) : null}
+                  <View style={{ flex: 1, gap: 2, minWidth: 0 }}>
+                    <Text
+                      style={{
+                        ...type.body,
+                        fontFamily: fonts.medium,
+                        color: colors.ink,
+                        fontSize: 15,
+                      }}
+                    >
+                      {opt.label}
+                    </Text>
+                    {opt.detail ? (
+                      <Text
+                        style={{ ...type.caption, color: colors.inkFaint }}
+                      >
+                        {opt.detail}
+                      </Text>
+                    ) : null}
+                  </View>
+                  {isOn ? (
+                    <CheckIcon size={18} color={colors.accent} weight="bold" />
+                  ) : null}
+                </Pressable>
+              );
+            })}
+          </ScrollView>
+        </View>
+      </Pressable>
+    </Modal>
+  );
+}
+
 /**
  * Compact dropdown for lists longer than a few chips.
  * Trigger + modal menu (works on web + native).
@@ -58,17 +201,6 @@ export function OptionSelect({
 }: Props) {
   const [open, setOpen] = useState(false);
   const selected = options.find((o) => o.id === value) ?? options[0];
-  const { height: winH } = useWindowDimensions();
-
-  useEffect(() => {
-    if (!open || Platform.OS !== 'web') return;
-    if (typeof window.addEventListener !== 'function') return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setOpen(false);
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [open]);
 
   return (
     <View collapsable={false}>
@@ -120,116 +252,14 @@ export function OptionSelect({
         <CaretDownIcon size={16} color={colors.inkMuted} weight="bold" />
       </Pressable>
 
-      <Modal
+      <OptionPickerModal
         visible={open}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setOpen(false)}
-      >
-        <Pressable
-          accessibilityLabel="Dismiss"
-          onPress={() => setOpen(false)}
-          style={{
-            flex: 1,
-            backgroundColor: 'rgba(42, 33, 28, 0.28)',
-            justifyContent: 'center',
-            padding: space.xl,
-          }}
-        >
-          <View
-            style={{
-              maxHeight: Math.min(winH * 0.7, 480),
-              backgroundColor: colors.bgElevated,
-              borderRadius: radii.lg,
-              borderCurve: 'continuous',
-              borderWidth: 1,
-              borderColor: colors.line,
-              overflow: 'hidden',
-              boxShadow: '0 16px 40px rgba(28,27,25,0.18)',
-            }}
-          >
-            <View
-              style={{
-                paddingHorizontal: space.lg,
-                paddingVertical: space.md,
-                borderBottomWidth: 1,
-                borderBottomColor: colors.line,
-              }}
-            >
-              <Text
-                style={{
-                  ...type.caption,
-                  color: colors.inkFaint,
-                  textTransform: 'uppercase',
-                  letterSpacing: 0.8,
-                }}
-              >
-                {accessibilityLabel}
-              </Text>
-            </View>
-            <ScrollView keyboardShouldPersistTaps="handled">
-              {options.map((opt) => {
-                const isOn = opt.id === value;
-                return (
-                  <Pressable
-                    key={opt.id}
-                    accessibilityRole="button"
-                    accessibilityState={{ selected: isOn }}
-                    onPress={() => {
-                      onChange(opt.id);
-                      setOpen(false);
-                    }}
-                    style={({ pressed }) => ({
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      gap: space.md,
-                      paddingVertical: 12,
-                      paddingHorizontal: space.lg,
-                      backgroundColor: isOn
-                        ? colors.accentSoft
-                        : pressed
-                          ? 'rgba(0,0,0,0.03)'
-                          : 'transparent',
-                    })}
-                  >
-                    {opt.Icon ? (
-                      <View style={{ width: 22, alignItems: 'center' }}>
-                        <opt.Icon
-                          size={18}
-                          color={colors.accent}
-                          weight={isOn ? 'fill' : 'duotone'}
-                        />
-                      </View>
-                    ) : null}
-                    <View style={{ flex: 1, gap: 2, minWidth: 0 }}>
-                      <Text
-                        style={{
-                          ...type.body,
-                          fontFamily: fonts.medium,
-                          color: colors.ink,
-                          fontSize: 15,
-                        }}
-                      >
-                        {opt.label}
-                      </Text>
-                      {opt.detail ? (
-                        <Text
-                          style={{ ...type.caption, color: colors.inkFaint }}
-                        >
-                          {opt.detail}
-                        </Text>
-                      ) : null}
-                    </View>
-                    {isOn ? (
-                      <CheckIcon size={18} color={colors.accent} weight="bold" />
-                    ) : null}
-                  </Pressable>
-                );
-              })}
-            </ScrollView>
-          </View>
-        </Pressable>
-      </Modal>
+        value={value}
+        options={options}
+        onChange={onChange}
+        onClose={() => setOpen(false)}
+        title={accessibilityLabel}
+      />
     </View>
   );
 }

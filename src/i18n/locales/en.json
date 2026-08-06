@@ -76,6 +76,8 @@
   },
   "settings": {
     "title": "Settings",
+    "blurb": "Print size, language, and the fine print — all offline.",
+    "preferences": "Preferences",
     "language": "Language",
     "legal": "Legal",
     "about": "About",
@@ -83,7 +85,8 @@
     "terms": "Terms of Use",
     "disclaimer": "Disclaimer",
     "on": "On",
-    "savedHint": "Bookmarked sheets live in Saved"
+    "savedHint": "Bookmarked sheets live in Saved",
+    "version": "Version {{version}}"
   },
   "common": {
     "cancel": "Cancel",

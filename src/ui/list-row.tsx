@@ -4,7 +4,14 @@ import { CaretRightIcon } from 'phosphor-react-native/src/icons/CaretRight';
 import { colors, fonts, radii, space, type } from '@/ui/tokens';
 
 /** iOS-style inset grouped list container. */
-export function InsetGroup({ children }: { children: ReactNode }) {
+export function InsetGroup({
+  children,
+  /** Divider inset — use ~56 when rows have leading icons. */
+  dividerInset = 56,
+}: {
+  children: ReactNode;
+  dividerInset?: number;
+}) {
   const items = Children.toArray(children).filter(Boolean);
   return (
     <View
@@ -24,7 +31,7 @@ export function InsetGroup({ children }: { children: ReactNode }) {
               style={{
                 height: 1,
                 backgroundColor: colors.line,
-                marginLeft: 56,
+                marginLeft: dividerInset,
               }}
             />
           ) : null}

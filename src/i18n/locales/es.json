@@ -76,6 +76,8 @@
   },
   "settings": {
     "title": "Ajustes",
+    "blurb": "Tamaño de impresión, idioma y lo legal — todo offline.",
+    "preferences": "Preferencias",
     "language": "Idioma",
     "legal": "Legal",
     "about": "Acerca de",
@@ -83,7 +85,8 @@
     "terms": "Términos de uso",
     "disclaimer": "Aviso",
     "on": "Activo",
-    "savedHint": "Las hojas marcadas están en Guardados"
+    "savedHint": "Las hojas marcadas están en Guardados",
+    "version": "Versión {{version}}"
   },
   "common": {
     "cancel": "Cancelar",
