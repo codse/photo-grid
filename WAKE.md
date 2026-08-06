@@ -28,6 +28,9 @@ Agent worked overnight. **TestFlight is blocked until you unlock ASC + RevenueCa
    eas build --platform ios --profile production
    eas submit --platform ios --latest
    ```
+   Overnight attempt failed: **iOS credentials need interactive setup**
+   (`Credentials are not set up. Run this command again in interactive mode.`).
+   First run interactively once, then later builds can be non-interactive.
 
 ## Already shipped tonight
 
