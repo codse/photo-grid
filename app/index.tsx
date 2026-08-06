@@ -2,33 +2,40 @@ import { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Platform,
   Pressable,
   ScrollView,
   Text,
   View,
 } from 'react-native';
 import { Image } from 'expo-image';
+import { CameraType } from 'expo-image-picker';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { CaretRightIcon } from 'phosphor-react-native/src/icons/CaretRight';
 import { PHOTO_PRESETS, PAPER_PRESETS } from '@/core/presets';
 import { formatSize } from '@/core/units';
 import { useSession } from '@/state/session';
-import { pickFromLibrary } from '@/platform/media';
+import { pickFromCamera, pickFromLibrary } from '@/platform/media';
 import { listSavedSheets, SAVED_SHEETS_AVAILABLE } from '@/platform/saved-sheets';
 import type { SavedSheet } from '@/features/library/types';
 import { regionForPhotoId, REGIONS } from '@/features/sheet/size-catalog';
-import { labelForConfig } from '@/features/sheet/config-label';
-import { Button, ScreenIntro } from '@/ui/primitives';
-import { ActionTile } from '@/ui/action-tile';
+import { PresetRow } from '@/features/sheet/preset-row';
+import { Button } from '@/ui/primitives';
+import { InsetGroup, ListRow, SectionHeader } from '@/ui/list-row';
 import { CameraIcon, GridIcon, LibraryIcon } from '@/ui/icons';
 import { colors, fonts, radii, space, type } from '@/ui/tokens';
+import { ProOffer } from '@/monetization/pro-offer';
+import { AdBanner } from '@/monetization/ads';
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const photoId = useSession((s) => s.photoId);
   const paperId = useSession((s) => s.paperId);
-  const recentConfigs = useSession((s) => s.recentConfigs);
+  const savedPresets = useSession((s) => s.savedPresets);
   const applyConfig = useSession((s) => s.applyConfig);
+  const deletePreset = useSession((s) => s.deletePreset);
+  const renamePreset = useSession((s) => s.renamePreset);
   const setPersonUri = useSession((s) => s.setPersonUri);
   const subjects = useSession((s) => s.subjects);
   const activeId = useSession((s) => s.activePersonId ?? s.subjects[0]?.id);
@@ -38,14 +45,26 @@ export default function HomeScreen() {
 
   const activePhoto = PHOTO_PRESETS.find((p) => p.id === photoId);
   const paper = PAPER_PRESETS.find((p) => p.id === paperId);
-  const hasPhoto = subjects.some((s) => s.url);
+  const withPhoto = subjects.filter((s) => s.url);
+  const hasPhoto = withPhoto.length > 0;
   const regionLabel =
     REGIONS.find((r) => r.id === regionForPhotoId(photoId))?.label ?? '';
+
+  const sizeTitle = activePhoto?.label ?? 'Photo size';
+  const sizeDetail = [
+    activePhoto
+      ? `${Math.round(activePhoto.widthMm)}×${Math.round(activePhoto.heightMm)} mm`
+      : null,
+    paper?.id === '4x6' ? '4×6 in' : paper?.label,
+    regionLabel || null,
+  ]
+    .filter(Boolean)
+    .join(' · ');
 
   const refreshRecent = useCallback(async () => {
     try {
       const items = await listSavedSheets();
-      setRecent(items.slice(0, 4));
+      setRecent(items.slice(0, 6));
     } catch {
       setRecent([]);
     }
@@ -77,252 +96,298 @@ export default function HomeScreen() {
     }
   };
 
+  const takePhoto = async () => {
+    if (Platform.OS !== 'web') {
+      router.push('/camera');
+      return;
+    }
+    if (!activeId) return;
+    setBusy(true);
+    try {
+      const img =
+        (await pickFromCamera(CameraType.front)) ?? (await pickFromLibrary());
+      if (!img) {
+        Alert.alert(
+          'No photo',
+          'Camera was canceled or unavailable. On desktop, pick a file — or use your phone.',
+        );
+        return;
+      }
+      setPersonUri(activeId, img.uri, {
+        sourceName: img.fileName ?? img.uri,
+      });
+      router.push(`/person/${activeId}/crop`);
+    } catch (e) {
+      Alert.alert(
+        'Could not open camera',
+        e instanceof Error ? e.message : 'Unknown error',
+      );
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  /** Apply size/paper, then continue — pick photo or open the sheet. */
+  const usePreset = (cfg: (typeof savedPresets)[number]) => {
+    applyConfig(cfg);
+    if (hasPhoto) {
+      router.push('/sheet');
+      return;
+    }
+    Alert.alert('Add a photo', 'Preset is ready. Take or choose a photo next.', [
+      {
+        text: 'Take photo',
+        onPress: () => {
+          void takePhoto();
+        },
+      },
+      {
+        text: 'Photo Library',
+        onPress: () => {
+          void importToActive({ go: 'crop' });
+        },
+      },
+      { text: 'Cancel', style: 'cancel' },
+    ]);
+  };
+
   return (
-    <View style={{ flex: 1 }}>
+    <View style={{ flex: 1, backgroundColor: colors.bg }}>
       <ScrollView
         contentInsetAdjustmentBehavior="automatic"
         contentContainerStyle={{
-          padding: space.xl,
-          paddingTop: Math.max(insets.top, space.xl),
+          paddingHorizontal: space.xl,
+          paddingTop: Math.max(insets.top, space.lg),
+          paddingBottom: 64 + insets.bottom,
           gap: space.xl,
-          paddingBottom: 56,
         }}
       >
-        <ScreenIntro
-          title="Passport Photo Print"
-          body="Pack passport photos onto a pharmacy sheet. Offline · exact sizes · no uploads."
-        />
-
-        <View style={{ gap: space.sm }}>
-          <View style={{ flexDirection: 'row', gap: space.sm }}>
-            <ActionTile
-              label={busy ? 'Opening…' : 'Take photo'}
-              caption="Camera"
-              emphasis="primary"
-              disabled={busy}
-              icon={<CameraIcon color="#fff" size={24} />}
-              onPress={() => router.push('/camera')}
-            />
-            <ActionTile
-              label="Library"
-              caption="Crop next"
-              disabled={busy}
-              icon={<LibraryIcon color={colors.accent} size={24} />}
-              onPress={() => importToActive({ go: 'crop' })}
-            />
-          </View>
-          <ActionTile
-            label="Tile ready photos"
-            caption="Skip crop · go to sheet"
-            disabled={busy}
-            layout="row"
-            icon={<GridIcon color={colors.accent} size={22} />}
-            onPress={() => importToActive({ go: 'sheet' })}
-          />
+        {/* Large title — product name is the place, not a marketing block */}
+        <View style={{ gap: 6, paddingTop: space.sm }}>
+          <Text style={{ ...type.display, color: colors.ink }}>
+            Passport Photo Print
+          </Text>
+          <Text style={{ ...type.body, color: colors.inkMuted }}>
+            Exact sizes on a pharmacy sheet. Offline.
+          </Text>
         </View>
 
-        <View style={{ gap: space.sm }}>
+        {/* Progress first — Apple “Continue” pattern */}
+        {hasPhoto ? (
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="Change photo size or paper"
-            onPress={() => router.push('/size')}
-            style={{
-              padding: space.lg,
-              borderRadius: radii.md,
+            accessibilityLabel="Continue current sheet"
+            onPress={() => router.push('/sheet')}
+            style={({ pressed }) => ({
+              borderRadius: radii.lg,
               borderCurve: 'continuous',
-              backgroundColor: colors.bgElevated,
-              borderWidth: 1,
-              borderColor: colors.line,
-              gap: 4,
-            }}
+              backgroundColor: colors.accent,
+              padding: space.lg,
+              gap: space.md,
+              opacity: pressed ? 0.9 : 1,
+            })}
           >
-            <Text style={{ ...type.caption, color: colors.inkFaint }}>
-              Size · tap to change
-            </Text>
-            <Text
-              style={{
-                ...type.body,
-                fontFamily: fonts.semibold,
-                color: colors.ink,
-              }}
-            >
-              {activePhoto?.label ?? 'Photo size'}
-            </Text>
-            <Text style={{ ...type.caption, color: colors.inkMuted }}>
-              {activePhoto
-                ? formatSize(activePhoto.widthMm, activePhoto.heightMm)
-                : ''}
-              {' · '}
-              {paper?.id === '4x6' ? '4×6 in (pharmacy)' : paper?.label}
-              {regionLabel ? ` · ${regionLabel}` : ''}
-            </Text>
-          </Pressable>
-
-          {recentConfigs.length > 0 ? (
-            <View style={{ gap: space.sm }}>
-              <Text
-                style={{
-                  ...type.caption,
-                  color: colors.inkFaint,
-                  textTransform: 'uppercase',
-                  letterSpacing: 0.8,
-                }}
-              >
-                Recent
-              </Text>
-              <View
-                style={{ flexDirection: 'row', flexWrap: 'wrap', gap: space.sm }}
-              >
-                {recentConfigs.slice(0, 5).map((cfg) => {
-                  const selected =
-                    cfg.photoId === photoId && cfg.paperId === paperId;
-                  const { title, detail } = labelForConfig(cfg);
-                  return (
-                    <Pressable
-                      key={`${cfg.photoId}|${cfg.paperId}`}
-                      accessibilityRole="button"
-                      accessibilityState={{ selected }}
-                      accessibilityLabel={`${title}, ${detail}`}
-                      onPress={() => applyConfig(cfg)}
-                      style={{
-                        paddingVertical: 10,
-                        paddingHorizontal: 12,
-                        borderRadius: radii.sm,
-                        borderCurve: 'continuous',
-                        backgroundColor: selected
-                          ? colors.accent
-                          : colors.bgElevated,
-                        borderWidth: 1,
-                        borderColor: selected ? colors.accent : colors.line,
-                        maxWidth: '100%',
-                        gap: 2,
-                      }}
-                    >
-                      <Text
-                        numberOfLines={1}
-                        style={{
-                          ...type.caption,
-                          fontFamily: fonts.medium,
-                          color: selected ? '#fff' : colors.ink,
-                        }}
-                      >
-                        {title}
-                      </Text>
-                      <Text
-                        numberOfLines={1}
-                        style={{
-                          ...type.caption,
-                          fontSize: 12,
-                          color: selected
-                            ? 'rgba(255,255,255,0.75)'
-                            : colors.inkFaint,
-                        }}
-                      >
-                        {detail}
-                      </Text>
-                    </Pressable>
-                  );
-                })}
-              </View>
-            </View>
-          ) : null}
-        </View>
-
-        {hasPhoto ? (
-          <View style={{ gap: space.sm }}>
-            <Button
-              label="Continue current sheet"
-              variant="secondary"
-              onPress={() => router.push('/sheet')}
-            />
-          </View>
-        ) : null}
-
-        {SAVED_SHEETS_AVAILABLE ? (
-          <View style={{ gap: space.md }}>
             <View
               style={{
                 flexDirection: 'row',
-                justifyContent: 'space-between',
                 alignItems: 'center',
+                justifyContent: 'space-between',
               }}
             >
               <Text
                 style={{
                   ...type.caption,
-                  color: colors.inkFaint,
+                  color: 'rgba(255,255,255,0.7)',
                   textTransform: 'uppercase',
-                  letterSpacing: 0.8,
+                  letterSpacing: 0.6,
                 }}
               >
-                Saved sheets
+                In progress
               </Text>
-              <Pressable onPress={() => router.push('/saved')}>
-                <Text style={{ ...type.caption, color: colors.accent }}>
-                  Open all
-                </Text>
-              </Pressable>
+              <CaretRightIcon size={16} color="rgba(255,255,255,0.85)" weight="bold" />
             </View>
-
-            {recent.length === 0 ? (
-              <Text style={{ ...type.body, color: colors.inkMuted }}>
-                Saved sheets show up here after you export — revisit anytime.
-              </Text>
-            ) : (
-              <View style={{ gap: space.sm }}>
-                {recent.map((item) => (
-                  <Pressable
-                    key={item.id}
-                    onPress={() => router.push('/saved')}
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.md }}>
+              <View style={{ flexDirection: 'row', marginRight: 4 }}>
+                {withPhoto.slice(0, 3).map((s, i) => (
+                  <View
+                    key={s.id}
                     style={{
-                      flexDirection: 'row',
-                      gap: space.md,
-                      padding: space.md,
+                      width: 44,
+                      height: 56,
+                      borderRadius: 8,
+                      borderCurve: 'continuous',
+                      overflow: 'hidden',
+                      marginLeft: i === 0 ? 0 : -12,
+                      borderWidth: 2,
+                      borderColor: colors.accent,
+                      backgroundColor: 'rgba(255,255,255,0.2)',
+                    }}
+                  >
+                    {s.url ? (
+                      <Image
+                        source={{ uri: s.url }}
+                        style={{ width: '100%', height: '100%' }}
+                        contentFit="cover"
+                      />
+                    ) : null}
+                  </View>
+                ))}
+              </View>
+              <View style={{ flex: 1, gap: 2 }}>
+                <Text
+                  style={{
+                    ...type.body,
+                    fontFamily: fonts.semibold,
+                    color: '#fff',
+                  }}
+                >
+                  Continue sheet
+                </Text>
+                <Text
+                  style={{
+                    ...type.caption,
+                    color: 'rgba(255,255,255,0.72)',
+                  }}
+                >
+                  {withPhoto.length} photo{withPhoto.length === 1 ? '' : 's'} ·{' '}
+                  {sizeDetail}
+                </Text>
+              </View>
+            </View>
+          </Pressable>
+        ) : (
+          /* Empty: one clear primary — not a tile grid */
+          <View style={{ gap: space.md }}>
+            <Button
+              label={busy ? 'Opening…' : 'Take photo'}
+              disabled={busy}
+              icon={<CameraIcon color="#fff" size={20} />}
+              onPress={() => void takePhoto()}
+            />
+          </View>
+        )}
+
+        <View style={{ gap: space.sm }}>
+          <SectionHeader title={hasPhoto ? 'Add or replace' : 'Or start from'} />
+          <InsetGroup>
+            {hasPhoto ? (
+              <ListRow
+                title="Take photo"
+                subtitle="Camera"
+                disabled={busy}
+                icon={<CameraIcon color={colors.accent} size={18} />}
+                onPress={() => void takePhoto()}
+              />
+            ) : null}
+            <ListRow
+              title="Photo Library"
+              subtitle="Crop next"
+              disabled={busy}
+              icon={<LibraryIcon color={colors.accent} size={18} />}
+              onPress={() => importToActive({ go: 'crop' })}
+            />
+            <ListRow
+              title="Tile ready photos"
+              subtitle="Skip crop · go straight to sheet"
+              disabled={busy}
+              icon={<GridIcon color={colors.accent} size={18} />}
+              onPress={() => importToActive({ go: 'sheet' })}
+            />
+          </InsetGroup>
+        </View>
+
+        <View style={{ gap: space.sm }}>
+          <SectionHeader title="Print size" />
+          <InsetGroup>
+            <ListRow
+              title={sizeTitle}
+              subtitle={sizeDetail}
+              onPress={() => router.push('/size')}
+              accessory={
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                  <Text style={{ ...type.caption, color: colors.accent }}>Change</Text>
+                  <CaretRightIcon size={16} color={colors.inkFaint} weight="bold" />
+                </View>
+              }
+            />
+          </InsetGroup>
+        </View>
+
+        {Platform.OS !== 'web' ? <ProOffer variant="card" /> : null}
+
+        {/* Only surface Saved when there’s something to show */}
+        {SAVED_SHEETS_AVAILABLE && recent.length > 0 ? (
+          <View style={{ gap: space.sm }}>
+            <SectionHeader
+              title="Saved"
+              action={{ label: 'See all', onPress: () => router.push('/saved') }}
+            />
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{ gap: space.md, paddingRight: space.xl }}
+            >
+              {recent.map((item) => (
+                <Pressable
+                  key={item.id}
+                  onPress={() => router.push('/saved')}
+                  style={{ width: 112, gap: 8 }}
+                >
+                  <View
+                    style={{
+                      width: 112,
+                      height: 148,
                       borderRadius: radii.md,
                       borderCurve: 'continuous',
                       backgroundColor: colors.bgElevated,
                       borderWidth: 1,
                       borderColor: colors.line,
-                      alignItems: 'center',
+                      overflow: 'hidden',
                     }}
                   >
-                    <View
-                      style={{
-                        width: 52,
-                        height: 68,
-                        borderRadius: radii.sm,
-                        backgroundColor: colors.line,
-                        overflow: 'hidden',
-                      }}
-                    >
-                      <RecentThumb uri={item.uri} />
-                    </View>
-                    <View style={{ flex: 1, gap: 2 }}>
-                      <Text
-                        numberOfLines={1}
-                        style={{
-                          ...type.body,
-                          fontFamily: fonts.medium,
-                          color: colors.ink,
-                        }}
-                      >
-                        {item.title}
-                      </Text>
-                      <Text
-                        numberOfLines={1}
-                        style={{ ...type.caption, color: colors.inkMuted }}
-                      >
-                        {item.cellCount} photos · {item.paperLabel}
-                      </Text>
-                    </View>
-                  </Pressable>
-                ))}
-              </View>
-            )}
+                    <RecentThumb uri={item.uri} />
+                  </View>
+                  <Text
+                    numberOfLines={2}
+                    style={{
+                      ...type.caption,
+                      color: colors.inkMuted,
+                    }}
+                  >
+                    {item.cellCount} photos · {item.paperLabel}
+                  </Text>
+                </Pressable>
+              ))}
+            </ScrollView>
           </View>
         ) : null}
 
-        {busy ? <ActivityIndicator color={colors.accent} /> : null}
+        {Platform.OS !== 'web' ? (
+          <AdBanner style={{ marginTop: space.sm }} />
+        ) : null}
+
+        {savedPresets.length > 0 ? (
+          <View style={{ gap: space.sm }}>
+            <SectionHeader title="Your presets" />
+            <InsetGroup>
+              {savedPresets.map((cfg) => {
+                return (
+                  <PresetRow
+                    key={cfg.id}
+                    preset={cfg}
+                    onApply={() => usePreset(cfg)}
+                    onRename={(name) => renamePreset(cfg.id, name)}
+                    onDelete={() => deletePreset(cfg.id)}
+                  />
+                );
+              })}
+            </InsetGroup>
+          </View>
+        ) : null}
+
+        {busy ? (
+          <ActivityIndicator color={colors.accent} style={{ marginTop: space.sm }} />
+        ) : null}
       </ScrollView>
     </View>
   );
@@ -350,6 +415,10 @@ function RecentThumb({ uri }: { uri: string }) {
     return <View style={{ flex: 1, backgroundColor: colors.line }} />;
   }
   return (
-    <Image source={{ uri: src }} style={{ width: '100%', height: '100%' }} contentFit="cover" />
+    <Image
+      source={{ uri: src }}
+      style={{ width: '100%', height: '100%' }}
+      contentFit="cover"
+    />
   );
 }

@@ -1,6 +1,7 @@
 import { useEffect, useState, type ComponentType } from 'react';
 import {
   Modal,
+  Platform,
   Pressable,
   ScrollView,
   Text,
@@ -60,14 +61,13 @@ export function OptionSelect({
   const { height: winH } = useWindowDimensions();
 
   useEffect(() => {
-    if (!open) return;
+    if (!open || Platform.OS !== 'web') return;
+    if (typeof window.addEventListener !== 'function') return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setOpen(false);
     };
-    if (typeof window !== 'undefined') {
-      window.addEventListener('keydown', onKey);
-      return () => window.removeEventListener('keydown', onKey);
-    }
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
   }, [open]);
 
   return (
