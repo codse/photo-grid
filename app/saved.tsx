@@ -10,6 +10,7 @@ import {
 import { Image } from 'expo-image';
 import { Redirect, Stack, router } from 'expo-router';
 import { ImagesIcon } from 'phosphor-react-native/src/icons/Images';
+import { useTranslation } from 'react-i18next';
 import type { SavedSheet } from '@/features/library/types';
 import {
   SAVED_SHEETS_AVAILABLE,
@@ -22,6 +23,7 @@ import { Button } from '@/ui/primitives';
 import { colors, fonts, radii, space, type } from '@/ui/tokens';
 
 export default function SavedScreen() {
+  const { t } = useTranslation();
   const [items, setItems] = useState<SavedSheet[]>([]);
   const [loading, setLoading] = useState(true);
   const [thumbs, setThumbs] = useState<Record<string, string>>({});
@@ -55,7 +57,7 @@ export default function SavedScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ title: 'Saved' }} />
+      <Stack.Screen options={{ title: t('saved.title') }} />
       <ScrollView
         contentInsetAdjustmentBehavior="automatic"
         contentContainerStyle={{
@@ -118,7 +120,7 @@ export default function SavedScreen() {
                       await shareSavedSheet(item.uri);
                     } catch (e) {
                       Alert.alert(
-                        'Share failed',
+                        t('saved.shareFailed'),
                         e instanceof Error ? e.message : 'Unknown error',
                       );
                     }
@@ -131,15 +133,17 @@ export default function SavedScreen() {
                     alignItems: 'center',
                   }}
                 >
-                  <Text style={{ color: '#fff', fontWeight: '600' }}>Share</Text>
+                  <Text style={{ color: '#fff', fontWeight: '600' }}>
+                    {t('saved.share')}
+                  </Text>
                 </Pressable>
                 <Pressable
                   accessibilityRole="button"
                   onPress={() => {
-                    Alert.alert('Delete?', 'Remove this from Saved. Can’t undo.', [
-                      { text: 'Cancel', style: 'cancel' },
+                    Alert.alert(t('saved.deleteTitle'), t('saved.deleteBody'), [
+                      { text: t('saved.cancel'), style: 'cancel' },
                       {
-                        text: 'Delete',
+                        text: t('saved.delete'),
                         style: 'destructive',
                         onPress: () => {
                           void (async () => {
@@ -159,7 +163,7 @@ export default function SavedScreen() {
                   }}
                 >
                   <Text style={{ color: colors.danger, fontWeight: '600' }}>
-                    Delete
+                    {t('saved.delete')}
                   </Text>
                 </Pressable>
               </View>
@@ -172,6 +176,7 @@ export default function SavedScreen() {
 }
 
 function SavedEmpty() {
+  const { t } = useTranslation();
   return (
     <View
       style={{
@@ -193,7 +198,7 @@ function SavedEmpty() {
             textAlign: 'center',
           }}
         >
-          Nothing saved yet
+          {t('saved.emptyTitle')}
         </Text>
         <Text
           style={{
@@ -202,11 +207,11 @@ function SavedEmpty() {
             textAlign: 'center',
           }}
         >
-          Tap the bookmark on Export when you want to keep a sheet here.
+          {t('saved.emptyBody')}
         </Text>
       </View>
       <Button
-        label="Make a sheet"
+        label={t('saved.makeSheet')}
         icon={<ImagesIcon size={18} color="#fff" weight="bold" />}
         onPress={() => router.replace('/')}
       />

@@ -6,6 +6,7 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import { Stack, router } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { PeopleStrip } from '@/features/people/people-strip';
 import { CroppedImagePreview } from '@/features/sheet/cropped-image-preview';
 import {
@@ -33,6 +34,7 @@ export default function SheetScreen() {
 }
 
 function SheetBody() {
+  const { t } = useTranslation();
   const { width: winW } = useWindowDimensions();
   const wide = winW >= WIDE_MIN;
   const subjects = useSession((s) => s.subjects);
