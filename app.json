@@ -1,6 +1,11 @@
 {
+  "react-native-google-mobile-ads": {
+    "android_app_id": "ca-app-pub-3859855802547804~6624257573",
+    "ios_app_id": "ca-app-pub-3940256099942544~1458002511"
+  },
   "expo": {
     "name": "Passport Photo Print",
+    "owner": "codse",
     "slug": "passport-photo-print",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -15,15 +20,29 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.codse.passportphotoprint",
+      "bundleIdentifier": "com.codse.passport.photo.print",
+      "appleTeamId": "53WLLK8L87",
       "infoPlist": {
         "NSCameraUsageDescription": "Passport Photo Print needs the camera to take passport and ID photos.",
         "NSPhotoLibraryUsageDescription": "Passport Photo Print needs photo library access to import and save ID photos.",
-        "NSPhotoLibraryAddUsageDescription": "Passport Photo Print saves printable photo sheets to your library."
+        "NSPhotoLibraryAddUsageDescription": "Passport Photo Print saves printable photo sheets to your library.",
+        "ITSAppUsesNonExemptEncryption": false,
+        "GADApplicationIdentifier": "ca-app-pub-3940256099942544~1458002511",
+        "UIApplicationSceneManifest": {
+          "UIApplicationSupportsMultipleScenes": false,
+          "UISceneConfigurations": {
+            "UIWindowSceneSessionRoleApplication": [
+              {
+                "UISceneConfigurationName": "Default Configuration",
+                "UISceneDelegateClassName": "$(PRODUCT_MODULE_NAME).SceneDelegate"
+              }
+            ]
+          }
+        }
       }
     },
     "android": {
-      "package": "com.codse.passportphotoprint",
+      "package": "com.codse.passport.photo.print",
       "adaptiveIcon": {
         "backgroundColor": "#FFFCF9",
         "foregroundImage": "./assets/android-icon-foreground.png",
@@ -34,7 +53,11 @@
         "android.permission.CAMERA",
         "android.permission.READ_MEDIA_IMAGES",
         "android.permission.READ_EXTERNAL_STORAGE",
-        "android.permission.WRITE_EXTERNAL_STORAGE"
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.READ_MEDIA_VISUAL_USER_SELECTED",
+        "android.permission.READ_MEDIA_VIDEO",
+        "android.permission.READ_MEDIA_AUDIO"
       ]
     },
     "web": {
@@ -68,11 +91,23 @@
       ],
       "expo-image",
       "expo-sharing",
-      "rn-remove-image-bg",
-      "expo-splash-screen"
+      "expo-splash-screen",
+      [
+        "react-native-google-mobile-ads",
+        {
+          "androidAppId": "ca-app-pub-3859855802547804~6624257573",
+          "iosAppId": "ca-app-pub-3940256099942544~1458002511"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "086260f6-73c5-4094-ae95-40b451b7946a"
+      }
     }
   }
 }
