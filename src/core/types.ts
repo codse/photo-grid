@@ -1,16 +1,36 @@
+export type CropRotation = 0 | 90 | 180 | 270;
+
 export type CropState = {
   /** Pan offset as fraction of overflow (0.5 = centered) */
   offsetX: number;
   offsetY: number;
   /** Zoom: 1 = cover fit, >1 zooms in */
   zoom: number;
+  /** Display/export orientation — not baked into the file. */
+  rotation: CropRotation;
+  /** Horizontal mirror after rotation. */
+  flipH: boolean;
 };
 
 export const DEFAULT_CROP: CropState = {
   offsetX: 0.5,
   offsetY: 0.5,
   zoom: 1,
+  rotation: 0,
+  flipH: false,
 };
+
+export function normalizeCrop(crop: Partial<CropState> | CropState): CropState {
+  const rotation = crop.rotation;
+  return {
+    offsetX: crop.offsetX ?? 0.5,
+    offsetY: crop.offsetY ?? 0.5,
+    zoom: crop.zoom ?? 1,
+    rotation:
+      rotation === 90 || rotation === 180 || rotation === 270 ? rotation : 0,
+    flipH: !!crop.flipH,
+  };
+}
 
 export type Adjustments = {
   brightness: number; // 1 = normal, range ~0.4–1.8

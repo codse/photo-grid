@@ -9,13 +9,15 @@ import { packSubjects } from '@/core/layout';
 import {
   DEFAULT_ADJUST,
   DEFAULT_CROP,
+  normalizeCrop,
   type Adjustments,
   type CropState,
   type Subject,
   uid,
 } from '@/core/types';
 import type { ConfigSnapshot } from '@/platform/prefs';
-import { pushRecentConfig } from '@/platform/prefs';
+import { newPresetId, upsertPreset } from '@/platform/prefs';
+import { defaultPresetName } from '@/features/sheet/config-label';
 
 export type PackMode = 'exact' | 'fill';
 export type Orientation = 'auto' | 'portrait' | 'landscape';
@@ -23,7 +25,7 @@ export type Orientation = 'auto' | 'portrait' | 'landscape';
 type Prefs = {
   photoId: string;
   paperId: string;
-  recentConfigs?: ConfigSnapshot[];
+  savedPresets?: ConfigSnapshot[];
 };
 
 type SessionState = {
@@ -37,14 +39,20 @@ type SessionState = {
   marginMm: number;
   cutGuides: boolean;
   prefsHydrated: boolean;
-  recentConfigs: ConfigSnapshot[];
+  savedPresets: ConfigSnapshot[];
 
   hydratePrefs: (prefs: Prefs) => void;
   setPhotoPreset: (photoId: string) => void;
   setPaperPreset: (paperId: string) => void;
   applyConfig: (config: ConfigSnapshot) => void;
-  /** Call after a successful export — only then we remember the combo. */
+  /** Persist current sheet options as a named preset. */
+  saveNamedPreset: (name: string) => ConfigSnapshot;
+  renamePreset: (id: string, name: string) => void;
+  deletePreset: (id: string) => void;
+  /** After export — upsert current settings under an auto name if new. */
   recordExportedConfig: () => void;
+  /** Clear working photos after save/share — ends the home “In progress” card. */
+  completeSheet: () => void;
   setPackMode: (mode: PackMode) => void;
   setOrientation: (o: Orientation) => void;
   setGapMm: (mm: number) => void;
@@ -103,15 +111,16 @@ export const useSession = create<SessionState>((set, get) => ({
   marginMm: 3,
   cutGuides: true,
   prefsHydrated: false,
-  recentConfigs: [],
+  savedPresets: [],
 
   hydratePrefs: (prefs) => {
     const size = sizeFromPhotoId(prefs.photoId);
+    const presets = prefs.savedPresets ?? [];
     set((s) => ({
       prefsHydrated: true,
       photoId: prefs.photoId,
       paperId: prefs.paperId,
-      recentConfigs: prefs.recentConfigs ?? [],
+      savedPresets: presets,
       subjects: s.subjects.map((sub, i) =>
         i === 0 && !sub.url
           ? { ...sub, widthMm: size.widthMm, heightMm: size.heightMm }
@@ -139,6 +148,11 @@ export const useSession = create<SessionState>((set, get) => ({
     set((s) => ({
       photoId: config.photoId,
       paperId: config.paperId,
+      packMode: config.packMode ?? 'fill',
+      orientation: config.orientation ?? 'auto',
+      gapMm: config.gapMm ?? 2,
+      marginMm: config.marginMm ?? 3,
+      cutGuides: config.cutGuides ?? true,
       subjects: s.subjects.map((sub) =>
         sub.id === (s.activePersonId ?? s.subjects[0]?.id)
           ? { ...sub, widthMm: size.widthMm, heightMm: size.heightMm }
@@ -147,10 +161,85 @@ export const useSession = create<SessionState>((set, get) => ({
     }));
   },
 
+  saveNamedPreset: (name) => {
+    const trimmed = name.trim().slice(0, 48) || 'Preset';
+    const s = get();
+    const preset: ConfigSnapshot = {
+      id: newPresetId(),
+      name: trimmed,
+      photoId: s.photoId,
+      paperId: s.paperId,
+      packMode: s.packMode,
+      orientation: s.orientation,
+      gapMm: s.gapMm,
+      marginMm: s.marginMm,
+      cutGuides: s.cutGuides,
+      savedAt: Date.now(),
+    };
+    set({ savedPresets: upsertPreset(s.savedPresets, preset) });
+    return preset;
+  },
+
+  renamePreset: (id, name) => {
+    const trimmed = name.trim().slice(0, 48);
+    if (!trimmed) return;
+    set((s) => ({
+      savedPresets: s.savedPresets.map((p) =>
+        p.id === id ? { ...p, name: trimmed, savedAt: Date.now() } : p,
+      ),
+    }));
+  },
+
+  deletePreset: (id) => {
+    set((s) => ({
+      savedPresets: s.savedPresets.filter((p) => p.id !== id),
+    }));
+  },
+
   recordExportedConfig: () => {
-    const { photoId, paperId, recentConfigs } = get();
+    const s = get();
+    const existing = s.savedPresets.find(
+      (p) =>
+        p.photoId === s.photoId &&
+        p.paperId === s.paperId &&
+        (p.packMode ?? 'fill') === s.packMode &&
+        (p.orientation ?? 'auto') === s.orientation,
+    );
+    if (existing) {
+      // Bump to front without renaming.
+      set({
+        savedPresets: upsertPreset(s.savedPresets, {
+          ...existing,
+          gapMm: s.gapMm,
+          marginMm: s.marginMm,
+          cutGuides: s.cutGuides,
+          savedAt: Date.now(),
+        }),
+      });
+      return;
+    }
+    // Auto-capture unnamed export as a preset with a generated label.
+    const preset: ConfigSnapshot = {
+      id: newPresetId(),
+      name: defaultPresetName({ photoId: s.photoId, paperId: s.paperId }),
+      photoId: s.photoId,
+      paperId: s.paperId,
+      packMode: s.packMode,
+      orientation: s.orientation,
+      gapMm: s.gapMm,
+      marginMm: s.marginMm,
+      cutGuides: s.cutGuides,
+      savedAt: Date.now(),
+    };
+    set({ savedPresets: upsertPreset(s.savedPresets, preset) });
+  },
+
+  completeSheet: () => {
+    const { photoId } = get();
+    const fresh = newSubject('Person 1', photoId);
     set({
-      recentConfigs: pushRecentConfig(recentConfigs, { photoId, paperId }),
+      subjects: [fresh],
+      activePersonId: fresh.id,
     });
   },
 
@@ -273,7 +362,7 @@ export const useSession = create<SessionState>((set, get) => ({
   setPersonCrop: (id, crop) =>
     set((s) => ({
       subjects: s.subjects.map((sub) =>
-        sub.id === id ? { ...sub, crop } : sub,
+        sub.id === id ? { ...sub, crop: normalizeCrop(crop) } : sub,
       ),
     })),
 

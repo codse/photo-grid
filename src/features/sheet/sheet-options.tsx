@@ -1,5 +1,15 @@
 import { useState } from 'react';
-import { Pressable, Switch, Text, View } from 'react-native';
+import {
+  Modal,
+  Pressable,
+  ScrollView,
+  Switch,
+  Text,
+  View,
+  useWindowDimensions,
+} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SlidersHorizontalIcon } from 'phosphor-react-native/src/icons/SlidersHorizontal';
 import { PHOTO_PRESETS } from '@/core/presets';
 import { formatSize } from '@/core/units';
 import { MmStepper } from '@/features/sheet/mm-stepper';
@@ -10,6 +20,7 @@ import {
   useSession,
   type Orientation,
 } from '@/state/session';
+import { SavePresetButton } from '@/features/sheet/save-preset-button';
 import { Chip, SectionLabel } from '@/ui/primitives';
 import { colors, fonts, radii, space, type } from '@/ui/tokens';
 
@@ -31,8 +42,8 @@ export function useSheetOptionsSummary() {
     : 'Photo';
   const paperBit =
     paper.id === '4x6' ? '4×6 in' : formatSize(paper.widthMm, paper.heightMm);
-  const packBit = packMode === 'fill' ? 'auto fill' : 'custom count';
-  return `${packBit} · ${photoBit} · ${paperBit} · ${marginMm} mm margin`;
+  const packBit = packMode === 'fill' ? 'Auto fill' : 'Custom count';
+  return { packBit, photoBit, paperBit, marginMm, line: `${packBit} · ${photoBit} · ${paperBit}` };
 }
 
 /** Full customize body — packing + photo/paper + geometry. */
@@ -109,79 +120,151 @@ export function SheetOptionsBody() {
   );
 }
 
-/** Collapsed-by-default accordion for phones. */
-export function SheetOptionsAccordion({
-  defaultOpen = false,
-}: {
-  defaultOpen?: boolean;
-}) {
-  const [open, setOpen] = useState(defaultOpen);
-  const summary = useSheetOptionsSummary();
-
+/** Header / toolbar control — Photos-style entry to customize. */
+export function CustomizeHeaderButton({ onPress }: { onPress: () => void }) {
   return (
-    <View
-      style={{
-        borderRadius: radii.lg,
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel="Customize sheet"
+      onPress={onPress}
+      hitSlop={8}
+      style={({ pressed }) => ({
+        width: 36,
+        height: 36,
+        borderRadius: 18,
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: pressed ? colors.accentSoft : 'rgba(28,27,25,0.06)',
+      })}
+    >
+      <SlidersHorizontalIcon size={20} color={colors.ink} weight="bold" />
+    </Pressable>
+  );
+}
+
+/**
+ * Compact summary under the preview — one line, opens the sheet.
+ * Keeps customize reachable without eating the first viewport.
+ */
+export function CustomizeSummaryBar({ onPress }: { onPress: () => void }) {
+  const { line, marginMm } = useSheetOptionsSummary();
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel="Customize sheet"
+      onPress={onPress}
+      style={({ pressed }) => ({
+        alignSelf: 'stretch',
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: space.sm,
+        paddingVertical: 10,
+        paddingHorizontal: 14,
+        borderRadius: radii.md,
         borderCurve: 'continuous',
+        backgroundColor: pressed ? colors.accentSoft : colors.bgElevated,
         borderWidth: 1,
         borderColor: colors.line,
-        backgroundColor: colors.bgElevated,
-        overflow: 'hidden',
-      }}
+      })}
     >
-      <Pressable
-        accessibilityRole="button"
-        accessibilityState={{ expanded: open }}
-        onPress={() => setOpen((v) => !v)}
-        style={({ pressed }) => ({
-          padding: space.lg,
-          gap: 4,
-          opacity: pressed ? 0.85 : 1,
-        })}
+      <SlidersHorizontalIcon size={16} color={colors.accent} weight="bold" />
+      <Text
+        numberOfLines={1}
+        style={{
+          ...type.caption,
+          color: colors.inkMuted,
+          flex: 1,
+        }}
+      >
+        {line} · {marginMm} mm
+      </Text>
+      <Text style={{ ...type.caption, color: colors.accent, fontWeight: '600' }}>
+        Edit
+      </Text>
+    </Pressable>
+  );
+}
+
+/** Bottom / form sheet — Apple Photos “Adjust” pattern. */
+export function CustomizeSheet({
+  visible,
+  onClose,
+}: {
+  visible: boolean;
+  onClose: () => void;
+}) {
+  const insets = useSafeAreaInsets();
+  const { height } = useWindowDimensions();
+
+  return (
+    <Modal
+      visible={visible}
+      animationType="slide"
+      presentationStyle="pageSheet"
+      onRequestClose={onClose}
+    >
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: colors.bg,
+          paddingTop: space.lg,
+          maxHeight: height,
+        }}
       >
         <View
           style={{
             flexDirection: 'row',
             alignItems: 'center',
             justifyContent: 'space-between',
-            gap: space.md,
+            paddingHorizontal: space.xl,
+            paddingBottom: space.md,
+            borderBottomWidth: 1,
+            borderBottomColor: colors.line,
           }}
         >
           <Text
             style={{
-              ...type.body,
-              fontFamily: fonts.semibold,
+              ...type.title,
+              fontSize: 20,
               color: colors.ink,
             }}
           >
             Customize
           </Text>
-          <Text style={{ ...type.caption, color: colors.accent }}>
-            {open ? 'Hide' : 'Edit'}
-          </Text>
+          <Pressable onPress={onClose} hitSlop={10}>
+            <Text
+              style={{
+                ...type.body,
+                fontFamily: fonts.semibold,
+                color: colors.accent,
+              }}
+            >
+              Done
+            </Text>
+          </Pressable>
         </View>
-        <Text style={{ ...type.caption, color: colors.inkMuted }}>{summary}</Text>
-      </Pressable>
-      {open ? (
-        <View
-          style={{
-            paddingHorizontal: space.lg,
-            paddingBottom: space.lg,
-            borderTopWidth: 1,
-            borderTopColor: colors.line,
-            paddingTop: space.lg,
+        <ScrollView
+          contentContainerStyle={{
+            padding: space.xl,
+            paddingBottom: Math.max(insets.bottom, space.xl) + space.lg,
+            gap: space.lg,
           }}
         >
+          <Text style={{ ...type.caption, color: colors.inkMuted }}>
+            Size, paper, packing, and guides. Preview updates as you change
+            them.
+          </Text>
           <SheetOptionsBody />
-        </View>
-      ) : null}
-    </View>
+          <SavePresetButton />
+        </ScrollView>
+      </View>
+    </Modal>
   );
 }
 
 /** Always-visible sidebar for tablet / wide web. */
 export function SheetOptionsSidebar() {
-  const summary = useSheetOptionsSummary();
+  const { line } = useSheetOptionsSummary();
   return (
     <View
       style={{
@@ -208,9 +291,10 @@ export function SheetOptionsSidebar() {
         >
           Customize
         </Text>
-        <Text style={{ ...type.caption, color: colors.inkMuted }}>{summary}</Text>
+        <Text style={{ ...type.caption, color: colors.inkMuted }}>{line}</Text>
       </View>
       <SheetOptionsBody />
+      <SavePresetButton />
     </View>
   );
 }
