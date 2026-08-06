@@ -1,54 +1,48 @@
-# Morning checklist — Passport Photo Print
+# Morning / unblock checklist
 
-Agent worked overnight. **TestFlight is blocked until you unlock ASC + RevenueCat keys.**
+## Blockers right now
 
-## Do this first (interactive — needs you)
+### 1. App Store Connect web session (blocks app create)
+- Bundle ID **already exists**: `com.codse.passport.photo.print` (`ZUYP8U28XN`)
+- ASC **API cannot create apps** (`CREATE` forbidden) — must use web:
+  ```bash
+  ASC_WEB_PASSWORD='…' asc web auth login --apple-id developer@codse.com
+  # then 2FA when prompted
+  asc web apps create \
+    --name "Passport Photo Print" \
+    --bundle-id "com.codse.passport.photo.print" \
+    --sku "PASSPORT_PHOTO_PRINT" \
+    --primary-locale "en-US"
+  ```
+- Collaborative browser was on the **login** screen (not logged in). Apple also shows **ASC maintenance** on RevenueCat.
+- Cached `~/.asc/web` session is **expired** (Aug 4).
 
-1. **Apple web login** (app create requires web session, not just API key):
-   ```bash
-   asc web auth login --apple-id developer@codse.com
-   ```
-2. **Create ASC app**:
-   ```bash
-   asc web apps create \
-     --name "Passport Photo Print" \
-     --bundle-id "com.codse.passport.photo.print" \
-     --sku "PASSPORT_PHOTO_PRINT" \
-     --primary-locale "en-US"
-   ```
-3. **Create IAP** (non-consumable, `$4.99`):
-   - Product id: `com.codse.passport.photo.print.lifetime`
-   - Or: `./scripts/setup-asc-lifetime.sh` if env is set
-4. **RevenueCat**
-   - Run `./scripts/setup-revenuecat.sh` with `REVENUECAT_*` env
-   - Put public iOS key in `.env`:
-     `EXPO_PUBLIC_REVENUECAT_IOS_API_KEY=appl_...`
-5. **EAS → TestFlight**
-   ```bash
-   eas build --platform ios --profile production
-   eas submit --platform ios --latest
-   ```
-   Overnight attempt failed: **iOS credentials need interactive setup**
-   (`Credentials are not set up. Run this command again in interactive mode.`).
-   First run interactively once, then later builds can be non-interactive.
+### 2. After ASC app exists
+```bash
+APP_ID=<numeric> ./scripts/setup-asc-lifetime.sh
+```
 
-## Already shipped tonight
+### 3. RevenueCat (dashboard is logged in)
+- Projects: Affirmation / Animata / Sisu — **no Passport project yet**
+- Affirmation public iOS key (for reference only — **do not reuse** for Passport):
+  - `appl_fAFWTBaTpffkTMhpfaHaqPxmnXu`
+- Sisu public iOS key (also wrong bundle):
+  - `appl_YUJTZKZgbvuFufXYjWUqMUjMHSU`
+- Create a **new RC project** “Passport Photo Print” → Add App Store app with  
+  `com.codse.passport.photo.print` → copy `appl_…` into:
+  - local `.env` → `EXPO_PUBLIC_REVENUECAT_IOS_API_KEY`
+  - EAS production env
+- Entitlement: `pro`  
+- Product: `com.codse.passport.photo.print.lifetime` (lifetime package on Current offering)
 
-- Keep **RevenueCat** for the single lifetime IAP (restore + entitlement + price)
-- Legal: About / Privacy / Terms / Disclaimer + Settings gear
-- i18n: `en`, `en-GB`, `pt`, `ne`, `hi`, `es`, `fr` (home, Pro, settings, saved)
-- BACKLOG updated — sheet crop preview gap is **done**
-- Commits pushed to `main`
+### 4. EAS credentials (interactive once)
+```bash
+eas build --platform ios --profile production
+```
 
-## Still open (product gaps)
+## Legal pages
+- **Embedded in-app** routes stay: `/about` `/privacy` `/terms` `/disclaimer` (also work on Expo web).
+- CODSE website legal can stay the canonical marketing URLs later; app uses local docs so offline / review works.
 
-- Multi-select Tile ready
-- Custom mm size
-- Face / head guides
-- Wire remaining screens fully to i18n (export, sheet, crop, camera, size)
-- Native crop-canvas filters parity
-- Tests
-
-## IAP: RC vs native?
-
-**Keep RevenueCat.** One SKU is simple enough for StoreKit alone, but RC is already wired and buys you restore, live price, and ads gating without receipt glue.
+## IAP decision (unchanged)
+Keep **RevenueCat** for the one-time Lifetime unlock.

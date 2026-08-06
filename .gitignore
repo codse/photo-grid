@@ -1,42 +1,35 @@
-# Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
-
-# dependencies
-node_modules/
 
 # Expo
-.expo/
-dist/
-web-build/
-expo-env.d.ts
-
+# Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
+# Metro
 # Native
-ios/
-android/
+# debug
+# dependencies
+# legacy vite dump (temporary)
+# local env
+# macOS
+# typescript
 *.jks
-*.p8
-*.p12
 *.key
 *.mobileprovision
 *.orig.*
-
-# Metro
+*.p12
+*.p8
+*.pem
+*.tsbuildinfo
+.DS_Store
+.env
+.env*.local
+.expo/
+.gitignore.tmp
+.legacy-web/
 .metro-health-check*
-
-# debug
+android/
+dist/
+expo-env.d.ts
+ios/
+node_modules/
 npm-debug.*
+web-build/
 yarn-debug.*
 yarn-error.*
-
-# macOS
-.DS_Store
-*.pem
-
-# local env
-.env*.local
-
-# typescript
-*.tsbuildinfo
-
-# legacy vite dump (temporary)
-.legacy-web/
-.gitignore.tmp
