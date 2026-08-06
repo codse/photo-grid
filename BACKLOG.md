@@ -1,30 +1,48 @@
 # Passport Photo Print — backlog
 
-Shippable chunks to pick up later. Not a commitment order — grab whatever’s highest leverage.
+Shippable chunks. Checkmarks = done in product.
+
+## Progress vs old “real product gaps”
+
+| Gap | Status |
+|-----|--------|
+| Sheet/export preview ignores crop | **Done** — sheet uses `CroppedImagePreview` / `AdjustedCropImage` |
+| Native adjust preview on crop | Partial — Adjust modal + export; crop canvas filters still web-first |
+| Multi-select “Tile ready” | Open |
+| Custom mm size | Open |
+| Face / eye-line / head-height guides | Open |
+| Monetization (Pro / ads) | **In app** — RevenueCat wired; ASC IAP + RC keys still needed |
+| EAS profiles | **Done** (`eas.json`) |
+| TestFlight / Play | **Blocked** — no ASC app record yet; needs `asc web auth login` |
+| Privacy / Terms / About | In progress |
+| i18n | In progress |
+| Screenshots / ASO | Open |
+| Packer / crop-math tests | Open |
+| BG→white flatten quality | Open |
+| Onboarding depth | Open |
+
+## IAP decision
+
+**Use RevenueCat** (already integrated), not raw StoreKit-only.
+
+- One $4.99 lifetime is simple enough for native IAP alone.
+- RC still wins here: restore, entitlement cache for ads gate, live `priceString`, dashboard, less receipt glue.
+- Keep native product id `com.codse.passport.photo.print.lifetime` + entitlement `pro`.
+
+Blocked until:
+1. ASC app exists for `com.codse.passport.photo.print`
+2. Non-consumable IAP created + Paid Apps agreement
+3. RC product + offering + `EXPO_PUBLIC_REVENUECAT_IOS_API_KEY`
 
 ## Next big chunks
 
 ### i18n / translations
-Refactor the whole app for localization, then ship at least:
-
-- English (`en`)
-- Hindi (`hi`)
-- Spanish (`es`)
-- French (`fr`)
-- Portuguese (`pt`)
-- Nepali (`ne`)
-
-Likely stack for Expo: `expo-localization` + `i18next` / `react-i18next` (or `expo-router`–friendly equivalent). Extract all user-facing strings (screens, alerts, a11y labels, presets, App Store metadata later). Support RTL only if we add Arabic later — none of the v1 locales need it.
+Locales: `en` (US), `en-GB`, `pt`, `ne`, `hi`, `es`, `fr`.
 
 ### Multi-select “Tile ready” → sheet
-Pick several library photos at once and land on the sheet without per-person crop first.
-
 ### Custom mm size
-Manual width × height entry beyond presets.
-
 ### Face / head compliance guides
-Passport-style head-size / eye-line overlays on crop (and maybe camera).
 
 ## Notes
-- Saved **presets** = named print configs (size/paper/packing). Saved **sheets** = exported PNG archives. Don’t conflate.
-- Prefer platform files (`.native` / `.web`) over `.ts` stubs that re-export web — Metro can ship the wrong UI.
+- Saved **presets** = named print configs. **Saved** = bookmarked sheet PNGs.
+- Prefer `.native` / `.web` over ambiguous `.ts` re-exports.
