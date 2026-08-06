@@ -1,24 +1,24 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
-  Platform,
   ScrollView,
   Text,
   View,
   useWindowDimensions,
 } from 'react-native';
-import { Image } from 'expo-image';
-import { router } from 'expo-router';
+import { Stack, router } from 'expo-router';
 import { PeopleStrip } from '@/features/people/people-strip';
+import { CroppedImagePreview } from '@/features/sheet/cropped-image-preview';
 import {
-  SheetOptionsAccordion,
+  CustomizeHeaderButton,
+  CustomizeSheet,
+  CustomizeSummaryBar,
   SheetOptionsSidebar,
 } from '@/features/sheet/sheet-options';
-import { cssFilter, hasAdjustments } from '@/core/adjust-filter';
 import { packSubjects } from '@/core/layout';
 import { formatSize } from '@/core/units';
 import { getPaperSize, useSession } from '@/state/session';
 import { loadImageSource, type ImageSource } from '@/platform/render-sheet';
-import { Button, ScreenIntro } from '@/ui/primitives';
+import { Button } from '@/ui/primitives';
 import { colors, radii, space, type } from '@/ui/tokens';
 import { RequirePhoto } from '@/features/session/require-photo';
 
@@ -42,6 +42,7 @@ function SheetBody() {
   const gapMm = useSession((s) => s.gapMm);
   const marginMm = useSession((s) => s.marginMm);
   const cutGuides = useSession((s) => s.cutGuides);
+  const [customizeOpen, setCustomizeOpen] = useState(false);
 
   const paper = getPaperSize(paperId);
   const [images, setImages] = useState<Map<string, ImageSource>>(new Map());
@@ -85,15 +86,10 @@ function SheetBody() {
   const previewH =
     previewW * (layout.paperHeightMm / Math.max(layout.paperWidthMm, 1));
 
+  const openCustomize = () => setCustomizeOpen(true);
+
   const primary = (
     <View style={{ gap: space.lg, flex: 1, minWidth: 0 }}>
-      <ScreenIntro
-        title="Print sheet"
-        body="Preview updates live. Packing (auto fill or Need N) lives with size & paper in Customize."
-      />
-
-      {!wide ? <SheetOptionsAccordion defaultOpen /> : null}
-
       <View
         style={{
           alignSelf: wide ? 'flex-start' : 'center',
@@ -115,12 +111,6 @@ function SheetBody() {
           const top = (cell.yMm / layout.paperHeightMm) * previewH;
           const w = (cell.widthMm / layout.paperWidthMm) * previewW;
           const h = (cell.heightMm / layout.paperHeightMm) * previewH;
-          const filter =
-            Platform.OS === 'web' &&
-            subject?.adjust &&
-            hasAdjustments(subject.adjust)
-              ? cssFilter(subject.adjust)
-              : undefined;
           return (
             <View
               key={cell.id}
@@ -130,25 +120,29 @@ function SheetBody() {
                 top,
                 width: w,
                 height: h,
-                overflow: 'hidden',
                 borderWidth: cutGuides ? 1 : 0,
                 borderColor: 'rgba(0,0,0,0.2)',
-                backgroundColor: colors.line,
               }}
             >
               {img ? (
-                <Image
-                  source={{ uri: img.uri }}
-                  style={
-                    {
-                      width: '100%',
-                      height: '100%',
-                      ...(filter ? { filter } : {}),
-                    } as never
-                  }
-                  contentFit="cover"
+                <CroppedImagePreview
+                  uri={img.uri}
+                  imgW={img.width}
+                  imgH={img.height}
+                  width={w}
+                  height={h}
+                  crop={cell.crop}
+                  adjust={subject?.adjust}
                 />
-              ) : null}
+              ) : (
+                <View
+                  style={{
+                    width: w,
+                    height: h,
+                    backgroundColor: colors.line,
+                  }}
+                />
+              )}
             </View>
           );
         })}
@@ -168,6 +162,8 @@ function SheetBody() {
         {packMode === 'fill' ? ' · auto fill' : ' · custom count'}
       </Text>
 
+      {!wide ? <CustomizeSummaryBar onPress={openCustomize} /> : null}
+
       <Button
         label="Share & export"
         disabled={layout.cells.length === 0}
@@ -178,6 +174,13 @@ function SheetBody() {
 
   return (
     <View style={{ flex: 1 }}>
+      <Stack.Screen
+        options={{
+          title: 'Print sheet',
+          headerRight: () =>
+            wide ? null : <CustomizeHeaderButton onPress={openCustomize} />,
+        }}
+      />
       <PeopleStrip />
       <ScrollView
         contentInsetAdjustmentBehavior="automatic"
@@ -197,6 +200,13 @@ function SheetBody() {
         {primary}
         {wide ? <SheetOptionsSidebar /> : null}
       </ScrollView>
+
+      {!wide ? (
+        <CustomizeSheet
+          visible={customizeOpen}
+          onClose={() => setCustomizeOpen(false)}
+        />
+      ) : null}
     </View>
   );
 }

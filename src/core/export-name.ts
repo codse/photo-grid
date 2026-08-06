@@ -45,9 +45,11 @@ export function exportSheetBasename(subjects: Subject[]): string {
   return `${stem}-${w}x${h}mm-print-photo`;
 }
 
+export type ExportImageExt = 'png' | 'jpg';
+
 export function exportSheetFileName(
   subjects: Subject[],
-  ext: 'png' | 'pdf',
+  ext: ExportImageExt | 'pdf',
 ): string {
   return `${exportSheetBasename(subjects)}.${ext}`;
 }

@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { Alert, ScrollView, Text, View } from 'react-native';
+import { Alert, Platform, ScrollView, Text, View } from 'react-native';
+import { CameraType } from 'expo-image-picker';
 import { router } from 'expo-router';
 import { Image } from 'expo-image';
 import { PeopleStrip } from '@/features/people/people-strip';
 import { useActivePerson, useSession } from '@/state/session';
-import { pickFromLibrary } from '@/platform/media';
-import { Button, ScreenIntro, SectionLabel } from '@/ui/primitives';
+import { pickFromCamera, pickFromLibrary } from '@/platform/media';
+import { Button } from '@/ui/primitives';
 import { colors, radii, space, type } from '@/ui/tokens';
 import { formatSize } from '@/core/units';
 
@@ -22,6 +23,35 @@ export default function PhotoScreen() {
     );
   }
 
+  const takePhoto = async () => {
+    if (Platform.OS !== 'web') {
+      router.push('/camera');
+      return;
+    }
+    setBusy(true);
+    try {
+      const img =
+        (await pickFromCamera(CameraType.front)) ?? (await pickFromLibrary());
+      if (!img) {
+        Alert.alert(
+          'No photo',
+          'Camera was canceled or unavailable. On desktop, pick a file — or use your phone.',
+        );
+        return;
+      }
+      setPersonUri(active.id, img.uri, {
+        sourceName: img.fileName ?? img.uri,
+      });
+    } catch (e) {
+      Alert.alert(
+        'Could not open camera',
+        e instanceof Error ? e.message : 'Unknown error',
+      );
+    } finally {
+      setBusy(false);
+    }
+  };
+
   return (
     <View style={{ flex: 1 }}>
       <PeopleStrip enablePhotoPick />
@@ -33,11 +63,6 @@ export default function PhotoScreen() {
           paddingBottom: 48,
         }}
       >
-        <ScreenIntro
-          title={active.label}
-          body="Take a new photo or choose one from your library. Crop next."
-        />
-
         <View
           style={{
             alignSelf: 'center',
@@ -86,11 +111,10 @@ export default function PhotoScreen() {
           {formatSize(active.widthMm, active.heightMm)}
         </Text>
 
-        <SectionLabel>Source</SectionLabel>
         <Button
-          label="Take photo"
+          label={busy ? 'Opening…' : 'Take photo'}
           disabled={busy}
-          onPress={() => router.push('/camera')}
+          onPress={() => void takePhoto()}
         />
         <Button
           label="Choose from library"

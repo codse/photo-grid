@@ -1,7 +1,7 @@
 import type { Adjustments, CropState, SheetLayout, Subject } from '@/core/types';
 import { cssFilter, hasAdjustments } from '@/core/adjust-filter';
-import { coverSourceRect } from '@/core/crop-math';
-import { exportSheetFileName } from '@/core/export-name';
+import { coverDisplayLayout } from '@/core/crop-math';
+import { exportSheetFileName, type ExportImageExt } from '@/core/export-name';
 import { mmToPx, PRINT_DPI } from '@/core/units';
 
 export type ImageSource = {
@@ -13,6 +13,7 @@ export type ImageSource = {
 
 export type RenderSheetOptions = {
   dpi?: number;
+  format?: ExportImageExt;
   showGuides?: boolean;
   cutGuides?: boolean;
   selectedCellId?: string | null;
@@ -32,7 +33,7 @@ function drawCover(
   crop: CropState,
   adjust?: Adjustments,
 ) {
-  const src = coverSourceRect(imgW, imgH, dw, dh, crop);
+  const layout = coverDisplayLayout(imgW, imgH, dw, dh, crop);
   ctx.save();
   ctx.beginPath();
   ctx.rect(dx, dy, dw, dh);
@@ -40,7 +41,18 @@ function drawCover(
   if (adjust && hasAdjustments(adjust)) {
     ctx.filter = cssFilter(adjust);
   }
-  ctx.drawImage(img, src.sx, src.sy, src.sw, src.sh, dx, dy, dw, dh);
+  const cx = dx + layout.translateX + layout.displayW / 2;
+  const cy = dy + layout.translateY + layout.displayH / 2;
+  ctx.translate(cx, cy);
+  ctx.rotate((layout.rotation * Math.PI) / 180);
+  if (layout.flipH) ctx.scale(-1, 1);
+  ctx.drawImage(
+    img,
+    -layout.preRotateW / 2,
+    -layout.preRotateH / 2,
+    layout.preRotateW,
+    layout.preRotateH,
+  );
   ctx.filter = 'none';
   ctx.restore();
 }
@@ -114,10 +126,13 @@ export async function loadImageSource(uri: string): Promise<ImageSource> {
   };
 }
 
-export async function exportSheetPngBlob(
+async function exportSheetBlob(
   layout: SheetLayout,
-  options: Omit<RenderSheetOptions, 'dpi' | 'showGuides'> & {
+  options: {
+    images: Map<string, ImageSource>;
+    subjects: Subject[];
     cutGuides?: boolean;
+    format?: ExportImageExt;
   },
 ): Promise<Blob> {
   const canvas = document.createElement('canvas');
@@ -131,10 +146,17 @@ export async function exportSheetPngBlob(
     showGuides: false,
     cutGuides: options.cutGuides ?? false,
   });
+  const format = options.format ?? 'png';
+  const mime = format === 'jpg' ? 'image/jpeg' : 'image/png';
+  const quality = format === 'jpg' ? 0.92 : undefined;
   return new Promise((resolve, reject) => {
     canvas.toBlob(
-      (b) => (b ? resolve(b) : reject(new Error('PNG export failed'))),
-      'image/png',
+      (b) =>
+        b
+          ? resolve(b)
+          : reject(new Error(`${format.toUpperCase()} export failed`)),
+      mime,
+      quality,
     );
   });
 }
@@ -148,19 +170,30 @@ async function downloadBlob(blob: Blob, filename: string) {
   URL.revokeObjectURL(url);
 }
 
+export async function exportAndShareImage(
+  layout: SheetLayout,
+  images: Map<string, ImageSource>,
+  subjects: Subject[],
+  cutGuides: boolean,
+  format: ExportImageExt = 'png',
+): Promise<string> {
+  const blob = await exportSheetBlob(layout, {
+    images,
+    subjects,
+    cutGuides,
+    format,
+  });
+  await downloadBlob(blob, exportSheetFileName(subjects, format));
+  return URL.createObjectURL(blob);
+}
+
 export async function exportAndSharePng(
   layout: SheetLayout,
   images: Map<string, ImageSource>,
   subjects: Subject[],
   cutGuides: boolean,
 ): Promise<string> {
-  const blob = await exportSheetPngBlob(layout, {
-    images,
-    subjects,
-    cutGuides,
-  });
-  await downloadBlob(blob, exportSheetFileName(subjects, 'png'));
-  return URL.createObjectURL(blob);
+  return exportAndShareImage(layout, images, subjects, cutGuides, 'png');
 }
 
 /** PNG as base64 (no data-url prefix) for the saved-sheets library. */
@@ -170,10 +203,11 @@ export async function exportSheetPngBase64(
   subjects: Subject[],
   cutGuides: boolean,
 ): Promise<string> {
-  const blob = await exportSheetPngBlob(layout, {
+  const blob = await exportSheetBlob(layout, {
     images,
     subjects,
     cutGuides,
+    format: 'png',
   });
   const buf = await blob.arrayBuffer();
   const bytes = new Uint8Array(buf);
@@ -191,10 +225,11 @@ export async function exportAndSharePdf(
   cutGuides: boolean,
 ): Promise<void> {
   const { jsPDF } = await import('jspdf');
-  const blob = await exportSheetPngBlob(layout, {
+  const blob = await exportSheetBlob(layout, {
     images,
     subjects,
     cutGuides,
+    format: 'png',
   });
   const dataUrl = await blobToDataUrl(blob);
   const pdf = new jsPDF({
@@ -214,14 +249,24 @@ export async function exportAndSharePdf(
   pdf.save(exportSheetFileName(subjects, 'pdf'));
 }
 
+export async function saveImageToLibrary(
+  layout: SheetLayout,
+  images: Map<string, ImageSource>,
+  subjects: Subject[],
+  cutGuides: boolean,
+  format: ExportImageExt = 'png',
+): Promise<void> {
+  // Web: download is the equivalent of “save”
+  await exportAndShareImage(layout, images, subjects, cutGuides, format);
+}
+
 export async function savePngToLibrary(
   layout: SheetLayout,
   images: Map<string, ImageSource>,
   subjects: Subject[],
   cutGuides: boolean,
 ): Promise<void> {
-  // Web: download is the equivalent of “save”
-  await exportAndSharePng(layout, images, subjects, cutGuides);
+  return saveImageToLibrary(layout, images, subjects, cutGuides, 'png');
 }
 
 function blobToDataUrl(blob: Blob): Promise<string> {

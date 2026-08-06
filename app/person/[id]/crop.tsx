@@ -3,28 +3,29 @@ import {
   ActivityIndicator,
   Alert,
   Image as RNImage,
-  Platform,
   Pressable,
   ScrollView,
   Text,
   View,
 } from 'react-native';
-import { router, useLocalSearchParams } from 'expo-router';
+import { Stack, router, useLocalSearchParams } from 'expo-router';
 import { ArrowClockwiseIcon } from 'phosphor-react-native/src/icons/ArrowClockwise';
 import { CircleHalfIcon } from 'phosphor-react-native/src/icons/CircleHalf';
 import { FlipHorizontalIcon } from 'phosphor-react-native/src/icons/FlipHorizontal';
+import { ImagesIcon } from 'phosphor-react-native/src/icons/Images';
 import { ScissorsIcon } from 'phosphor-react-native/src/icons/Scissors';
 import { AdjustModal } from '@/features/sheet/adjust-modal';
 import { CropCanvas } from '@/features/sheet/crop-canvas';
 import { PeopleStrip } from '@/features/people/people-strip';
 import { useSession } from '@/state/session';
-import { flipHorizontal, pickFromLibrary, rotateImage } from '@/platform/media';
+import { pickFromLibrary } from '@/platform/media';
 import {
   BG_REMOVAL_AVAILABLE,
   removeBackground,
 } from '@/platform/bg-removal';
+import { flipCropHorizontal, rotateCropCW } from '@/core/crop-math';
 import { hasAdjustments } from '@/core/adjust-filter';
-import { Button, ScreenIntro, SectionLabel } from '@/ui/primitives';
+import { Button } from '@/ui/primitives';
 import { colors, radii, space, type } from '@/ui/tokens';
 import { RequirePhoto } from '@/features/session/require-photo';
 import type { PhIcon } from '@/features/sheet/size-icons';
@@ -104,44 +105,27 @@ function PersonCropBody() {
     return null;
   }
 
-  const cropHint =
-    Platform.OS === 'web'
-      ? 'Drag or middle-click-drag to pan · scroll or Zoom −/+ to scale. Keep the head inside the oval guide.'
-      : 'Drag to pan · pinch or Zoom −/+ to scale. Keep the head inside the oval guide.';
-
   const adjusted = hasAdjustments(active.adjust);
 
   return (
     <View style={{ flex: 1 }}>
+      <Stack.Screen options={{ title: active.label }} />
       <PeopleStrip enablePhotoPick onPersonFocus={goPerson} />
       <ScrollView
         contentInsetAdjustmentBehavior="automatic"
+        keyboardShouldPersistTaps="handled"
         contentContainerStyle={{
           padding: space.xl,
           gap: space.lg,
           paddingBottom: 48,
         }}
       >
-        <ScreenIntro
-          title={`Crop · ${active.label}`}
-          body={
-            active.url
-              ? cropHint
-              : 'Tap this person’s tile (or Choose photo) to add an image, then crop.'
-          }
-        />
-
         {!active.url ? (
-          <View style={{ gap: space.md }}>
-            <Text style={{ ...type.body, color: colors.inkMuted }}>
-              No photo for {active.label} yet.
-            </Text>
-            <Button
-              label={busy ? 'Opening…' : 'Choose photo'}
-              disabled={busy}
-              onPress={() => void choosePhoto()}
-            />
-          </View>
+          <Button
+            label={busy ? 'Opening…' : 'Choose photo'}
+            disabled={busy}
+            onPress={() => void choosePhoto()}
+          />
         ) : dims ? (
           <CropCanvas
             uri={active.url}
@@ -150,7 +134,7 @@ function PersonCropBody() {
             aspect={active.widthMm / active.heightMm}
             crop={active.crop}
             adjust={active.adjust}
-            onChange={(crop) => setPersonCrop(active.id, crop)}
+            onChange={(c) => setPersonCrop(active.id, c)}
           />
         ) : (
           <ActivityIndicator color={colors.accent} />
@@ -158,46 +142,30 @@ function PersonCropBody() {
 
         {active.url ? (
           <>
-            <Button
-              label={busy ? 'Opening…' : 'Replace photo'}
-              variant="ghost"
-              disabled={busy}
-              onPress={() => void choosePhoto()}
-            />
-
-            <SectionLabel>Quick edits</SectionLabel>
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: space.sm }}>
+            <View
+              style={{
+                flexDirection: 'row',
+                gap: 6,
+                alignItems: 'stretch',
+              }}
+            >
               <EditAction
                 icon={ArrowClockwiseIcon}
                 label="Rotate"
-                disabled={busy}
-                onPress={async () => {
-                  setBusy(true);
-                  try {
-                    const uri = await rotateImage(active.url, 90);
-                    setPersonUri(active.id, uri);
-                  } finally {
-                    setBusy(false);
-                  }
-                }}
+                onPress={() =>
+                  setPersonCrop(active.id, rotateCropCW(active.crop))
+                }
               />
               <EditAction
                 icon={FlipHorizontalIcon}
                 label="Flip"
-                disabled={busy}
-                onPress={async () => {
-                  setBusy(true);
-                  try {
-                    const uri = await flipHorizontal(active.url);
-                    setPersonUri(active.id, uri);
-                  } finally {
-                    setBusy(false);
-                  }
-                }}
+                onPress={() =>
+                  setPersonCrop(active.id, flipCropHorizontal(active.crop))
+                }
               />
               <EditAction
                 icon={CircleHalfIcon}
-                label={adjusted ? 'Adjusted' : 'Adjust'}
+                label="Adjust"
                 selected={adjusted}
                 disabled={busy}
                 onPress={() => setAdjustOpen(true)}
@@ -226,6 +194,12 @@ function PersonCropBody() {
                   }}
                 />
               ) : null}
+              <EditAction
+                icon={ImagesIcon}
+                label={busy ? '…' : 'Replace'}
+                disabled={busy}
+                onPress={() => void choosePhoto()}
+              />
             </View>
 
             {active.previousUrl ? (
@@ -242,15 +216,7 @@ function PersonCropBody() {
               <Text selectable style={{ ...type.caption, color: colors.accent }}>
                 {bgNote}
               </Text>
-            ) : BG_REMOVAL_AVAILABLE ? (
-              <Text style={{ ...type.caption, color: colors.inkFaint }}>
-                BG removes background on-device. Optional.
-              </Text>
-            ) : (
-              <Text style={{ ...type.caption, color: colors.inkFaint }}>
-                Background removal is available in the iOS/Android app build.
-              </Text>
-            )}
+            ) : null}
 
             <Button
               label="Continue to sheet"
@@ -292,27 +258,27 @@ function EditAction({
       disabled={disabled}
       onPress={onPress}
       style={({ pressed }) => ({
-        minWidth: 76,
-        paddingVertical: 12,
-        paddingHorizontal: 12,
-        borderRadius: radii.md,
+        flex: 1,
+        minWidth: 0,
+        paddingVertical: 8,
+        paddingHorizontal: 4,
+        borderRadius: radii.sm,
         borderCurve: 'continuous',
         backgroundColor: selected ? colors.accent : colors.accentSoft,
         alignItems: 'center',
-        gap: 6,
+        justifyContent: 'center',
+        gap: 4,
         opacity: disabled ? 0.45 : pressed ? 0.8 : 1,
       })}
     >
-      <Icon
-        size={22}
-        color={selected ? '#fff' : colors.accent}
-        weight="bold"
-      />
+      <Icon size={18} color={selected ? '#fff' : colors.accent} weight="bold" />
       <Text
+        numberOfLines={1}
         style={{
-          ...type.caption,
-          color: selected ? '#fff' : colors.accent,
+          fontSize: 11,
+          lineHeight: 13,
           fontWeight: '600',
+          color: selected ? '#fff' : colors.accent,
         }}
       >
         {label}

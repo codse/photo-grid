@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import {
   Platform,
   Pressable,
@@ -7,13 +7,17 @@ import {
   View,
   useWindowDimensions,
 } from 'react-native';
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import Animated, { runOnJS } from 'react-native-reanimated';
 import { Image } from 'expo-image';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import Animated, {
+  runOnJS,
+  useAnimatedStyle,
+  useSharedValue,
+} from 'react-native-reanimated';
 import type { Adjustments, CropState } from '@/core/types';
-import { DEFAULT_CROP } from '@/core/types';
+import { DEFAULT_CROP, normalizeCrop } from '@/core/types';
 import { cssFilter, hasAdjustments } from '@/core/adjust-filter';
-import { clampZoom, panCropByPixels } from '@/core/crop-math';
+import { orientedSize } from '@/core/crop-math';
 import { colors, radii, space, type } from '@/ui/tokens';
 
 const ZOOM_MIN = 1;
@@ -31,6 +35,9 @@ type Props = {
   onChange: (crop: CropState) => void;
 };
 
+/**
+ * Crop frame — pan/pinch on UI thread. Rotate/flip are metadata (instant).
+ */
 export function CropCanvas({
   uri,
   imgW,
@@ -43,52 +50,82 @@ export function CropCanvas({
   const { width: winW } = useWindowDimensions();
   const frameW = Math.min(winW - 48, 360);
   const frameH = frameW / aspect;
-  const cropRef = useRef(crop);
-  cropRef.current = crop;
-  const pinchBaseRef = useRef(crop.zoom);
+  const c = normalizeCrop(crop);
+  const { w: logicalW, h: logicalH } = orientedSize(imgW, imgH, c.rotation);
+
+  const zoom = useSharedValue(c.zoom);
+  const offsetX = useSharedValue(c.offsetX);
+  const offsetY = useSharedValue(c.offsetY);
+  const pinchStart = useSharedValue(c.zoom);
+  const cropRef = useRef(c);
+  cropRef.current = c;
   const frameRef = useRef<View>(null);
   const onChangeRef = useRef(onChange);
   onChangeRef.current = onChange;
 
-  const nudgeZoom = (delta: number) => {
-    const c = cropRef.current;
-    onChangeRef.current({ ...c, zoom: clampZoom(c.zoom + delta) });
-  };
+  useEffect(() => {
+    zoom.value = c.zoom;
+    offsetX.value = c.offsetX;
+    offsetY.value = c.offsetY;
+  }, [c.zoom, c.offsetX, c.offsetY, c.rotation, c.flipH, offsetX, offsetY, zoom]);
 
-  const handlePan = (dx: number, dy: number) => {
-    const c = cropRef.current;
-    onChange(panCropByPixels(c, imgW, imgH, frameW, frameH, dx, dy));
-  };
-
-  const beginPinch = () => {
-    pinchBaseRef.current = cropRef.current.zoom;
-  };
-
-  const handlePinchZoom = (factor: number) => {
-    const c = cropRef.current;
-    onChange({
-      ...c,
-      zoom: clampZoom(pinchBaseRef.current * factor),
+  const commit = (z: number, ox: number, oy: number) => {
+    onChangeRef.current({
+      ...cropRef.current,
+      zoom: z,
+      offsetX: ox,
+      offsetY: oy,
     });
+  };
+
+  const nudgeZoom = (delta: number) => {
+    const next = clamp(c.zoom + delta, ZOOM_MIN, ZOOM_MAX);
+    zoom.value = next;
+    onChange({ ...c, zoom: next });
   };
 
   const pan = Gesture.Pan()
     .averageTouches(true)
+    .maxPointers(1)
     .onChange((e) => {
-      runOnJS(handlePan)(e.changeX, e.changeY);
+      'worklet';
+      const coverScale =
+        Math.max(frameW / logicalW, frameH / logicalH) * zoom.value;
+      const sw = frameW / coverScale;
+      const sh = frameH / coverScale;
+      const maxOx = Math.max(0, logicalW - sw);
+      const maxOy = Math.max(0, logicalH - sh);
+      if (maxOx === 0 && maxOy === 0) return;
+      const dSx = -e.changeX / coverScale;
+      const dSy = -e.changeY / coverScale;
+      if (maxOx > 0) {
+        offsetX.value = clamp((offsetX.value * maxOx + dSx) / maxOx, 0, 1);
+      }
+      if (maxOy > 0) {
+        offsetY.value = clamp((offsetY.value * maxOy + dSy) / maxOy, 0, 1);
+      }
+    })
+    .onEnd(() => {
+      'worklet';
+      runOnJS(commit)(zoom.value, offsetX.value, offsetY.value);
     });
 
   const pinch = Gesture.Pinch()
     .onBegin(() => {
-      runOnJS(beginPinch)();
+      'worklet';
+      pinchStart.value = zoom.value;
     })
     .onUpdate((e) => {
-      runOnJS(handlePinchZoom)(e.scale);
+      'worklet';
+      zoom.value = clamp(pinchStart.value * e.scale, ZOOM_MIN, ZOOM_MAX);
+    })
+    .onEnd(() => {
+      'worklet';
+      runOnJS(commit)(zoom.value, offsetX.value, offsetY.value);
     });
 
   const composed = Gesture.Simultaneous(pan, pinch);
 
-  // Web: wheel zoom, middle-mouse pan, kill native image drag / autoscroll.
   useEffect(() => {
     if (Platform.OS !== 'web') return;
     const node = frameRef.current as unknown as HTMLElement | null;
@@ -98,19 +135,33 @@ export function CropCanvas({
     let lastX = 0;
     let lastY = 0;
 
+    const applyPan = (dx: number, dy: number) => {
+      const coverScale =
+        Math.max(frameW / logicalW, frameH / logicalH) * zoom.value;
+      const sw = frameW / coverScale;
+      const sh = frameH / coverScale;
+      const maxOx = Math.max(0, logicalW - sw);
+      const maxOy = Math.max(0, logicalH - sh);
+      if (maxOx === 0 && maxOy === 0) return;
+      const dSx = -dx / coverScale;
+      const dSy = -dy / coverScale;
+      if (maxOx > 0) {
+        offsetX.value = clamp((offsetX.value * maxOx + dSx) / maxOx, 0, 1);
+      }
+      if (maxOy > 0) {
+        offsetY.value = clamp((offsetY.value * maxOy + dSy) / maxOy, 0, 1);
+      }
+    };
+
     const onWheel = (e: WheelEvent) => {
       e.preventDefault();
       const delta = e.deltaY > 0 ? -WHEEL_STEP : WHEEL_STEP;
-      const c = cropRef.current;
-      onChangeRef.current({
-        ...c,
-        zoom: clampZoom(c.zoom + delta),
-      });
+      const next = clamp(zoom.value + delta, ZOOM_MIN, ZOOM_MAX);
+      zoom.value = next;
+      commit(next, offsetX.value, offsetY.value);
     };
 
-    const onDragStart = (e: DragEvent) => {
-      e.preventDefault();
-    };
+    const onDragStart = (e: DragEvent) => e.preventDefault();
 
     const onPointerDown = (e: PointerEvent) => {
       if (e.button !== 1) return;
@@ -119,27 +170,21 @@ export function CropCanvas({
       lastX = e.clientX;
       lastY = e.clientY;
       node.setPointerCapture?.(e.pointerId);
-      node.style.cursor = 'grabbing';
     };
 
     const onPointerMove = (e: PointerEvent) => {
       if (!middleDragging) return;
       e.preventDefault();
-      const dx = e.clientX - lastX;
-      const dy = e.clientY - lastY;
+      applyPan(e.clientX - lastX, e.clientY - lastY);
       lastX = e.clientX;
       lastY = e.clientY;
-      const c = cropRef.current;
-      onChangeRef.current(
-        panCropByPixels(c, imgW, imgH, frameW, frameH, dx, dy),
-      );
     };
 
     const endMiddle = (e: PointerEvent) => {
       if (!middleDragging) return;
       if (e.button === 1 || e.type === 'pointerup' || e.type === 'pointercancel') {
         middleDragging = false;
-        node.style.cursor = 'grab';
+        commit(zoom.value, offsetX.value, offsetY.value);
         try {
           node.releasePointerCapture?.(e.pointerId);
         } catch {
@@ -152,17 +197,8 @@ export function CropCanvas({
       if (e.button === 1) e.preventDefault();
     };
 
-    node.style.cursor = 'grab';
     node.style.touchAction = 'none';
     node.style.userSelect = 'none';
-    (node.style as CSSStyleDeclaration & { webkitUserDrag?: string }).webkitUserDrag =
-      'none';
-
-    const imgs = node.querySelectorAll?.('img') ?? [];
-    imgs.forEach((img) => {
-      img.setAttribute('draggable', 'false');
-      img.addEventListener('dragstart', onDragStart);
-    });
 
     node.addEventListener('wheel', onWheel, { passive: false });
     node.addEventListener('dragstart', onDragStart);
@@ -173,7 +209,6 @@ export function CropCanvas({
     node.addEventListener('auxclick', onAuxClick);
 
     return () => {
-      imgs.forEach((img) => img.removeEventListener('dragstart', onDragStart));
       node.removeEventListener('wheel', onWheel);
       node.removeEventListener('dragstart', onDragStart);
       node.removeEventListener('pointerdown', onPointerDown);
@@ -182,21 +217,44 @@ export function CropCanvas({
       node.removeEventListener('pointercancel', endMiddle);
       node.removeEventListener('auxclick', onAuxClick);
     };
-  }, [imgW, imgH, frameW, frameH]);
+  }, [logicalW, logicalH, frameW, frameH, zoom, offsetX, offsetY]);
 
-  const coverScale = useMemo(() => {
-    return Math.max(frameW / imgW, frameH / imgH) * crop.zoom;
-  }, [frameW, frameH, imgW, imgH, crop.zoom]);
+  const boxStyle = useAnimatedStyle(() => {
+    const coverScale =
+      Math.max(frameW / logicalW, frameH / logicalH) * zoom.value;
+    const displayW = logicalW * coverScale;
+    const displayH = logicalH * coverScale;
+    const maxOx = Math.max(0, displayW - frameW);
+    const maxOy = Math.max(0, displayH - frameH);
+    return {
+      position: 'absolute' as const,
+      left: -offsetX.value * maxOx,
+      top: -offsetY.value * maxOy,
+      width: displayW,
+      height: displayH,
+      alignItems: 'center' as const,
+      justifyContent: 'center' as const,
+    };
+  }, [frameW, frameH, logicalW, logicalH]);
 
-  const displayW = imgW * coverScale;
-  const displayH = imgH * coverScale;
-  const maxOx = Math.max(0, displayW - frameW);
-  const maxOy = Math.max(0, displayH - frameH);
-  const tx = -crop.offsetX * maxOx;
-  const ty = -crop.offsetY * maxOy;
+  const imgStyle = useAnimatedStyle(() => {
+    const coverScale =
+      Math.max(frameW / logicalW, frameH / logicalH) * zoom.value;
+    const displayW = logicalW * coverScale;
+    const displayH = logicalH * coverScale;
+    const swapped = c.rotation === 90 || c.rotation === 270;
+    return {
+      width: swapped ? displayH : displayW,
+      height: swapped ? displayW : displayH,
+      transform: [
+        { rotate: `${c.rotation}deg` },
+        { scaleX: c.flipH ? -1 : 1 },
+      ],
+    };
+  }, [frameW, frameH, logicalW, logicalH, c.rotation, c.flipH]);
 
-  const atMin = crop.zoom <= ZOOM_MIN + 0.001;
-  const atMax = crop.zoom >= ZOOM_MAX - 0.001;
+  const atMin = c.zoom <= ZOOM_MIN + 0.001;
+  const atMax = c.zoom >= ZOOM_MAX - 0.001;
   const filter =
     Platform.OS === 'web' && adjust && hasAdjustments(adjust)
       ? cssFilter(adjust)
@@ -218,19 +276,22 @@ export function CropCanvas({
               borderColor: colors.line,
             }}
           >
-            <Image
-              source={{ uri }}
-              pointerEvents="none"
-              style={
-                {
-                  width: displayW,
-                  height: displayH,
-                  transform: [{ translateX: tx }, { translateY: ty }],
-                  ...(filter ? { filter } : {}),
-                } as never
-              }
-              contentFit="fill"
-            />
+            <Animated.View style={boxStyle}>
+              <Animated.View style={imgStyle}>
+                <Image
+                  source={{ uri }}
+                  pointerEvents="none"
+                  style={
+                    {
+                      width: '100%',
+                      height: '100%',
+                      ...(filter ? { filter } : {}),
+                    } as never
+                  }
+                  contentFit="fill"
+                />
+              </Animated.View>
+            </Animated.View>
             <View pointerEvents="none" style={StyleSheet.absoluteFill}>
               <View
                 style={{
@@ -264,19 +325,15 @@ export function CropCanvas({
           disabled={atMin}
           onPress={() => nudgeZoom(-ZOOM_STEP)}
         />
-        <View style={{ flex: 1, alignItems: 'center', gap: 2 }}>
-          <Text style={{ ...type.caption, color: colors.inkMuted }}>
-            Zoom {crop.zoom.toFixed(2)}×
-          </Text>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Reset crop"
-            onPress={() => onChange({ ...DEFAULT_CROP })}
-            hitSlop={8}
-          >
-            <Text style={{ ...type.caption, color: colors.accent }}>Reset</Text>
-          </Pressable>
-        </View>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Reset crop"
+          onPress={() => onChange({ ...DEFAULT_CROP })}
+          hitSlop={8}
+          style={{ paddingVertical: 8, paddingHorizontal: 12 }}
+        >
+          <Text style={{ ...type.caption, color: colors.accent }}>Reset</Text>
+        </Pressable>
         <ZoomButton
           label="+"
           accessibilityLabel="Zoom in"
@@ -286,6 +343,11 @@ export function CropCanvas({
       </View>
     </View>
   );
+}
+
+function clamp(n: number, a: number, b: number) {
+  'worklet';
+  return Math.max(a, Math.min(b, n));
 }
 
 function ZoomButton({

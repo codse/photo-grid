@@ -213,13 +213,22 @@ function NativeAdjustPreview({
 }) {
   const image = useImage(uri);
   const matrix = useMemo(() => adjustColorMatrix(adjust), [adjust]);
+
+  // Keep expo-image visible while Skia loads (or if URI isn't Skia-readable).
   if (!image) {
-    return <View style={{ width, height, backgroundColor: colors.line }} />;
+    return (
+      <Image
+        source={{ uri }}
+        style={{ width, height }}
+        contentFit="cover"
+      />
+    );
   }
+
   return (
     <Canvas style={{ width, height }}>
       <SkImage image={image} x={0} y={0} width={width} height={height} fit="cover">
-        <ColorMatrix matrix={matrix} />
+        {hasAdjustments(adjust) ? <ColorMatrix matrix={matrix} /> : null}
       </SkImage>
     </Canvas>
   );
