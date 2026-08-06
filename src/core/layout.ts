@@ -1,4 +1,4 @@
-import { DEFAULT_CROP, type PlacedCell, type SheetLayout, type Subject, uid } from './types.ts';
+import { DEFAULT_CROP, type PlacedCell, type SheetLayout, type Subject, uid } from './types';
 
 export type PackOptions = {
   paperWidthMm: number;
@@ -89,38 +89,33 @@ function buildItems(
   const ready = subjects.filter((s) => s.url);
   if (ready.length === 0) return [];
 
-  const items: Item[] = [];
-
-  for (const s of ready) {
-    const n = Math.max(0, Math.floor(s.copies));
-    for (let i = 0; i < n; i++) {
-      items.push(itemFrom(s));
+  if (mode === 'exact') {
+    const items: Item[] = [];
+    for (const s of ready) {
+      const n = Math.max(1, Math.floor(s.copies));
+      for (let i = 0; i < n; i++) {
+        items.push(itemFrom(s));
+      }
     }
+    return items;
   }
 
-  if (mode === 'exact') return items;
-
-  // If no guaranteed copies, start with one each so fill has seeds
-  if (items.length === 0) {
-    for (const s of ready) items.push(itemFrom(s));
-  }
-
+  // Auto / fill — pack as many as fit (ignores Need N). Recomputes when paper/size changes.
+  const items: Item[] = ready.map((s) => itemFrom(s));
   let packed = shelfPack(items, paperW, paperH, gapMm, marginMm);
-  // Drop seeds that don't fit
   while (items.length > packed.length) items.pop();
 
   let idx = 0;
   for (let guard = 0; guard < 200; guard++) {
-    const s = ready[idx % ready.length];
+    const s = ready[idx % ready.length]!;
     idx += 1;
     const trial = [...items, itemFrom(s)];
     const next = shelfPack(trial, paperW, paperH, gapMm, marginMm);
     if (next.length <= packed.length) {
-      // try other subjects once before giving up on this round
       if (idx % ready.length === 0) break;
       continue;
     }
-    items.push(trial[trial.length - 1]);
+    items.push(trial[trial.length - 1]!);
     packed = next;
   }
 

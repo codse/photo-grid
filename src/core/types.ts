@@ -27,6 +27,10 @@ export type Subject = {
   id: string;
   label: string;
   url: string;
+  /** Original upload/camera file stem or name (for export naming). */
+  sourceName?: string;
+  /** Previous URI for undo (e.g. before BG removal). */
+  previousUrl?: string;
   widthMm: number;
   heightMm: number;
   /** How many copies to place (auto-fill can raise this). */

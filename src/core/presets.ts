@@ -1,4 +1,4 @@
-import { inToMm } from './units.ts';
+import { inToMm } from './units';
 
 export type SizePreset = {
   id: string;
