@@ -8,6 +8,10 @@ export const fonts = {
   medium: 'Figtree_500Medium',
   semibold: 'Figtree_600SemiBold',
   bold: 'Figtree_700Bold',
+  /** Playful / promo display (UIZZE: Commissioner) */
+  playful: 'Commissioner_800ExtraBold',
+  playfulSemi: 'Commissioner_700Bold',
+  playfulMedium: 'Commissioner_600SemiBold',
 } as const;
 
 export const colors = {
