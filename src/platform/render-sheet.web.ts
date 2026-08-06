@@ -1,4 +1,5 @@
 import type { Adjustments, CropState, SheetLayout, Subject } from '@/core/types';
+import { cssFilter, hasAdjustments } from '@/core/adjust-filter';
 import { coverSourceRect } from '@/core/crop-math';
 import { exportSheetFileName } from '@/core/export-name';
 import { mmToPx, PRINT_DPI } from '@/core/units';
@@ -36,8 +37,8 @@ function drawCover(
   ctx.beginPath();
   ctx.rect(dx, dy, dw, dh);
   ctx.clip();
-  if (adjust && (adjust.brightness !== 1 || adjust.contrast !== 1)) {
-    ctx.filter = `brightness(${adjust.brightness}) contrast(${adjust.contrast})`;
+  if (adjust && hasAdjustments(adjust)) {
+    ctx.filter = cssFilter(adjust);
   }
   ctx.drawImage(img, src.sx, src.sy, src.sw, src.sh, dx, dy, dw, dh);
   ctx.filter = 'none';

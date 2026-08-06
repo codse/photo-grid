@@ -1,4 +1,4 @@
-import { createElement, useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import {
   Platform,
   Pressable,
@@ -10,8 +10,9 @@ import {
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, { runOnJS } from 'react-native-reanimated';
 import { Image } from 'expo-image';
-import type { CropState } from '@/core/types';
+import type { Adjustments, CropState } from '@/core/types';
 import { DEFAULT_CROP } from '@/core/types';
+import { cssFilter, hasAdjustments } from '@/core/adjust-filter';
 import { clampZoom, panCropByPixels } from '@/core/crop-math';
 import { colors, radii, space, type } from '@/ui/tokens';
 
@@ -26,6 +27,7 @@ type Props = {
   imgH: number;
   aspect: number;
   crop: CropState;
+  adjust?: Adjustments;
   onChange: (crop: CropState) => void;
 };
 
@@ -35,6 +37,7 @@ export function CropCanvas({
   imgH,
   aspect,
   crop,
+  adjust,
   onChange,
 }: Props) {
   const { width: winW } = useWindowDimensions();
@@ -47,13 +50,9 @@ export function CropCanvas({
   const onChangeRef = useRef(onChange);
   onChangeRef.current = onChange;
 
-  const setZoom = (zoom: number) => {
-    const c = cropRef.current;
-    onChangeRef.current({ ...c, zoom: clampZoom(zoom) });
-  };
-
   const nudgeZoom = (delta: number) => {
-    setZoom(cropRef.current.zoom + delta);
+    const c = cropRef.current;
+    onChangeRef.current({ ...c, zoom: clampZoom(c.zoom + delta) });
   };
 
   const handlePan = (dx: number, dy: number) => {
@@ -114,7 +113,6 @@ export function CropCanvas({
     };
 
     const onPointerDown = (e: PointerEvent) => {
-      // Middle button
       if (e.button !== 1) return;
       e.preventDefault();
       middleDragging = true;
@@ -151,7 +149,6 @@ export function CropCanvas({
     };
 
     const onAuxClick = (e: MouseEvent) => {
-      // Stop middle-click paste / default browser actions
       if (e.button === 1) e.preventDefault();
     };
 
@@ -161,7 +158,6 @@ export function CropCanvas({
     (node.style as CSSStyleDeclaration & { webkitUserDrag?: string }).webkitUserDrag =
       'none';
 
-    // Kill ghost-image drag on nested <img>
     const imgs = node.querySelectorAll?.('img') ?? [];
     imgs.forEach((img) => {
       img.setAttribute('draggable', 'false');
@@ -201,6 +197,10 @@ export function CropCanvas({
 
   const atMin = crop.zoom <= ZOOM_MIN + 0.001;
   const atMax = crop.zoom >= ZOOM_MAX - 0.001;
+  const filter =
+    Platform.OS === 'web' && adjust && hasAdjustments(adjust)
+      ? cssFilter(adjust)
+      : undefined;
 
   return (
     <View style={{ alignItems: 'center', gap: space.md }}>
@@ -221,11 +221,14 @@ export function CropCanvas({
             <Image
               source={{ uri }}
               pointerEvents="none"
-              style={{
-                width: displayW,
-                height: displayH,
-                transform: [{ translateX: tx }, { translateY: ty }],
-              }}
+              style={
+                {
+                  width: displayW,
+                  height: displayH,
+                  transform: [{ translateX: tx }, { translateY: ty }],
+                  ...(filter ? { filter } : {}),
+                } as never
+              }
               contentFit="fill"
             />
             <View pointerEvents="none" style={StyleSheet.absoluteFill}>
@@ -246,15 +249,22 @@ export function CropCanvas({
         </GestureDetector>
       </View>
 
-      <View style={{ width: frameW, gap: space.sm }}>
-        <View
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: space.sm,
-          }}
-        >
+      <View
+        style={{
+          width: frameW,
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: space.sm,
+        }}
+      >
+        <ZoomButton
+          label="−"
+          accessibilityLabel="Zoom out"
+          disabled={atMin}
+          onPress={() => nudgeZoom(-ZOOM_STEP)}
+        />
+        <View style={{ flex: 1, alignItems: 'center', gap: 2 }}>
           <Text style={{ ...type.caption, color: colors.inkMuted }}>
             Zoom {crop.zoom.toFixed(2)}×
           </Text>
@@ -267,50 +277,12 @@ export function CropCanvas({
             <Text style={{ ...type.caption, color: colors.accent }}>Reset</Text>
           </Pressable>
         </View>
-
-        <View
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            gap: space.sm,
-          }}
-        >
-          <ZoomButton
-            label="−"
-            accessibilityLabel="Zoom out"
-            disabled={atMin}
-            onPress={() => nudgeZoom(-ZOOM_STEP)}
-          />
-          <View style={{ flex: 1, justifyContent: 'center' }}>
-            {Platform.OS === 'web' ? (
-              <WebZoomSlider value={crop.zoom} onChange={setZoom} />
-            ) : (
-              <View
-                style={{
-                  height: 6,
-                  borderRadius: 3,
-                  backgroundColor: colors.line,
-                  overflow: 'hidden',
-                }}
-              >
-                <View
-                  style={{
-                    height: '100%',
-                    width: `${((crop.zoom - ZOOM_MIN) / (ZOOM_MAX - ZOOM_MIN)) * 100}%`,
-                    backgroundColor: colors.accent,
-                    borderRadius: 3,
-                  }}
-                />
-              </View>
-            )}
-          </View>
-          <ZoomButton
-            label="+"
-            accessibilityLabel="Zoom in"
-            disabled={atMax}
-            onPress={() => nudgeZoom(ZOOM_STEP)}
-          />
-        </View>
+        <ZoomButton
+          label="+"
+          accessibilityLabel="Zoom in"
+          disabled={atMax}
+          onPress={() => nudgeZoom(ZOOM_STEP)}
+        />
       </View>
     </View>
   );
@@ -356,34 +328,5 @@ function ZoomButton({
         {label}
       </Text>
     </Pressable>
-  );
-}
-
-function WebZoomSlider({
-  value,
-  onChange,
-}: {
-  value: number;
-  onChange: (zoom: number) => void;
-}) {
-  return (
-    <View style={{ height: 28, justifyContent: 'center' }}>
-      {createElement('input', {
-        type: 'range',
-        min: ZOOM_MIN,
-        max: ZOOM_MAX,
-        step: 0.01,
-        value,
-        'aria-label': 'Zoom',
-        onChange: (e: { target: { value: string } }) =>
-          onChange(Number(e.target.value)),
-        style: {
-          width: '100%',
-          margin: 0,
-          accentColor: colors.accent,
-          cursor: 'pointer',
-        },
-      })}
-    </View>
   );
 }

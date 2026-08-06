@@ -13,13 +13,15 @@ export const DEFAULT_CROP: CropState = {
 };
 
 export type Adjustments = {
-  brightness: number; // 1 = normal, range ~0.5–1.5
+  brightness: number; // 1 = normal, range ~0.4–1.8
   contrast: number; // 1 = normal
+  saturation: number; // 1 = normal (“color”)
 };
 
 export const DEFAULT_ADJUST: Adjustments = {
   brightness: 1,
   contrast: 1,
+  saturation: 1,
 };
 
 /** One person / source photo on the sheet. */

@@ -7,6 +7,7 @@ import {
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
 import type { CropState, SheetLayout, Subject } from '@/core/types';
+import { adjustColorMatrix, hasAdjustments } from '@/core/adjust-filter';
 import { coverSourceRect } from '@/core/crop-math';
 import { exportSheetFileName } from '@/core/export-name';
 import { mmToPx, PRINT_DPI } from '@/core/units';
@@ -86,12 +87,12 @@ export async function renderSheetToFile(
       decoded.set(id, await decodeSkiaImage(src.uri));
     }
 
-    const paint = Skia.Paint();
-    paint.setAntiAlias(true);
+    const subjectById = new Map(options.subjects.map((s) => [s.id, s]));
 
     for (const cell of layout.cells) {
       const img = decoded.get(cell.subjectId);
       const srcMeta = options.images.get(cell.subjectId);
+      const subject = subjectById.get(cell.subjectId);
       const dx = px(cell.xMm);
       const dy = px(cell.yMm);
       const dw = px(cell.widthMm);
@@ -109,6 +110,13 @@ export async function renderSheetToFile(
           dh,
           crop,
         );
+        const paint = Skia.Paint();
+        paint.setAntiAlias(true);
+        if (subject?.adjust && hasAdjustments(subject.adjust)) {
+          paint.setColorFilter(
+            Skia.ColorFilter.MakeMatrix(adjustColorMatrix(subject.adjust)),
+          );
+        }
         canvas.drawImageRect(
           img,
           Skia.XYWHRect(src.sx, src.sy, src.sw, src.sh),

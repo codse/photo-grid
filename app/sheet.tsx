@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
+  Platform,
   ScrollView,
   Text,
   View,
@@ -12,6 +13,7 @@ import {
   SheetOptionsAccordion,
   SheetOptionsSidebar,
 } from '@/features/sheet/sheet-options';
+import { cssFilter, hasAdjustments } from '@/core/adjust-filter';
 import { packSubjects } from '@/core/layout';
 import { formatSize } from '@/core/units';
 import { getPaperSize, useSession } from '@/state/session';
@@ -108,10 +110,17 @@ function SheetBody() {
       >
         {layout.cells.map((cell) => {
           const img = images.get(cell.subjectId);
+          const subject = subjects.find((s) => s.id === cell.subjectId);
           const left = (cell.xMm / layout.paperWidthMm) * previewW;
           const top = (cell.yMm / layout.paperHeightMm) * previewH;
           const w = (cell.widthMm / layout.paperWidthMm) * previewW;
           const h = (cell.heightMm / layout.paperHeightMm) * previewH;
+          const filter =
+            Platform.OS === 'web' &&
+            subject?.adjust &&
+            hasAdjustments(subject.adjust)
+              ? cssFilter(subject.adjust)
+              : undefined;
           return (
             <View
               key={cell.id}
@@ -130,7 +139,13 @@ function SheetBody() {
               {img ? (
                 <Image
                   source={{ uri: img.uri }}
-                  style={{ width: '100%', height: '100%' }}
+                  style={
+                    {
+                      width: '100%',
+                      height: '100%',
+                      ...(filter ? { filter } : {}),
+                    } as never
+                  }
                   contentFit="cover"
                 />
               ) : null}

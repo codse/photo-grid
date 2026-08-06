@@ -4,11 +4,17 @@ import {
   Alert,
   Image as RNImage,
   Platform,
+  Pressable,
   ScrollView,
   Text,
   View,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
+import { ArrowClockwiseIcon } from 'phosphor-react-native/src/icons/ArrowClockwise';
+import { CircleHalfIcon } from 'phosphor-react-native/src/icons/CircleHalf';
+import { FlipHorizontalIcon } from 'phosphor-react-native/src/icons/FlipHorizontal';
+import { ScissorsIcon } from 'phosphor-react-native/src/icons/Scissors';
+import { AdjustModal } from '@/features/sheet/adjust-modal';
 import { CropCanvas } from '@/features/sheet/crop-canvas';
 import { PeopleStrip } from '@/features/people/people-strip';
 import { useSession } from '@/state/session';
@@ -17,9 +23,11 @@ import {
   BG_REMOVAL_AVAILABLE,
   removeBackground,
 } from '@/platform/bg-removal';
+import { hasAdjustments } from '@/core/adjust-filter';
 import { Button, ScreenIntro, SectionLabel } from '@/ui/primitives';
-import { colors, space, type } from '@/ui/tokens';
+import { colors, radii, space, type } from '@/ui/tokens';
 import { RequirePhoto } from '@/features/session/require-photo';
+import type { PhIcon } from '@/features/sheet/size-icons';
 
 export default function PersonCropScreen() {
   return (
@@ -43,6 +51,7 @@ function PersonCropBody() {
   const [dims, setDims] = useState<{ w: number; h: number } | null>(null);
   const [busy, setBusy] = useState(false);
   const [bgNote, setBgNote] = useState<string | null>(null);
+  const [adjustOpen, setAdjustOpen] = useState(false);
 
   useEffect(() => {
     if (active?.id) setActivePerson(active.id);
@@ -100,6 +109,8 @@ function PersonCropBody() {
       ? 'Drag or middle-click-drag to pan · scroll or Zoom −/+ to scale. Keep the head inside the oval guide.'
       : 'Drag to pan · pinch or Zoom −/+ to scale. Keep the head inside the oval guide.';
 
+  const adjusted = hasAdjustments(active.adjust);
+
   return (
     <View style={{ flex: 1 }}>
       <PeopleStrip enablePhotoPick onPersonFocus={goPerson} />
@@ -138,6 +149,7 @@ function PersonCropBody() {
             imgH={dims.h}
             aspect={active.widthMm / active.heightMm}
             crop={active.crop}
+            adjust={active.adjust}
             onChange={(crop) => setPersonCrop(active.id, crop)}
           />
         ) : (
@@ -154,70 +166,46 @@ function PersonCropBody() {
             />
 
             <SectionLabel>Quick edits</SectionLabel>
-            <View style={{ flexDirection: 'row', gap: space.sm }}>
-              <View style={{ flex: 1 }}>
-                <Button
-                  label="Rotate 90°"
-                  variant="secondary"
-                  disabled={busy}
-                  onPress={async () => {
-                    setBusy(true);
-                    try {
-                      const uri = await rotateImage(active.url, 90);
-                      setPersonUri(active.id, uri);
-                    } finally {
-                      setBusy(false);
-                    }
-                  }}
-                />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Button
-                  label="Flip"
-                  variant="secondary"
-                  disabled={busy}
-                  onPress={async () => {
-                    setBusy(true);
-                    try {
-                      const uri = await flipHorizontal(active.url);
-                      setPersonUri(active.id, uri);
-                    } finally {
-                      setBusy(false);
-                    }
-                  }}
-                />
-              </View>
-            </View>
-
-            <View style={{ gap: space.sm }}>
-              <Text style={{ ...type.caption, color: colors.inkMuted }}>
-                Brightness
-              </Text>
-              <View style={{ flexDirection: 'row', gap: space.sm }}>
-                {[0.85, 1, 1.15].map((v) => (
-                  <View key={v} style={{ flex: 1 }}>
-                    <Button
-                      label={v === 1 ? 'Normal' : v < 1 ? 'Darker' : 'Brighter'}
-                      variant={
-                        active.adjust.brightness === v ? 'primary' : 'secondary'
-                      }
-                      onPress={() =>
-                        setPersonAdjust(active.id, {
-                          ...active.adjust,
-                          brightness: v,
-                        })
-                      }
-                    />
-                  </View>
-                ))}
-              </View>
-            </View>
-
-            {BG_REMOVAL_AVAILABLE ? (
-              <View style={{ gap: space.sm }}>
-                <Button
-                  label={busy ? 'Removing…' : 'Remove background'}
-                  variant="secondary"
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: space.sm }}>
+              <EditAction
+                icon={ArrowClockwiseIcon}
+                label="Rotate"
+                disabled={busy}
+                onPress={async () => {
+                  setBusy(true);
+                  try {
+                    const uri = await rotateImage(active.url, 90);
+                    setPersonUri(active.id, uri);
+                  } finally {
+                    setBusy(false);
+                  }
+                }}
+              />
+              <EditAction
+                icon={FlipHorizontalIcon}
+                label="Flip"
+                disabled={busy}
+                onPress={async () => {
+                  setBusy(true);
+                  try {
+                    const uri = await flipHorizontal(active.url);
+                    setPersonUri(active.id, uri);
+                  } finally {
+                    setBusy(false);
+                  }
+                }}
+              />
+              <EditAction
+                icon={CircleHalfIcon}
+                label={adjusted ? 'Adjusted' : 'Adjust'}
+                selected={adjusted}
+                disabled={busy}
+                onPress={() => setAdjustOpen(true)}
+              />
+              {BG_REMOVAL_AVAILABLE ? (
+                <EditAction
+                  icon={ScissorsIcon}
+                  label={busy ? '…' : 'BG'}
                   disabled={busy}
                   onPress={async () => {
                     setBusy(true);
@@ -237,29 +225,27 @@ function PersonCropBody() {
                     }
                   }}
                 />
-                {active.previousUrl ? (
-                  <Button
-                    label="Undo background removal"
-                    variant="ghost"
-                    onPress={() => {
-                      undoPersonUri(active.id);
-                      setBgNote(null);
-                    }}
-                  />
-                ) : null}
-                {bgNote ? (
-                  <Text
-                    selectable
-                    style={{ ...type.caption, color: colors.accent }}
-                  >
-                    {bgNote}
-                  </Text>
-                ) : (
-                  <Text style={{ ...type.caption, color: colors.inkFaint }}>
-                    On-device (Apple Vision / ML Kit). Optional.
-                  </Text>
-                )}
-              </View>
+              ) : null}
+            </View>
+
+            {active.previousUrl ? (
+              <Button
+                label="Undo background removal"
+                variant="ghost"
+                onPress={() => {
+                  undoPersonUri(active.id);
+                  setBgNote(null);
+                }}
+              />
+            ) : null}
+            {bgNote ? (
+              <Text selectable style={{ ...type.caption, color: colors.accent }}>
+                {bgNote}
+              </Text>
+            ) : BG_REMOVAL_AVAILABLE ? (
+              <Text style={{ ...type.caption, color: colors.inkFaint }}>
+                BG removes background on-device. Optional.
+              </Text>
             ) : (
               <Text style={{ ...type.caption, color: colors.inkFaint }}>
                 Background removal is available in the iOS/Android app build.
@@ -270,9 +256,67 @@ function PersonCropBody() {
               label="Continue to sheet"
               onPress={() => router.push('/sheet')}
             />
+
+            <AdjustModal
+              visible={adjustOpen}
+              uri={active.url}
+              value={active.adjust}
+              onChange={(next) => setPersonAdjust(active.id, next)}
+              onClose={() => setAdjustOpen(false)}
+            />
           </>
         ) : null}
       </ScrollView>
     </View>
+  );
+}
+
+function EditAction({
+  icon: Icon,
+  label,
+  onPress,
+  disabled,
+  selected,
+}: {
+  icon: PhIcon;
+  label: string;
+  onPress: () => void;
+  disabled?: boolean;
+  selected?: boolean;
+}) {
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ disabled: !!disabled, selected: !!selected }}
+      disabled={disabled}
+      onPress={onPress}
+      style={({ pressed }) => ({
+        minWidth: 76,
+        paddingVertical: 12,
+        paddingHorizontal: 12,
+        borderRadius: radii.md,
+        borderCurve: 'continuous',
+        backgroundColor: selected ? colors.accent : colors.accentSoft,
+        alignItems: 'center',
+        gap: 6,
+        opacity: disabled ? 0.45 : pressed ? 0.8 : 1,
+      })}
+    >
+      <Icon
+        size={22}
+        color={selected ? '#fff' : colors.accent}
+        weight="bold"
+      />
+      <Text
+        style={{
+          ...type.caption,
+          color: selected ? '#fff' : colors.accent,
+          fontWeight: '600',
+        }}
+      >
+        {label}
+      </Text>
+    </Pressable>
   );
 }
