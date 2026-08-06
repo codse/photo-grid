@@ -42,7 +42,7 @@ if [[ -z "$IAP_ID" ]]; then
   IAP_ID="$(echo "$CREATE" | python3 -c "
 import json,sys
 d=json.load(sys.stdin)
-print((d.get('data') or {}).get('id') or d.get('id') or '')
+print(d.get('iapId') or (d.get('data') or {}).get('id') or d.get('id') or '')
 ")"
 else
   echo "==> Reusing IAP $IAP_ID"
