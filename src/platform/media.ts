@@ -38,12 +38,17 @@ export async function pickFromLibrary(): Promise<PickedImage | null> {
   return fromAsset(result.assets[0]);
 }
 
-/** Fallback camera via system picker (works in Expo Go / web). */
-export async function pickFromCamera(): Promise<PickedImage | null> {
+/** System / browser camera. Pass cameraType for front/back (passport → front). */
+export async function pickFromCamera(
+  cameraType: ImagePicker.CameraType = ImagePicker.CameraType.front,
+): Promise<PickedImage | null> {
   const perm = await ImagePicker.requestCameraPermissionsAsync();
   if (!perm.granted) return null;
 
-  const result = await ImagePicker.launchCameraAsync(pickOptions);
+  const result = await ImagePicker.launchCameraAsync({
+    ...pickOptions,
+    cameraType,
+  });
   if (result.canceled || !result.assets[0]) return null;
   const asset = result.assets[0];
   return {
