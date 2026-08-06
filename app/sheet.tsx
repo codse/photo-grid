@@ -158,16 +158,20 @@ function SheetBody() {
           textAlign: wide ? 'left' : 'center',
         }}
       >
-        {layout.cells.length} photos ·{' '}
-        {formatSize(layout.paperWidthMm, layout.paperHeightMm)}
-        {layout.rotated ? ' · rotated' : ''}
-        {packMode === 'fill' ? ' · auto fill' : ' · custom count'}
+        {t('sheet.meta', {
+          count: layout.cells.length,
+          size: formatSize(layout.paperWidthMm, layout.paperHeightMm),
+        })}
+        {layout.rotated ? ` · ${t('sheet.rotated')}` : ''}
+        {packMode === 'fill'
+          ? ` · ${t('sheet.autoFill')}`
+          : ` · ${t('sheet.customCount')}`}
       </Text>
 
       {!wide ? <CustomizeSummaryBar onPress={openCustomize} /> : null}
 
       <Button
-        label="Share & export"
+        label={t('sheet.shareExport')}
         disabled={layout.cells.length === 0}
         onPress={() => router.push('/export')}
       />
@@ -178,7 +182,7 @@ function SheetBody() {
     <View style={{ flex: 1 }}>
       <Stack.Screen
         options={{
-          title: 'Print sheet',
+          title: t('sheet.title'),
           headerRight: () =>
             wide ? null : <CustomizeHeaderButton onPress={openCustomize} />,
         }}
