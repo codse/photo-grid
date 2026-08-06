@@ -1,0 +1,102 @@
+{
+  "app": {
+    "name": "Passport Photo Print",
+    "tagline": "Exact sizes on a chemist’s sheet. Offline."
+  },
+  "home": {
+    "takePhoto": "Take photo",
+    "orStartFrom": "Or start from",
+    "photoLibrary": "Photo Library",
+    "photoLibraryHint": "Crop next",
+    "tileReady": "Tile ready photos",
+    "tileReadyHint": "Skip crop · go straight to sheet",
+    "printSize": "Print size",
+    "change": "Change",
+    "saved": "Saved",
+    "seeAll": "See all",
+    "inProgress": "In progress",
+    "continueSheet": "Continue current sheet",
+    "yourPresets": "Your presets",
+    "addPhotoTitle": "Add a photo",
+    "addPhotoBody": "Preset is ready. Take or choose a photo next.",
+    "photoLibraryAction": "Photo Library",
+    "cancel": "Cancel"
+  },
+  "pro": {
+    "once": "ONCE",
+    "headline": "Ad-free forever",
+    "sub": "No more interruptions while you print.",
+    "unlock": "Unlock",
+    "restore": "Restore purchase",
+    "restoring": "Restoring…",
+    "unlockedTitle": "You’re unlocked",
+    "unlockedSub": "Ads off · lifetime",
+    "proPass": "Pro pass",
+    "purchaseOkTitle": "You’re Pro",
+    "purchaseOkBody": "Ads are removed on this Apple ID.",
+    "restoredTitle": "Restored",
+    "restoredBody": "Lifetime unlock is active again.",
+    "removeAdsPrice": "Remove ads · {{price}}",
+    "lifetimeApple": "Lifetime unlock via Apple",
+    "buy": "Buy"
+  },
+  "export": {
+    "title": "Share",
+    "format": "Format",
+    "savePhotos": "Save to Photos",
+    "saving": "Saving…",
+    "download": "Download",
+    "downloading": "Downloading…",
+    "share": "Share",
+    "save": "Save",
+    "saved": "Saved",
+    "exportFailed": "Export failed",
+    "couldntUpdateSaved": "Couldn’t update Saved",
+    "meta": "{{count}} photos · {{size}} · 300 DPI"
+  },
+  "sheet": {
+    "title": "Print sheet",
+    "shareExport": "Share & export",
+    "meta": "{{count}} photos · {{size}}",
+    "rotated": "rotated",
+    "autoFill": "auto fill",
+    "customCount": "custom count"
+  },
+  "saved": {
+    "title": "Saved",
+    "emptyTitle": "Nothing saved yet",
+    "emptyBody": "Tap the bookmark on Share when you want to keep a sheet here.",
+    "makeSheet": "Make a sheet",
+    "share": "Share",
+    "delete": "Delete",
+    "deleteTitle": "Delete?",
+    "deleteBody": "Remove this from Saved. Can’t undo.",
+    "cancel": "Cancel",
+    "shareFailed": "Share failed"
+  },
+  "settings": {
+    "title": "Settings",
+    "language": "Language",
+    "legal": "Legal",
+    "about": "About",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Use",
+    "disclaimer": "Disclaimer",
+    "on": "On",
+    "savedHint": "Bookmarked sheets live in Saved"
+  },
+  "common": {
+    "cancel": "Cancel",
+    "home": "Home",
+    "back": "Back"
+  },
+  "locales": {
+    "en": "English (US)",
+    "en-GB": "English (UK)",
+    "pt": "Português",
+    "ne": "नेपाली",
+    "hi": "हिन्दी",
+    "es": "Español",
+    "fr": "Français"
+  }
+}

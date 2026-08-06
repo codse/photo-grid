@@ -1,0 +1,117 @@
+import { useCallback, useEffect, useState } from 'react';
+import { I18nManager } from 'react-native';
+import * as Localization from 'expo-localization';
+import i18n from 'i18next';
+import { initReactI18next, useTranslation } from 'react-i18next';
+import AsyncStorage from '@/platform/storage';
+
+import en from './locales/en.json';
+import enGB from './locales/en-GB.json';
+import pt from './locales/pt.json';
+import ne from './locales/ne.json';
+import hi from './locales/hi.json';
+import es from './locales/es.json';
+import fr from './locales/fr.json';
+
+export const APP_LOCALES = ['en', 'en-GB', 'pt', 'ne', 'hi', 'es', 'fr'] as const;
+export type AppLocale = (typeof APP_LOCALES)[number];
+
+const STORAGE_KEY = 'passport-photo-print.locale';
+
+const resources = {
+  en: { translation: en },
+  'en-GB': { translation: enGB },
+  pt: { translation: pt },
+  ne: { translation: ne },
+  hi: { translation: hi },
+  es: { translation: es },
+  fr: { translation: fr },
+} as const;
+
+function resolveDeviceLocale(): AppLocale {
+  const tag = Localization.getLocales()[0]?.languageTag ?? 'en';
+  const lang = Localization.getLocales()[0]?.languageCode ?? 'en';
+  if (tag.startsWith('en-GB') || tag === 'en-GB') return 'en-GB';
+  if (APP_LOCALES.includes(tag as AppLocale)) return tag as AppLocale;
+  if (lang === 'pt') return 'pt';
+  if (lang === 'ne') return 'ne';
+  if (lang === 'hi') return 'hi';
+  if (lang === 'es') return 'es';
+  if (lang === 'fr') return 'fr';
+  if (lang === 'en') return 'en';
+  return 'en';
+}
+
+let initDone: Promise<void> | null = null;
+
+export function initI18n(): Promise<void> {
+  if (initDone) return initDone;
+  initDone = (async () => {
+    let lng: AppLocale = resolveDeviceLocale();
+    try {
+      const stored = await AsyncStorage.getItem(STORAGE_KEY);
+      if (stored && APP_LOCALES.includes(stored as AppLocale)) {
+        lng = stored as AppLocale;
+      }
+    } catch {
+      // keep device
+    }
+
+    if (!i18n.isInitialized) {
+      await i18n.use(initReactI18next).init({
+        resources,
+        lng,
+        fallbackLng: 'en',
+        compatibilityJSON: 'v4',
+        interpolation: { escapeValue: false },
+      });
+    } else {
+      await i18n.changeLanguage(lng);
+    }
+
+    // None of v1 locales are RTL.
+    if (I18nManager.isRTL) {
+      I18nManager.allowRTL(false);
+      I18nManager.forceRTL(false);
+    }
+  })();
+  return initDone;
+}
+
+export function getLocaleLabel(code: AppLocale): string {
+  return i18n.t(`locales.${code}`);
+}
+
+export async function setAppLocale(code: AppLocale): Promise<void> {
+  await AsyncStorage.setItem(STORAGE_KEY, code);
+  await i18n.changeLanguage(code);
+}
+
+export function useAppLocale() {
+  const { i18n: instance } = useTranslation();
+  const [locale, setLocaleState] = useState<AppLocale>(
+    (instance.language as AppLocale) || 'en',
+  );
+
+  useEffect(() => {
+    const onChange = (lng: string) => {
+      if (APP_LOCALES.includes(lng as AppLocale)) {
+        setLocaleState(lng as AppLocale);
+      }
+    };
+    instance.on('languageChanged', onChange);
+    onChange(instance.language);
+    return () => {
+      instance.off('languageChanged', onChange);
+    };
+  }, [instance]);
+
+  const setLocale = useCallback(async (code: AppLocale) => {
+    await setAppLocale(code);
+    setLocaleState(code);
+  }, []);
+
+  return { locale, setLocale };
+}
+
+export { i18n };

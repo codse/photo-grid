@@ -1,0 +1,102 @@
+{
+  "app": {
+    "name": "Passport Photo Print",
+    "tagline": "Tamanhos exatos numa folha de farmácia. Offline."
+  },
+  "home": {
+    "takePhoto": "Tirar foto",
+    "orStartFrom": "Ou comece por",
+    "photoLibrary": "Biblioteca de fotos",
+    "photoLibraryHint": "Recortar a seguir",
+    "tileReady": "Fotos prontas para grelha",
+    "tileReadyHint": "Saltar recorte · ir à folha",
+    "printSize": "Tamanho de impressão",
+    "change": "Alterar",
+    "saved": "Guardados",
+    "seeAll": "Ver tudo",
+    "inProgress": "Em curso",
+    "continueSheet": "Continuar folha atual",
+    "yourPresets": "Os seus presets",
+    "addPhotoTitle": "Adicionar foto",
+    "addPhotoBody": "Preset pronto. Tire ou escolha uma foto.",
+    "photoLibraryAction": "Biblioteca de fotos",
+    "cancel": "Cancelar"
+  },
+  "pro": {
+    "once": "UMA VEZ",
+    "headline": "Sem anúncios para sempre",
+    "sub": "Sem interrupções enquanto imprime.",
+    "unlock": "Desbloquear",
+    "restore": "Restaurar compra",
+    "restoring": "A restaurar…",
+    "unlockedTitle": "Desbloqueado",
+    "unlockedSub": "Sem anúncios · vitalício",
+    "proPass": "Passe Pro",
+    "purchaseOkTitle": "É Pro",
+    "purchaseOkBody": "Anúncios removidos neste Apple ID.",
+    "restoredTitle": "Restaurado",
+    "restoredBody": "O desbloqueio vitalício está ativo.",
+    "removeAdsPrice": "Remover anúncios · {{price}}",
+    "lifetimeApple": "Desbloqueio vitalício via Apple",
+    "buy": "Comprar"
+  },
+  "export": {
+    "title": "Partilhar",
+    "format": "Formato",
+    "savePhotos": "Guardar nas Fotos",
+    "saving": "A guardar…",
+    "download": "Descarregar",
+    "downloading": "A descarregar…",
+    "share": "Partilhar",
+    "save": "Guardar",
+    "saved": "Guardado",
+    "exportFailed": "Exportação falhou",
+    "couldntUpdateSaved": "Não foi possível atualizar Guardados",
+    "meta": "{{count}} fotos · {{size}} · 300 DPI"
+  },
+  "sheet": {
+    "title": "Folha de impressão",
+    "shareExport": "Partilhar e exportar",
+    "meta": "{{count}} fotos · {{size}}",
+    "rotated": "rodado",
+    "autoFill": "preenchimento auto",
+    "customCount": "contagem personalizada"
+  },
+  "saved": {
+    "title": "Guardados",
+    "emptyTitle": "Nada guardado",
+    "emptyBody": "Toque no marcador em Partilhar para guardar uma folha aqui.",
+    "makeSheet": "Criar folha",
+    "share": "Partilhar",
+    "delete": "Eliminar",
+    "deleteTitle": "Eliminar?",
+    "deleteBody": "Remover dos Guardados. Não dá para anular.",
+    "cancel": "Cancelar",
+    "shareFailed": "Partilha falhou"
+  },
+  "settings": {
+    "title": "Definições",
+    "language": "Idioma",
+    "legal": "Legal",
+    "about": "Sobre",
+    "privacy": "Política de privacidade",
+    "terms": "Termos de uso",
+    "disclaimer": "Aviso",
+    "on": "Ativo",
+    "savedHint": "Folhas marcadas ficam em Guardados"
+  },
+  "common": {
+    "cancel": "Cancelar",
+    "home": "Início",
+    "back": "Voltar"
+  },
+  "locales": {
+    "en": "English (US)",
+    "en-GB": "English (UK)",
+    "pt": "Português",
+    "ne": "नेपाली",
+    "hi": "हिन्दी",
+    "es": "Español",
+    "fr": "Français"
+  }
+}

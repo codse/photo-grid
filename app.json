@@ -98,7 +98,8 @@
           "androidAppId": "ca-app-pub-3859855802547804~6624257573",
           "iosAppId": "ca-app-pub-3940256099942544~1458002511"
         }
-      ]
+      ],
+      "expo-localization"
     ],
     "experiments": {
       "typedRoutes": true

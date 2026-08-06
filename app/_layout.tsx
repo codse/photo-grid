@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Platform } from 'react-native';
 import { Stack } from 'expo-router';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -25,6 +25,7 @@ import { useSession } from '@/state/session';
 import { loadPrefs, savePrefs } from '@/platform/prefs';
 import { initAds } from '@/monetization/ads';
 import { configurePurchases } from '@/monetization/purchases';
+import { initI18n } from '@/i18n';
 
 void SplashScreen.preventAutoHideAsync().catch(() => undefined);
 
@@ -40,12 +41,17 @@ export default function RootLayout() {
     Commissioner_700Bold,
     Commissioner_800ExtraBold,
   });
+  const [i18nReady, setI18nReady] = useState(false);
 
   const hydratePrefs = useSession((s) => s.hydratePrefs);
   const photoId = useSession((s) => s.photoId);
   const paperId = useSession((s) => s.paperId);
   const savedPresets = useSession((s) => s.savedPresets);
   const prefsHydrated = useSession((s) => s.prefsHydrated);
+
+  useEffect(() => {
+    void initI18n().finally(() => setI18nReady(true));
+  }, []);
 
   useEffect(() => {
     void (async () => {
@@ -71,10 +77,10 @@ export default function RootLayout() {
   }, [photoId, paperId, savedPresets, prefsHydrated]);
 
   useEffect(() => {
-    if (fontsLoaded) void SplashScreen.hideAsync();
-  }, [fontsLoaded]);
+    if (fontsLoaded && i18nReady) void SplashScreen.hideAsync();
+  }, [fontsLoaded, i18nReady]);
 
-  if (!fontsLoaded) return null;
+  if (!fontsLoaded || !i18nReady) return null;
 
   return (
     <GestureHandlerRootView style={{ flex: 1, backgroundColor: colors.bg }}>
@@ -128,6 +134,14 @@ export default function RootLayout() {
           name="export"
           options={{ title: 'Share', headerBackTitle: 'Sheet' }}
         />
+        <Stack.Screen
+          name="settings"
+          options={{ title: 'Settings', headerBackTitle: 'Home' }}
+        />
+        <Stack.Screen name="about" options={{ title: 'About' }} />
+        <Stack.Screen name="privacy" options={{ title: 'Privacy Policy' }} />
+        <Stack.Screen name="terms" options={{ title: 'Terms of Use' }} />
+        <Stack.Screen name="disclaimer" options={{ title: 'Disclaimer' }} />
       </Stack>
     </GestureHandlerRootView>
   );

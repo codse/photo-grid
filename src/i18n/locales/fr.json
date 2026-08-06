@@ -1,0 +1,102 @@
+{
+  "app": {
+    "name": "Passport Photo Print",
+    "tagline": "Formats exacts sur une feuille photo. Hors ligne."
+  },
+  "home": {
+    "takePhoto": "Prendre une photo",
+    "orStartFrom": "Ou commencez par",
+    "photoLibrary": "Photothèque",
+    "photoLibraryHint": "Recadrer ensuite",
+    "tileReady": "Photos prêtes à mosaïquer",
+    "tileReadyHint": "Sauter le recadrage · aller à la feuille",
+    "printSize": "Format d’impression",
+    "change": "Modifier",
+    "saved": "Enregistrés",
+    "seeAll": "Tout voir",
+    "inProgress": "En cours",
+    "continueSheet": "Continuer la feuille",
+    "yourPresets": "Vos préréglages",
+    "addPhotoTitle": "Ajouter une photo",
+    "addPhotoBody": "Préréglage prêt. Prenez ou choisissez une photo.",
+    "photoLibraryAction": "Photothèque",
+    "cancel": "Annuler"
+  },
+  "pro": {
+    "once": "UNE FOIS",
+    "headline": "Sans pub pour toujours",
+    "sub": "Plus d’interruptions pendant l’impression.",
+    "unlock": "Débloquer",
+    "restore": "Restaurer l’achat",
+    "restoring": "Restauration…",
+    "unlockedTitle": "Débloqué",
+    "unlockedSub": "Sans pub · à vie",
+    "proPass": "Pass Pro",
+    "purchaseOkTitle": "Vous êtes Pro",
+    "purchaseOkBody": "Pubs retirées sur cet Apple ID.",
+    "restoredTitle": "Restauré",
+    "restoredBody": "Le déblocage à vie est actif.",
+    "removeAdsPrice": "Retirer les pubs · {{price}}",
+    "lifetimeApple": "Déblocage à vie via Apple",
+    "buy": "Acheter"
+  },
+  "export": {
+    "title": "Partager",
+    "format": "Format",
+    "savePhotos": "Enregistrer dans Photos",
+    "saving": "Enregistrement…",
+    "download": "Télécharger",
+    "downloading": "Téléchargement…",
+    "share": "Partager",
+    "save": "Enregistrer",
+    "saved": "Enregistré",
+    "exportFailed": "Échec de l’export",
+    "couldntUpdateSaved": "Impossible de mettre à jour Enregistrés",
+    "meta": "{{count}} photos · {{size}} · 300 DPI"
+  },
+  "sheet": {
+    "title": "Feuille d’impression",
+    "shareExport": "Partager et exporter",
+    "meta": "{{count}} photos · {{size}}",
+    "rotated": "rotation",
+    "autoFill": "remplissage auto",
+    "customCount": "nombre perso"
+  },
+  "saved": {
+    "title": "Enregistrés",
+    "emptyTitle": "Rien d’enregistré",
+    "emptyBody": "Touchez le signet sur Partager pour garder une feuille ici.",
+    "makeSheet": "Créer une feuille",
+    "share": "Partager",
+    "delete": "Supprimer",
+    "deleteTitle": "Supprimer ?",
+    "deleteBody": "Retirer des Enregistrés. Irréversible.",
+    "cancel": "Annuler",
+    "shareFailed": "Échec du partage"
+  },
+  "settings": {
+    "title": "Réglages",
+    "language": "Langue",
+    "legal": "Mentions légales",
+    "about": "À propos",
+    "privacy": "Politique de confidentialité",
+    "terms": "Conditions d’utilisation",
+    "disclaimer": "Avertissement",
+    "on": "Actif",
+    "savedHint": "Les feuilles marquées sont dans Enregistrés"
+  },
+  "common": {
+    "cancel": "Annuler",
+    "home": "Accueil",
+    "back": "Retour"
+  },
+  "locales": {
+    "en": "English (US)",
+    "en-GB": "English (UK)",
+    "pt": "Português",
+    "ne": "नेपाली",
+    "hi": "हिन्दी",
+    "es": "Español",
+    "fr": "Français"
+  }
+}

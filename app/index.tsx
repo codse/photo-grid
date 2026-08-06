@@ -27,8 +27,11 @@ import { CameraIcon, GridIcon, LibraryIcon } from '@/ui/icons';
 import { colors, fonts, radii, space, type } from '@/ui/tokens';
 import { ProOffer } from '@/monetization/pro-offer';
 import { AdBanner } from '@/monetization/ads';
+import { useTranslation } from 'react-i18next';
+import { GearSixIcon } from 'phosphor-react-native/src/icons/GearSix';
 
 export default function HomeScreen() {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const photoId = useSession((s) => s.photoId);
   const paperId = useSession((s) => s.paperId);
@@ -134,20 +137,20 @@ export default function HomeScreen() {
       router.push('/sheet');
       return;
     }
-    Alert.alert('Add a photo', 'Preset is ready. Take or choose a photo next.', [
+    Alert.alert(t('home.addPhotoTitle'), t('home.addPhotoBody'), [
       {
-        text: 'Take photo',
+        text: t('home.takePhoto'),
         onPress: () => {
           void takePhoto();
         },
       },
       {
-        text: 'Photo Library',
+        text: t('home.photoLibraryAction'),
         onPress: () => {
           void importToActive({ go: 'crop' });
         },
       },
-      { text: 'Cancel', style: 'cancel' },
+      { text: t('home.cancel'), style: 'cancel' },
     ]);
   };
 
@@ -163,13 +166,41 @@ export default function HomeScreen() {
         }}
       >
         {/* Large title — product name is the place, not a marketing block */}
-        <View style={{ gap: 6, paddingTop: space.sm }}>
-          <Text style={{ ...type.display, color: colors.ink }}>
-            Passport Photo Print
-          </Text>
-          <Text style={{ ...type.body, color: colors.inkMuted }}>
-            Exact sizes on a pharmacy sheet. Offline.
-          </Text>
+        <View
+          style={{
+            flexDirection: 'row',
+            alignItems: 'flex-start',
+            justifyContent: 'space-between',
+            gap: space.md,
+            paddingTop: space.sm,
+          }}
+        >
+          <View style={{ flex: 1, gap: 6 }}>
+            <Text style={{ ...type.display, color: colors.ink }}>
+              {t('app.name')}
+            </Text>
+            <Text style={{ ...type.body, color: colors.inkMuted }}>
+              {t('app.tagline')}
+            </Text>
+          </View>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={t('settings.title')}
+            onPress={() => router.push('/settings')}
+            hitSlop={8}
+            style={({ pressed }) => ({
+              width: 40,
+              height: 40,
+              borderRadius: 20,
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: colors.line,
+              opacity: pressed ? 0.7 : 1,
+              marginTop: 4,
+            })}
+          >
+            <GearSixIcon size={20} color={colors.ink} weight="bold" />
+          </Pressable>
         </View>
 
         {/* Progress first — Apple “Continue” pattern */}
@@ -202,7 +233,7 @@ export default function HomeScreen() {
                   letterSpacing: 0.6,
                 }}
               >
-                In progress
+                {t('home.inProgress')}
               </Text>
               <CaretRightIcon size={16} color="rgba(255,255,255,0.85)" weight="bold" />
             </View>
@@ -259,7 +290,7 @@ export default function HomeScreen() {
           /* Empty: one clear primary — not a tile grid */
           <View style={{ gap: space.md }}>
             <Button
-              label={busy ? 'Opening…' : 'Take photo'}
+              label={busy ? 'Opening…' : t('home.takePhoto')}
               disabled={busy}
               icon={<CameraIcon color="#fff" size={20} />}
               onPress={() => void takePhoto()}
@@ -268,11 +299,11 @@ export default function HomeScreen() {
         )}
 
         <View style={{ gap: space.sm }}>
-          <SectionHeader title={hasPhoto ? 'Add or replace' : 'Or start from'} />
+          <SectionHeader title={hasPhoto ? 'Add or replace' : t('home.orStartFrom')} />
           <InsetGroup>
             {hasPhoto ? (
               <ListRow
-                title="Take photo"
+                title={t('home.takePhoto')}
                 subtitle="Camera"
                 disabled={busy}
                 icon={<CameraIcon color={colors.accent} size={18} />}
@@ -280,15 +311,15 @@ export default function HomeScreen() {
               />
             ) : null}
             <ListRow
-              title="Photo Library"
-              subtitle="Crop next"
+              title={t('home.photoLibrary')}
+              subtitle={t('home.photoLibraryHint')}
               disabled={busy}
               icon={<LibraryIcon color={colors.accent} size={18} />}
               onPress={() => importToActive({ go: 'crop' })}
             />
             <ListRow
-              title="Tile ready photos"
-              subtitle="Skip crop · go straight to sheet"
+              title={t('home.tileReady')}
+              subtitle={t('home.tileReadyHint')}
               disabled={busy}
               icon={<GridIcon color={colors.accent} size={18} />}
               onPress={() => importToActive({ go: 'sheet' })}
@@ -297,7 +328,7 @@ export default function HomeScreen() {
         </View>
 
         <View style={{ gap: space.sm }}>
-          <SectionHeader title="Print size" />
+          <SectionHeader title={t('home.printSize')} />
           <InsetGroup>
             <ListRow
               title={sizeTitle}
@@ -305,7 +336,9 @@ export default function HomeScreen() {
               onPress={() => router.push('/size')}
               accessory={
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                  <Text style={{ ...type.caption, color: colors.accent }}>Change</Text>
+                  <Text style={{ ...type.caption, color: colors.accent }}>
+                    {t('home.change')}
+                  </Text>
                   <CaretRightIcon size={16} color={colors.inkFaint} weight="bold" />
                 </View>
               }
@@ -319,8 +352,8 @@ export default function HomeScreen() {
         {SAVED_SHEETS_AVAILABLE && recent.length > 0 ? (
           <View style={{ gap: space.sm }}>
             <SectionHeader
-              title="Saved"
-              action={{ label: 'See all', onPress: () => router.push('/saved') }}
+              title={t('home.saved')}
+              action={{ label: t('home.seeAll'), onPress: () => router.push('/saved') }}
             />
             <ScrollView
               horizontal
@@ -368,7 +401,7 @@ export default function HomeScreen() {
 
         {savedPresets.length > 0 ? (
           <View style={{ gap: space.sm }}>
-            <SectionHeader title="Your presets" />
+            <SectionHeader title={t('home.yourPresets')} />
             <InsetGroup>
               {savedPresets.map((cfg) => {
                 return (

@@ -1,0 +1,102 @@
+{
+  "app": {
+    "name": "Passport Photo Print",
+    "tagline": "Tamaños exactos en una hoja de farmacia. Sin conexión."
+  },
+  "home": {
+    "takePhoto": "Tomar foto",
+    "orStartFrom": "O empieza desde",
+    "photoLibrary": "Biblioteca de fotos",
+    "photoLibraryHint": "Recortar después",
+    "tileReady": "Fotos listas para cuadrícula",
+    "tileReadyHint": "Saltar recorte · ir a la hoja",
+    "printSize": "Tamaño de impresión",
+    "change": "Cambiar",
+    "saved": "Guardados",
+    "seeAll": "Ver todo",
+    "inProgress": "En curso",
+    "continueSheet": "Continuar hoja actual",
+    "yourPresets": "Tus presets",
+    "addPhotoTitle": "Añadir foto",
+    "addPhotoBody": "Preset listo. Toma o elige una foto.",
+    "photoLibraryAction": "Biblioteca de fotos",
+    "cancel": "Cancelar"
+  },
+  "pro": {
+    "once": "UNA VEZ",
+    "headline": "Sin anuncios para siempre",
+    "sub": "Sin interrupciones mientras imprimes.",
+    "unlock": "Desbloquear",
+    "restore": "Restaurar compra",
+    "restoring": "Restaurando…",
+    "unlockedTitle": "Desbloqueado",
+    "unlockedSub": "Sin anuncios · de por vida",
+    "proPass": "Pase Pro",
+    "purchaseOkTitle": "Eres Pro",
+    "purchaseOkBody": "Anuncios eliminados en este Apple ID.",
+    "restoredTitle": "Restaurado",
+    "restoredBody": "El desbloqueo de por vida está activo.",
+    "removeAdsPrice": "Quitar anuncios · {{price}}",
+    "lifetimeApple": "Desbloqueo de por vida vía Apple",
+    "buy": "Comprar"
+  },
+  "export": {
+    "title": "Compartir",
+    "format": "Formato",
+    "savePhotos": "Guardar en Fotos",
+    "saving": "Guardando…",
+    "download": "Descargar",
+    "downloading": "Descargando…",
+    "share": "Compartir",
+    "save": "Guardar",
+    "saved": "Guardado",
+    "exportFailed": "Error al exportar",
+    "couldntUpdateSaved": "No se pudo actualizar Guardados",
+    "meta": "{{count}} fotos · {{size}} · 300 DPI"
+  },
+  "sheet": {
+    "title": "Hoja de impresión",
+    "shareExport": "Compartir y exportar",
+    "meta": "{{count}} fotos · {{size}}",
+    "rotated": "rotado",
+    "autoFill": "relleno auto",
+    "customCount": "cantidad personalizada"
+  },
+  "saved": {
+    "title": "Guardados",
+    "emptyTitle": "Nada guardado aún",
+    "emptyBody": "Toca el marcador en Compartir para guardar una hoja aquí.",
+    "makeSheet": "Crear hoja",
+    "share": "Compartir",
+    "delete": "Eliminar",
+    "deleteTitle": "¿Eliminar?",
+    "deleteBody": "Quitar de Guardados. No se puede deshacer.",
+    "cancel": "Cancelar",
+    "shareFailed": "Error al compartir"
+  },
+  "settings": {
+    "title": "Ajustes",
+    "language": "Idioma",
+    "legal": "Legal",
+    "about": "Acerca de",
+    "privacy": "Política de privacidad",
+    "terms": "Términos de uso",
+    "disclaimer": "Aviso",
+    "on": "Activo",
+    "savedHint": "Las hojas marcadas están en Guardados"
+  },
+  "common": {
+    "cancel": "Cancelar",
+    "home": "Inicio",
+    "back": "Atrás"
+  },
+  "locales": {
+    "en": "English (US)",
+    "en-GB": "English (UK)",
+    "pt": "Português",
+    "ne": "नेपाली",
+    "hi": "हिन्दी",
+    "es": "Español",
+    "fr": "Français"
+  }
+}

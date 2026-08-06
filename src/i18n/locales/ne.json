@@ -1,0 +1,102 @@
+{
+  "app": {
+    "name": "Passport Photo Print",
+    "tagline": "फार्मेसी पानामा सही साइज। अफलाइन।"
+  },
+  "home": {
+    "takePhoto": "फोटो खिच्नुहोस्",
+    "orStartFrom": "वा सुरु गर्नुहोस्",
+    "photoLibrary": "फोटो लाइब्रेरी",
+    "photoLibraryHint": "अर्को: क्रप",
+    "tileReady": "तयार फोटो टाइल",
+    "tileReadyHint": "क्रप छोड्नुहोस् · सिधै पाना",
+    "printSize": "प्रिन्ट साइज",
+    "change": "बदल्नुहोस्",
+    "saved": "सुरक्षित",
+    "seeAll": "सबै हेर्नुहोस्",
+    "inProgress": "जारी",
+    "continueSheet": "हालको पाना जारी राख्नुहोस्",
+    "yourPresets": "तपाईंका प्रिसेट",
+    "addPhotoTitle": "फोटो थप्नुहोस्",
+    "addPhotoBody": "प्रिसेट तयार। फोटो खिच्नुहोस् वा छान्नुहोस्।",
+    "photoLibraryAction": "फोटो लाइब्रेरी",
+    "cancel": "रद्द"
+  },
+  "pro": {
+    "once": "एक पटक",
+    "headline": "सधैं विज्ञापनमुक्त",
+    "sub": "प्रिन्ट गर्दा अवरोध हुँदैन।",
+    "unlock": "अनलक",
+    "restore": "खरिद पुनर्स्थापना",
+    "restoring": "पुनर्स्थापना हुँदै…",
+    "unlockedTitle": "अनलक भयो",
+    "unlockedSub": "विज्ञापन बन्द · आजीवन",
+    "proPass": "प्रो पास",
+    "purchaseOkTitle": "तपाईं प्रो हुनुहुन्छ",
+    "purchaseOkBody": "यो Apple ID मा विज्ञापन हटाइयो।",
+    "restoredTitle": "पुनर्स्थापित",
+    "restoredBody": "आजीवन अनलक फेरि सक्रिय छ।",
+    "removeAdsPrice": "विज्ञापन हटाउनुहोस् · {{price}}",
+    "lifetimeApple": "Apple मार्फत आजीवन अनलक",
+    "buy": "किन्नुहोस्"
+  },
+  "export": {
+    "title": "सेयर",
+    "format": "ढाँचा",
+    "savePhotos": "फोटोमा सेभ",
+    "saving": "सेभ हुँदै…",
+    "download": "डाउनलोड",
+    "downloading": "डाउनलोड हुँदै…",
+    "share": "सेयर",
+    "save": "सेभ",
+    "saved": "सेभ भयो",
+    "exportFailed": "एक्सपोर्ट असफल",
+    "couldntUpdateSaved": "सुरक्षित अपडेट गर्न सकिएन",
+    "meta": "{{count}} फोटो · {{size}} · ३०० DPI"
+  },
+  "sheet": {
+    "title": "प्रिन्ट पाना",
+    "shareExport": "सेयर र एक्सपोर्ट",
+    "meta": "{{count}} फोटो · {{size}}",
+    "rotated": "घुमाइएको",
+    "autoFill": "स्वत: भर्ने",
+    "customCount": "कस्टम संख्या"
+  },
+  "saved": {
+    "title": "सुरक्षित",
+    "emptyTitle": "अहिले केही छैन",
+    "emptyBody": "पाना राख्न सेयरमा बुकमार्क थिच्नुहोस्।",
+    "makeSheet": "पाना बनाउनुहोस्",
+    "share": "सेयर",
+    "delete": "मेटाउनुहोस्",
+    "deleteTitle": "मेटाउने?",
+    "deleteBody": "सुरक्षितबाट हटाउनुहोस्। फिर्ता हुँदैन।",
+    "cancel": "रद्द",
+    "shareFailed": "सेयर असफल"
+  },
+  "settings": {
+    "title": "सेटिङ",
+    "language": "भाषा",
+    "legal": "कानुनी",
+    "about": "बारेमा",
+    "privacy": "गोपनीयता नीति",
+    "terms": "प्रयोग सर्तहरू",
+    "disclaimer": "अस्वीकरण",
+    "on": "चालु",
+    "savedHint": "बुकमार्क गरिएका पाना सुरक्षितमा छन्"
+  },
+  "common": {
+    "cancel": "रद्द",
+    "home": "होम",
+    "back": "पछाडि"
+  },
+  "locales": {
+    "en": "English (US)",
+    "en-GB": "English (UK)",
+    "pt": "Português",
+    "ne": "नेपाली",
+    "hi": "हिन्दी",
+    "es": "Español",
+    "fr": "Français"
+  }
+}

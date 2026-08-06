@@ -15,6 +15,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import Svg, { Circle, Defs, Pattern, Rect } from 'react-native-svg';
+import { useTranslation } from 'react-i18next';
 import { LIFETIME_PRICE_LABEL } from './catalog';
 import {
   getCachedIsPro,
@@ -143,6 +144,7 @@ function RaisedPlate({
 }
 
 export function ProOffer({ variant = 'row' }: Props) {
+  const { t } = useTranslation();
   const [pro, setPro] = useState(getCachedIsPro());
   const [price, setPrice] = useState(LIFETIME_PRICE_LABEL);
   const [busy, setBusy] = useState<'buy' | 'restore' | null>(null);
@@ -163,7 +165,7 @@ export function ProOffer({ variant = 'row' }: Props) {
       const result = await purchaseLifetime();
       if (result.status === 'success') {
         setPro(true);
-        Alert.alert('You’re Pro', 'Ads are removed on this Apple ID.');
+        Alert.alert(t('pro.purchaseOkTitle'), t('pro.purchaseOkBody'));
       } else if (result.status === 'error' || result.status === 'unavailable') {
         Alert.alert('Purchase', result.message);
       }
@@ -178,7 +180,7 @@ export function ProOffer({ variant = 'row' }: Props) {
       const result = await restorePurchases();
       if (result.status === 'success') {
         setPro(true);
-        Alert.alert('Restored', 'Lifetime unlock is active again.');
+        Alert.alert(t('pro.restoredTitle'), t('pro.restoredBody'));
       } else if (result.status === 'error' || result.status === 'unavailable') {
         Alert.alert('Restore', result.message);
       }
@@ -193,9 +195,9 @@ export function ProOffer({ variant = 'row' }: Props) {
         <RaisedPlate dark>
           <View style={styles.rowPro}>
             <View style={styles.copy}>
-              <Text style={styles.eyebrowLight}>Pro pass</Text>
-              <Text style={styles.headlineLight}>You’re unlocked</Text>
-              <Text style={styles.subLight}>Ads off · lifetime</Text>
+              <Text style={styles.eyebrowLight}>{t('pro.proPass')}</Text>
+              <Text style={styles.headlineLight}>{t('pro.unlockedTitle')}</Text>
+              <Text style={styles.subLight}>{t('pro.unlockedSub')}</Text>
             </View>
           </View>
         </RaisedPlate>
@@ -217,21 +219,19 @@ export function ProOffer({ variant = 'row' }: Props) {
             <RaisedPlate pressed={pressed || busy === 'buy'}>
               <StripeWash />
               <View style={styles.burst}>
-                <Text style={styles.burstText}>ONCE</Text>
+                <Text style={styles.burstText}>{t('pro.once')}</Text>
               </View>
               <View style={[styles.row, busy != null && { opacity: 0.85 }]}>
                 <View style={styles.copy}>
-                  <Text style={styles.headline}>Ad-free forever</Text>
-                  <Text style={styles.sub}>
-                    No more interruptions while you print.
-                  </Text>
+                  <Text style={styles.headline}>{t('pro.headline')}</Text>
+                  <Text style={styles.sub}>{t('pro.sub')}</Text>
                   <View style={styles.ctaOuter}>
                     <View style={styles.ctaShadow} />
                     <View style={styles.ctaFace}>
                       {busy === 'buy' ? (
                         <ActivityIndicator color="#fff" />
                       ) : (
-                        <Text style={styles.ctaLabel}>Unlock</Text>
+                        <Text style={styles.ctaLabel}>{t('pro.unlock')}</Text>
                       )}
                     </View>
                   </View>
@@ -249,7 +249,7 @@ export function ProOffer({ variant = 'row' }: Props) {
           style={styles.restoreHit}
         >
           <Text style={styles.restore}>
-            {busy === 'restore' ? 'Restoring…' : 'Restore purchase'}
+            {busy === 'restore' ? t('pro.restoring') : t('pro.restore')}
           </Text>
         </Pressable>
       </View>
@@ -274,17 +274,17 @@ export function ProOffer({ variant = 'row' }: Props) {
       >
         <View style={{ flex: 1, gap: 2, paddingRight: space.md }}>
           <Text style={{ ...type.body, fontFamily: fonts.semibold, color: colors.ink }}>
-            Remove ads · {price}
+            {t('pro.removeAdsPrice', { price })}
           </Text>
           <Text style={{ ...type.caption, color: colors.inkMuted }}>
-            Lifetime unlock via Apple
+            {t('pro.lifetimeApple')}
           </Text>
         </View>
         {busy === 'buy' ? (
           <ActivityIndicator color={colors.accent} />
         ) : (
           <Text style={{ ...type.caption, fontFamily: fonts.semibold, color: colors.accent }}>
-            Buy
+            {t('pro.buy')}
           </Text>
         )}
       </Pressable>
@@ -295,7 +295,7 @@ export function ProOffer({ variant = 'row' }: Props) {
         style={{ paddingHorizontal: space.lg, paddingBottom: 4 }}
       >
         <Text style={{ ...type.caption, color: colors.inkMuted }}>
-          {busy === 'restore' ? 'Restoring…' : 'Restore purchase'}
+          {busy === 'restore' ? t('pro.restoring') : t('pro.restore')}
         </Text>
       </Pressable>
     </View>
