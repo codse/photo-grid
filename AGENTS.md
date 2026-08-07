@@ -190,14 +190,39 @@ export DEVELOPER_DIR=/Applications/Xcode-beta.app/Contents/Developer
 - **axe** (UI automation): if `axe` is a broken recursive shell wrapper, reinstall the real binary (e.g. under `~/.local/share/axe/`). Don’t debug the app until axe actually runs.
 - **Route planting:** write an allowed route into the app container `Documents/shot-route.txt`, then relaunch. Reader lives in `app/_layout.tsx` (`SHOT_ROUTE_FILE`) — **allowlist only** (never arbitrary deep links from disk).
 
+### Localized UI captures (required for multi-language screenshots)
+
+Do **not** only localize koubou frame copy — switch the **in-app** language too.
+
+**Deep link** (scheme `passportphotoprint` from `app.json`):
+
+```text
+passportphotoprint://sheet?lang=es
+passportphotoprint:///(tabs)/settings?lang=fr
+passportphotoprint://export?locale=en-GB
+```
+
+`lang` / `locale` accept in-app codes (`es`, `en-GB`, …) or ASC tags (`es-ES`, `en-US`, …).
+
+**Headless plant** (`Documents/shot-route.txt`):
+
+```bash
+./scripts/plant-shot-route.sh <sim-udid> /sheet es
+# or: echo -e 'lang=es\n/sheet' > …/Documents/shot-route.txt
+xcrun simctl terminate <udid> com.codse.passport.photo.print
+xcrun simctl launch <udid> com.codse.passport.photo.print
+```
+
+Also valid: single line `/sheet?lang=es`. Parser + allowlist live in `app/_layout.tsx` + `src/i18n/shot-locale.ts`.
+
 ### Pipeline order (SISU / Affirmation-style)
 
 1. Release or Debug build on the shot simulator.
-2. Capture **raw** screens (English UI is fine for v1).
+2. For each storefront lang: **plant route + lang**, relaunch, wait for UI, capture **raw**.
 3. `kou setup-html` then koubou generate → `screenshots/fancy/iphone65/{lang}/`.
-4. Localize **marketing frame copy** per lang; in-phone UI may stay English unless doing full per-locale UI captures.
+4. Localize marketing frame copy to match; in-phone UI should already be that language.
 5. Map koubou langs → ASC upload folders: `en`→`en-US`, `es`→`es-ES`, `fr`→`fr-FR`, `pt`→`pt-PT`, plus `en-GB`, `hi`. Skip `ne`.
-6. Upload **only** when human asks (`upload_enabled` stays `false` by default in `.asc/shots.settings.json`).
+6. Upload **only** when human asks (`upload_enabled` stays `false` by default).
 
 ### Koubou reminders
 
