@@ -1,7 +1,8 @@
 {
   "app": {
     "name": "Passport Photo Print",
-    "tagline": "Crop to size. Print at home."
+    "tagline": "One photo. Perfectly sized. Ready to print.",
+    "homeTitle": "Passport Photos"
   },
   "home": {
     "takePhoto": "Take photo",
@@ -19,17 +20,37 @@
     "photoSizeFallback": "Photo size",
     "yourPresets": "Your presets",
     "addPhotoTitle": "Add a photo",
-    "addPhotoBody": "Preset is ready. Take or choose a photo next.",
+    "addPhotoBody": "Setup is ready. Take or choose a photo next.",
     "photoLibraryAction": "Photo Library",
     "cancel": "Cancel",
     "camera": "Camera",
     "gallery": "Gallery",
-    "libraryOpenFailed": "Could not open library"
+    "libraryOpenFailed": "Could not open library",
+    "takeNewPhoto": "Take a new photo",
+    "choosePhoto": "Choose a Photo",
+    "choosePhotoHint": "From your photo library",
+    "lastSetup": "Your last setup",
+    "quickSizes": "Quick sizes",
+    "quickStart": "Quick start",
+    "packAutoFill": "Auto-fill",
+    "packCustom": "Custom count",
+    "quick": {
+      "us": "US Passport",
+      "canada": "Canada Passport",
+      "eu": "EU / UK Passport",
+      "indiaVisa": "India Visa",
+      "chinaVisa": "China Visa",
+      "japanVisa": "Japan Visa",
+      "schengen": "Schengen Visa",
+      "nepal": "Nepal Passport"
+    },
+    "allSizes": "All sizes",
+    "savedPresets": "Saved presets"
   },
   "pro": {
     "title": "Pro",
     "badge": "PRO",
-    "badgeGet": "GET PRO",
+    "badgeGet": "PRO ✦",
     "once": "ONCE",
     "headline": "Print without limits",
     "sub": "Ads off, unlimited exports, and more people on every sheet.",

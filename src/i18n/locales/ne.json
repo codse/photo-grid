@@ -1,7 +1,8 @@
 {
   "app": {
     "name": "Passport Photo Print",
-    "tagline": "साइजमा क्रप गर्नुहोस्। घरमा प्रिन्ट गर्नुहोस्।"
+    "tagline": "एउटा फोटो। सही साइज। प्रिन्टका लागि तयार।",
+    "homeTitle": "पासपोर्ट फोटो"
   },
   "home": {
     "takePhoto": "फोटो खिच्नुहोस्",
@@ -19,17 +20,37 @@
     "photoSizeFallback": "फोटो साइज",
     "yourPresets": "तपाईंका प्रिसेट",
     "addPhotoTitle": "फोटो थप्नुहोस्",
-    "addPhotoBody": "प्रिसेट तयार। फोटो खिच्नुहोस् वा छान्नुहोस्।",
+    "addPhotoBody": "सेटअप तयार छ। फोटो खिच्नुहोस् वा छान्नुहोस्।",
     "photoLibraryAction": "फोटो लाइब्रेरी",
     "cancel": "रद्द",
     "camera": "क्यामेरा",
     "gallery": "ग्यालेरी",
-    "libraryOpenFailed": "लाइब्रेरी खोल्न सकिएन"
+    "libraryOpenFailed": "लाइब्रेरी खोल्न सकिएन",
+    "takeNewPhoto": "नयाँ फोटो खिच्नुहोस्",
+    "choosePhoto": "फोटो छान्नुहोस्",
+    "choosePhotoHint": "तपाईंको ग्यालेरीबाट",
+    "lastSetup": "तपाईंको पछिल्लो सेटअप",
+    "quickSizes": "छिटो साइज",
+    "quickStart": "क्विक स्टार्ट",
+    "packAutoFill": "अटो-फिल",
+    "packCustom": "कस्टम संख्या",
+    "quick": {
+      "us": "अमेरिका पासपोर्ट",
+      "canada": "क्यानडा पासपोर्ट",
+      "eu": "EU / UK पासपोर्ट",
+      "indiaVisa": "भारत भिसा",
+      "chinaVisa": "चीन भिसा",
+      "japanVisa": "जापान भिसा",
+      "schengen": "शेंगेन भिसा",
+      "nepal": "नेपाल पासपोर्ट"
+    },
+    "allSizes": "सबै साइज",
+    "savedPresets": "सेभ्ड प्रिसेट"
   },
   "pro": {
     "title": "प्रो",
     "badge": "PRO",
-    "badgeGet": "GET PRO",
+    "badgeGet": "PRO ✦",
     "once": "एक पटक",
     "headline": "सीमाबिना प्रिन्ट गर्नुहोस्",
     "sub": "विज्ञापन बन्द, असीमित एक्सपोर्ट, र हरेक पानामा थप मानिस।",

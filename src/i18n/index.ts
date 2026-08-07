@@ -28,6 +28,22 @@ const resources = {
   fr: { translation: fr },
 } as const;
 
+/** Push latest locale JSON into the singleton (HMR leaves old keys otherwise). */
+function syncResourceBundles() {
+  for (const [lng, bundle] of Object.entries(resources)) {
+    i18n.addResourceBundle(lng, 'translation', bundle.translation, true, true);
+  }
+  // Force react-i18next subscribers to re-read (addResourceBundle alone won't).
+  if (i18n.isInitialized && i18n.language) {
+    void i18n.changeLanguage(i18n.language);
+  }
+}
+
+// Metro HMR of this module / JSON: refresh without full app relaunch.
+if (i18n.isInitialized) {
+  syncResourceBundles();
+}
+
 function resolveDeviceLocale(): AppLocale {
   const tag = Localization.getLocales()[0]?.languageTag ?? 'en';
   const lang = Localization.getLocales()[0]?.languageCode ?? 'en';
@@ -71,6 +87,7 @@ export async function initI18n(opts?: {
         interpolation: { escapeValue: false },
       });
     } else {
+      syncResourceBundles();
       await i18n.changeLanguage(lng);
     }
 
@@ -95,7 +112,11 @@ export async function initI18n(opts?: {
     return;
   }
 
-  if (initDone) return initDone;
+  // HMR may re-import locale JSON while the singleton is already live.
+  if (initDone) {
+    syncResourceBundles();
+    return initDone;
+  }
   initDone = run();
   return initDone;
 }

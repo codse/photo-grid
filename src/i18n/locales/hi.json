@@ -1,7 +1,8 @@
 {
   "app": {
     "name": "Passport Photo Print",
-    "tagline": "साइज़ में क्रॉप करें। घर पर प्रिंट करें।"
+    "tagline": "एक फ़ोटो। सही साइज़। प्रिंट के लिए तैयार।",
+    "homeTitle": "पासपोर्ट फ़ोटो"
   },
   "home": {
     "takePhoto": "फ़ोटो लें",
@@ -19,17 +20,37 @@
     "photoSizeFallback": "फ़ोटो साइज़",
     "yourPresets": "आपके प्रीसेट",
     "addPhotoTitle": "फ़ोटो जोड़ें",
-    "addPhotoBody": "प्रीसेट तैयार। फ़ोटो लें या चुनें।",
+    "addPhotoBody": "सेटिंग तैयार है। फ़ोटो लें या चुनें।",
     "photoLibraryAction": "फ़ोटो लाइब्रेरी",
     "cancel": "रद्द करें",
     "camera": "कैमरा",
     "gallery": "गैलरी",
-    "libraryOpenFailed": "लाइब्रेरी नहीं खुल सकी"
+    "libraryOpenFailed": "लाइब्रेरी नहीं खुल सकी",
+    "takeNewPhoto": "नयी फ़ोटो लें",
+    "choosePhoto": "फ़ोटो चुनें",
+    "choosePhotoHint": "अपनी गैलरी से",
+    "lastSetup": "आपकी पिछली सेटिंग",
+    "quickSizes": "त्वरित साइज़",
+    "quickStart": "क्विक स्टार्ट",
+    "packAutoFill": "ऑटो-फ़िल",
+    "packCustom": "कस्टम संख्या",
+    "quick": {
+      "us": "यूएस पासपोर्ट",
+      "canada": "कनाडा पासपोर्ट",
+      "eu": "EU / UK पासपोर्ट",
+      "indiaVisa": "भारत वीज़ा",
+      "chinaVisa": "चीन वीज़ा",
+      "japanVisa": "जापान वीज़ा",
+      "schengen": "शेंगेन वीज़ा",
+      "nepal": "नेपाल पासपोर्ट"
+    },
+    "allSizes": "सभी साइज़",
+    "savedPresets": "सेव्ड प्रीसेट"
   },
   "pro": {
     "title": "प्रो",
     "badge": "PRO",
-    "badgeGet": "GET PRO",
+    "badgeGet": "PRO ✦",
     "once": "एक बार",
     "headline": "बिना सीमा प्रिंट करें",
     "sub": "विज्ञापन बंद, असीमित एक्सपोर्ट, और हर शीट पर ज़्यादा लोग।",

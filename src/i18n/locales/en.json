@@ -1,12 +1,28 @@
 {
   "app": {
     "name": "Passport Photo Print",
-    "tagline": "Crop to size. Print at home."
+    "homeTitle": "Passport Photos",
+    "tagline": "One photo. Perfectly sized. Ready to print."
   },
   "home": {
     "takePhoto": "Take photo",
+    "takeNewPhoto": "Take a new photo",
+    "choosePhoto": "Choose a Photo",
+    "choosePhotoHint": "From your photo library",
     "photoLibrary": "Photo Library",
     "printSize": "Print size",
+    "lastSetup": "Your last setup",
+    "quickSizes": "Quick sizes",
+    "quick": {
+      "us": "US Passport",
+      "canada": "Canada Passport",
+      "eu": "EU / UK Passport",
+      "indiaVisa": "India Visa",
+      "chinaVisa": "China Visa",
+      "japanVisa": "Japan Visa",
+      "schengen": "Schengen Visa",
+      "nepal": "Nepal Passport"
+    },
     "change": "Change",
     "saved": "Saved",
     "seeAll": "See all",
@@ -18,18 +34,23 @@
     "photoCount_other": "{{count}} photos",
     "photoSizeFallback": "Photo size",
     "yourPresets": "Your presets",
+    "quickStart": "Quick start",
     "addPhotoTitle": "Add a photo",
-    "addPhotoBody": "Preset is ready. Take or choose a photo next.",
+    "addPhotoBody": "Setup is ready. Take or choose a photo next.",
     "photoLibraryAction": "Photo Library",
     "cancel": "Cancel",
     "camera": "Camera",
     "gallery": "Gallery",
-    "libraryOpenFailed": "Could not open library"
+    "libraryOpenFailed": "Could not open library",
+    "packAutoFill": "Auto-fill",
+    "packCustom": "Custom count",
+    "allSizes": "All sizes",
+    "savedPresets": "Saved presets"
   },
   "pro": {
     "title": "Pro",
     "badge": "PRO",
-    "badgeGet": "GET PRO",
+    "badgeGet": "PRO ✦",
     "once": "ONCE",
     "headline": "Print without limits",
     "sub": "Ads off, unlimited exports, and more people on every sheet.",

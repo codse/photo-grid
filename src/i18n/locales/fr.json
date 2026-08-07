@@ -1,7 +1,8 @@
 {
   "app": {
     "name": "Passport Photo Print",
-    "tagline": "Recadrez. Imprimez au bon format."
+    "tagline": "Une photo. Taille exacte. Prête à imprimer.",
+    "homeTitle": "Photos passeport"
   },
   "home": {
     "takePhoto": "Prendre une photo",
@@ -19,17 +20,37 @@
     "photoSizeFallback": "Format photo",
     "yourPresets": "Vos préréglages",
     "addPhotoTitle": "Ajouter une photo",
-    "addPhotoBody": "Préréglage prêt. Prenez ou choisissez une photo.",
+    "addPhotoBody": "La config est prête. Prenez ou choisissez une photo.",
     "photoLibraryAction": "Photothèque",
     "cancel": "Annuler",
     "camera": "Appareil photo",
     "gallery": "Galerie",
-    "libraryOpenFailed": "Impossible d’ouvrir la photothèque"
+    "libraryOpenFailed": "Impossible d’ouvrir la photothèque",
+    "takeNewPhoto": "Prendre une nouvelle photo",
+    "choosePhoto": "Choisir une photo",
+    "choosePhotoHint": "Depuis votre photothèque",
+    "lastSetup": "Votre dernière config",
+    "quickSizes": "Tailles rapides",
+    "quickStart": "Démarrage rapide",
+    "packAutoFill": "Remplissage auto",
+    "packCustom": "Nombre personnalisé",
+    "quick": {
+      "us": "Passeport USA",
+      "canada": "Passeport Canada",
+      "eu": "Passeport UE / RU",
+      "indiaVisa": "Visa Inde",
+      "chinaVisa": "Visa Chine",
+      "japanVisa": "Visa Japon",
+      "schengen": "Visa Schengen",
+      "nepal": "Passeport Népal"
+    },
+    "allSizes": "Tous",
+    "savedPresets": "Préréglages"
   },
   "pro": {
     "title": "Pro",
     "badge": "PRO",
-    "badgeGet": "PASSER PRO",
+    "badgeGet": "PRO ✦",
     "once": "UNE FOIS",
     "headline": "Imprimez sans limites",
     "sub": "Sans pub, exports illimités et plus de personnes sur chaque feuille.",
