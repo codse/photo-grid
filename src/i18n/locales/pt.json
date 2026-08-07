@@ -1,8 +1,8 @@
 {
   "app": {
-    "name": "Passport Photo Print",
+    "name": "Passport/ID Photo Maker",
     "tagline": "Uma foto. Tamanho certo. Pronta a imprimir.",
-    "homeTitle": "Fotos de passaporte"
+    "homeTitle": "Passport/ID Photo Maker"
   },
   "home": {
     "takePhoto": "Tirar foto",
@@ -45,12 +45,13 @@
       "nepal": "Passaporte Nepal"
     },
     "allSizes": "Todos",
-    "savedPresets": "Presets guardados"
+    "savedPresets": "Presets guardados",
+    "getStartedHint": "Escolha uma foto ou tire uma para começar."
   },
   "pro": {
     "title": "Pro",
     "badge": "PRO",
-    "badgeGet": "PRO ✦",
+    "badgeGet": "GET PRO",
     "once": "UMA VEZ",
     "headline": "Imprima sem limites",
     "sub": "Sem anúncios, exportações ilimitadas e mais pessoas em cada folha.",
@@ -105,7 +106,11 @@
     "exportFailed": "Exportação falhou",
     "couldntUpdateSaved": "Não foi possível atualizar Guardados",
     "meta": "{{count}} fotos · {{size}} · {{dpi}} DPI",
-    "metaInline": "{{count}} fotos · {{size}} · {{dpi}} DPI"
+    "metaInline": "{{count}} fotos · {{size}} · {{dpi}} DPI",
+    "savedOkTitle": "Guardado em Fotos",
+    "savedOkBody": "A sua folha de impressão está na biblioteca.",
+    "sharedOkTitle": "Partilhado",
+    "sharedOkBody": "A sua folha está pronta onde a enviou."
   },
   "sheet": {
     "title": "Folha de impressão",
@@ -223,7 +228,7 @@
     "version": "Versão {{version}}",
     "shareApp": "Partilhar app",
     "shareAppHint": "Envie a um amigo o link da App Store",
-    "rateApp": "Avaliar Passport Photo Print",
+    "rateApp": "Avaliar Passport/ID Photo Maker",
     "rateAppHint": "Folha de avaliação da App Store",
     "developer": "Programador",
     "forceFreeAds": "Forçar grátis (mostrar anúncios)",
@@ -254,7 +259,8 @@
     "rename": "Mudar nome",
     "select": "Selecionar",
     "opening": "A abrir…",
-    "unknownError": "Erro desconhecido"
+    "unknownError": "Erro desconhecido",
+    "ok": "OK"
   },
   "nav": {
     "size": "Tamanho e papel",

@@ -1,8 +1,8 @@
 {
   "app": {
-    "name": "Passport Photo Print",
+    "name": "Passport/ID Photo Maker",
     "tagline": "Une photo. Taille exacte. Prête à imprimer.",
-    "homeTitle": "Photos passeport"
+    "homeTitle": "Passport/ID Photo Maker"
   },
   "home": {
     "takePhoto": "Prendre une photo",
@@ -45,12 +45,13 @@
       "nepal": "Passeport Népal"
     },
     "allSizes": "Tous",
-    "savedPresets": "Préréglages"
+    "savedPresets": "Préréglages",
+    "getStartedHint": "Choisissez une photo ou prenez-en une pour commencer."
   },
   "pro": {
     "title": "Pro",
     "badge": "PRO",
-    "badgeGet": "PRO ✦",
+    "badgeGet": "GET PRO",
     "once": "UNE FOIS",
     "headline": "Imprimez sans limites",
     "sub": "Sans pub, exports illimités et plus de personnes sur chaque feuille.",
@@ -105,7 +106,11 @@
     "exportFailed": "Échec de l’export",
     "couldntUpdateSaved": "Impossible de mettre à jour Enregistrés",
     "meta": "{{count}} photos · {{size}} · {{dpi}} DPI",
-    "metaInline": "{{count}} photos · {{size}} · {{dpi}} DPI"
+    "metaInline": "{{count}} photos · {{size}} · {{dpi}} DPI",
+    "savedOkTitle": "Enregistré dans Photos",
+    "savedOkBody": "Votre planche est dans votre photothèque.",
+    "sharedOkTitle": "Partagé",
+    "sharedOkBody": "Votre planche est prête là où vous l’avez envoyée."
   },
   "sheet": {
     "title": "Feuille d’impression",
@@ -223,7 +228,7 @@
     "version": "Version {{version}}",
     "shareApp": "Partager l’app",
     "shareAppHint": "Envoyez le lien App Store à un ami",
-    "rateApp": "Noter Passport Photo Print",
+    "rateApp": "Noter Passport/ID Photo Maker",
     "rateAppHint": "Feuille d’avis App Store",
     "developer": "Développeur",
     "forceFreeAds": "Forcer gratuit (afficher pubs)",
@@ -254,7 +259,8 @@
     "rename": "Renommer",
     "select": "Sélectionner",
     "opening": "Ouverture…",
-    "unknownError": "Erreur inconnue"
+    "unknownError": "Erreur inconnue",
+    "ok": "OK"
   },
   "nav": {
     "size": "Format et papier",

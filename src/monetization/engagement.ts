@@ -58,8 +58,8 @@ export async function shareApp(): Promise<void> {
   const url = storeListingUrl();
   const message =
     Platform.OS === 'ios'
-      ? `Passport Photo Print — crop to size and print at home.\n${url}`
-      : 'Passport Photo Print — crop to size and print at home.';
+      ? `Passport/ID Photo Maker — crop to size and print at home.\n${url}`
+      : 'Passport/ID Photo Maker — crop to size and print at home.';
   await Share.share(
     Platform.OS === 'ios'
       ? { message, url }

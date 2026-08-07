@@ -1,7 +1,7 @@
 {
   "app": {
-    "name": "Passport Photo Print",
-    "homeTitle": "Passport Photos",
+    "name": "Passport/ID Photo Maker",
+    "homeTitle": "Passport/ID Photo Maker",
     "tagline": "One photo. Perfectly sized. Ready to print."
   },
   "home": {
@@ -45,12 +45,13 @@
     "packAutoFill": "Auto-fill",
     "packCustom": "Custom count",
     "allSizes": "All sizes",
-    "savedPresets": "Saved presets"
+    "savedPresets": "Saved presets",
+    "getStartedHint": "Choose a photo or take one to get started."
   },
   "pro": {
     "title": "Pro",
     "badge": "PRO",
-    "badgeGet": "PRO ✦",
+    "badgeGet": "GET PRO",
     "once": "ONCE",
     "headline": "Print without limits",
     "sub": "Ads off, unlimited exports, and more people on every sheet.",
@@ -105,7 +106,11 @@
     "exportFailed": "Export failed",
     "couldntUpdateSaved": "Couldn’t update Saved",
     "meta": "{{count}} photos · {{size}} · {{dpi}} DPI",
-    "metaInline": "{{count}} photos · {{size}} · {{dpi}} DPI"
+    "metaInline": "{{count}} photos · {{size}} · {{dpi}} DPI",
+    "savedOkTitle": "Saved to Photos",
+    "savedOkBody": "Your print sheet is in your photo library.",
+    "sharedOkTitle": "Shared",
+    "sharedOkBody": "Your print sheet is ready wherever you sent it."
   },
   "sheet": {
     "title": "Print sheet",
@@ -223,7 +228,7 @@
     "version": "Version {{version}}",
     "shareApp": "Share app",
     "shareAppHint": "Send a friend the App Store link",
-    "rateApp": "Rate Passport Photo Print",
+    "rateApp": "Rate Passport/ID Photo Maker",
     "rateAppHint": "App Store review sheet",
     "developer": "Developer",
     "forceFreeAds": "Force free (show ads)",
@@ -254,7 +259,8 @@
     "rename": "Rename",
     "select": "Select",
     "opening": "Opening…",
-    "unknownError": "Unknown error"
+    "unknownError": "Unknown error",
+    "ok": "OK"
   },
   "nav": {
     "size": "Size & paper",

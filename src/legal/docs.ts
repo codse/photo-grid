@@ -10,7 +10,7 @@ export const ABOUT: LegalDoc = {
   updated: '2026-08-06',
   sections: [
     {
-      heading: 'Passport Photo Print',
+      heading: 'Passport/ID Photo Maker',
       body: 'Make exact-size passport and ID photos on a pharmacy print sheet. Crop, pack, and export offline on this device.',
     },
     {
@@ -57,7 +57,7 @@ export const TERMS: LegalDoc = {
   sections: [
     {
       heading: 'License',
-      body: 'You get a personal, non-exclusive license to use Passport Photo Print. Do not reverse engineer, resell, or misuse the app.',
+      body: 'You get a personal, non-exclusive license to use Passport/ID Photo Maker. Do not reverse engineer, resell, or misuse the app.',
     },
     {
       heading: 'Photos you create',
@@ -84,7 +84,7 @@ export const DISCLAIMER: LegalDoc = {
   sections: [
     {
       heading: 'Not an official issuer',
-      body: 'Passport Photo Print is not affiliated with, endorsed by, or acting on behalf of any government, embassy, passport office, visa center, or ID authority.',
+      body: 'Passport/ID Photo Maker is not affiliated with, endorsed by, or acting on behalf of any government, embassy, passport office, visa center, or ID authority.',
     },
     {
       heading: 'No guarantee of acceptance',
@@ -92,7 +92,7 @@ export const DISCLAIMER: LegalDoc = {
     },
     {
       heading: 'Rejection and costs',
-      body: 'CODSE and Passport Photo Print are not responsible if your photos or application are rejected, delayed, or returned — including reprint fees, lab fees, travel costs, missed appointments, or any other loss. Use of the app is at your own risk.',
+      body: 'CODSE and Passport/ID Photo Maker are not responsible if your photos or application are rejected, delayed, or returned — including reprint fees, lab fees, travel costs, missed appointments, or any other loss. Use of the app is at your own risk.',
     },
     {
       heading: 'Print quality',

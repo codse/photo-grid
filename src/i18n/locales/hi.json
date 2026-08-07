@@ -1,8 +1,8 @@
 {
   "app": {
-    "name": "Passport Photo Print",
+    "name": "Passport/ID Photo Maker",
     "tagline": "एक फ़ोटो। सही साइज़। प्रिंट के लिए तैयार।",
-    "homeTitle": "पासपोर्ट फ़ोटो"
+    "homeTitle": "Passport/ID Photo Maker"
   },
   "home": {
     "takePhoto": "फ़ोटो लें",
@@ -45,12 +45,13 @@
       "nepal": "नेपाल पासपोर्ट"
     },
     "allSizes": "सभी साइज़",
-    "savedPresets": "सेव्ड प्रीसेट"
+    "savedPresets": "सेव्ड प्रीसेट",
+    "getStartedHint": "शुरू करने के लिए फ़ोटो चुनें या लें।"
   },
   "pro": {
     "title": "प्रो",
     "badge": "PRO",
-    "badgeGet": "PRO ✦",
+    "badgeGet": "GET PRO",
     "once": "एक बार",
     "headline": "बिना सीमा प्रिंट करें",
     "sub": "विज्ञापन बंद, असीमित एक्सपोर्ट, और हर शीट पर ज़्यादा लोग।",
@@ -105,7 +106,11 @@
     "exportFailed": "एक्सपोर्ट असफल",
     "couldntUpdateSaved": "सहेजे अपडेट नहीं हो सके",
     "meta": "{{count}} फ़ोटो · {{size}} · {{dpi}} DPI",
-    "metaInline": "{{count}} फ़ोटो · {{size}} · {{dpi}} DPI"
+    "metaInline": "{{count}} फ़ोटो · {{size}} · {{dpi}} DPI",
+    "savedOkTitle": "फ़ोटो में सेव हो गया",
+    "savedOkBody": "आपकी प्रिंट शीट फ़ोटो लाइब्रेरी में है।",
+    "sharedOkTitle": "शेयर हो गया",
+    "sharedOkBody": "आपकी प्रिंट शीट जहाँ भेजी, वहाँ तैयार है।"
   },
   "sheet": {
     "title": "प्रिंट शीट",
@@ -223,7 +228,7 @@
     "version": "संस्करण {{version}}",
     "shareApp": "ऐप शेयर करें",
     "shareAppHint": "दोस्त को App Store लिंक भेजें",
-    "rateApp": "Passport Photo Print रेट करें",
+    "rateApp": "Passport/ID Photo Maker रेट करें",
     "rateAppHint": "App Store रिव्यू शीट",
     "developer": "डेवलपर",
     "forceFreeAds": "फोर्स फ्री (विज्ञापन दिखाएँ)",
@@ -254,7 +259,8 @@
     "rename": "नाम बदलें",
     "select": "चुनें",
     "opening": "खुल रहा…",
-    "unknownError": "अज्ञात त्रुटि"
+    "unknownError": "अज्ञात त्रुटि",
+    "ok": "ठीक"
   },
   "nav": {
     "size": "आकार और काग़ज़",

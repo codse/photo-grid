@@ -223,7 +223,7 @@ export function CameraCapture({ onCaptured, onCancel }: CameraCaptureProps) {
       <View style={styles.center}>
         <Text style={styles.title}>Camera access</Text>
         <Text style={styles.body}>
-          Passport Photo Print needs the camera to take passport photos on-device.
+          Passport/ID Photo Maker needs the camera to take passport photos on-device.
         </Text>
         <Pressable
           accessibilityRole="button"
