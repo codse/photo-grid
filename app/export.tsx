@@ -51,14 +51,20 @@ function ExportBody() {
   const gapMm = useSession((s) => s.gapMm);
   const marginMm = useSession((s) => s.marginMm);
   const cutGuides = useSession((s) => s.cutGuides);
+  const exportDpi = useSession((s) => s.exportDpi);
+  const exportFormat = useSession((s) => s.exportFormat);
   const recordExportedConfig = useSession((s) => s.recordExportedConfig);
   const completeSheet = useSession((s) => s.completeSheet);
 
   const paper = getPaperSize(paperId);
   const [images, setImages] = useState<Map<string, ImageSource>>(new Map());
   const [busy, setBusy] = useState<Busy>(null);
-  const [format, setFormat] = useState<ExportImageExt>('jpg');
+  const [format, setFormat] = useState<ExportImageExt>(exportFormat);
   const [savedId, setSavedId] = useState<string | null>(null);
+
+  useEffect(() => {
+    setFormat(exportFormat);
+  }, [exportFormat]);
 
   const layout = useMemo(
     () =>
@@ -113,6 +119,7 @@ function ExportBody() {
       images,
       subjects,
       cutGuides,
+      exportDpi,
     );
     const meta = await saveSheet({
       paperLabel,
@@ -123,7 +130,7 @@ function ExportBody() {
     });
     setSavedId(meta.id);
     return meta;
-  }, [layout, images, subjects, cutGuides, paperLabel, photoSummary]);
+  }, [layout, images, subjects, cutGuides, exportDpi, paperLabel, photoSummary]);
 
   const empty = layout.cells.length === 0;
 
@@ -191,7 +198,8 @@ function ExportBody() {
       >
         <Text selectable style={{ ...type.caption, color: colors.inkMuted }}>
           {layout.cells.length} photos ·{' '}
-          {formatSize(layout.paperWidthMm, layout.paperHeightMm)} · 300 DPI
+          {formatSize(layout.paperWidthMm, layout.paperHeightMm)} · {exportDpi}{' '}
+          DPI
         </Text>
 
         {Platform.OS !== 'web' ? <ProOffer variant="card" /> : null}
@@ -213,6 +221,7 @@ function ExportBody() {
                   subjects,
                   cutGuides,
                   format,
+                  exportDpi,
                 ),
               )
             }
@@ -239,6 +248,7 @@ function ExportBody() {
                   subjects,
                   cutGuides,
                   format,
+                  exportDpi,
                 ),
               )
             }

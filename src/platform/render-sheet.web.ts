@@ -133,10 +133,11 @@ async function exportSheetBlob(
     subjects: Subject[];
     cutGuides?: boolean;
     format?: ExportImageExt;
+    dpi?: number;
   },
 ): Promise<Blob> {
   const canvas = document.createElement('canvas');
-  const dpi = PRINT_DPI;
+  const dpi = options.dpi ?? PRINT_DPI;
   canvas.width = mmToPx(layout.paperWidthMm, dpi);
   canvas.height = mmToPx(layout.paperHeightMm, dpi);
   const ctx = canvas.getContext('2d')!;
@@ -176,12 +177,14 @@ export async function exportAndShareImage(
   subjects: Subject[],
   cutGuides: boolean,
   format: ExportImageExt = 'png',
+  dpi: number = PRINT_DPI,
 ): Promise<string> {
   const blob = await exportSheetBlob(layout, {
     images,
     subjects,
     cutGuides,
     format,
+    dpi,
   });
   await downloadBlob(blob, exportSheetFileName(subjects, format));
   return URL.createObjectURL(blob);
@@ -202,12 +205,14 @@ export async function exportSheetPngBase64(
   images: Map<string, ImageSource>,
   subjects: Subject[],
   cutGuides: boolean,
+  dpi: number = PRINT_DPI,
 ): Promise<string> {
   const blob = await exportSheetBlob(layout, {
     images,
     subjects,
     cutGuides,
     format: 'png',
+    dpi,
   });
   const buf = await blob.arrayBuffer();
   const bytes = new Uint8Array(buf);
@@ -255,9 +260,10 @@ export async function saveImageToLibrary(
   subjects: Subject[],
   cutGuides: boolean,
   format: ExportImageExt = 'png',
+  dpi: number = PRINT_DPI,
 ): Promise<void> {
   // Web: download is the equivalent of “save”
-  await exportAndShareImage(layout, images, subjects, cutGuides, format);
+  await exportAndShareImage(layout, images, subjects, cutGuides, format, dpi);
 }
 
 export async function savePngToLibrary(

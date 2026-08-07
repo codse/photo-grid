@@ -256,12 +256,13 @@ export async function exportAndShareImage(
   subjects: Subject[],
   cutGuides: boolean,
   format: ExportImageExt = 'png',
+  dpi: number = PRINT_DPI,
 ): Promise<string> {
   const path = await renderSheetToFile(layout, {
     images,
     subjects,
     cutGuides,
-    dpi: PRINT_DPI,
+    dpi,
     format,
   });
   if (await Sharing.isAvailableAsync()) {
@@ -289,12 +290,13 @@ export async function exportSheetPngBase64(
   images: Map<string, ImageSource>,
   subjects: Subject[],
   cutGuides: boolean,
+  dpi: number = PRINT_DPI,
 ): Promise<string> {
   const path = await renderSheetToFile(layout, {
     images,
     subjects,
     cutGuides,
-    dpi: PRINT_DPI,
+    dpi,
   });
   return FileSystem.readAsStringAsync(path, {
     encoding: FileSystem.EncodingType.Base64,
@@ -342,6 +344,7 @@ export async function saveImageToLibrary(
   subjects: Subject[],
   cutGuides: boolean,
   format: ExportImageExt = 'png',
+  dpi: number = PRINT_DPI,
 ): Promise<void> {
   const { Asset, requestPermissionsAsync } = await import('expo-media-library');
   const perm = await requestPermissionsAsync(true);
@@ -352,7 +355,7 @@ export async function saveImageToLibrary(
     images,
     subjects,
     cutGuides,
-    dpi: PRINT_DPI,
+    dpi,
     format,
   });
   // New MediaLibrary API — saveToLibraryAsync throws at runtime in SDK 57+.
