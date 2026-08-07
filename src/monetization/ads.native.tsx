@@ -20,7 +20,7 @@ import {
 } from './ads-prefs';
 
 /** Production AdMob units (Passport / ID Photo Maker). */
-const EDV_BANNER = 'ca-app-pub-3859855802547804/8100990773';
+const EDV_BANNER = 'ca-app-pub-3859855802547804/3971816390';
 const EDV_INTERSTITIAL = 'ca-app-pub-3859855802547804/5372693571';
 /** Rewarded interstitial — “ads off 1 hour” break. */
 const EDV_REWARDED_INTERSTITIAL =
