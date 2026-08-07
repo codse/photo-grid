@@ -10,15 +10,16 @@
  * - `theme` | `appearance` → `light` | `dark` | `system`
  * - path               → in-app route (allowlisted by the host app)
  *
+ * Host applies appearance via `Appearance.setColorScheme` (or your theme
+ * store) — this file stays pure so it can be unit-tested / shared.
+ *
  * Examples:
- *   passportphotoprint://sheet?lang=es&theme=dark
+ *   {scheme}://sheet?lang=es&theme=dark
  *   shot-route.txt:
  *     lang=fr
  *     theme=light
  *     /export
  */
-
-import { Appearance, type ColorSchemeName } from 'react-native';
 
 /** Per-app: keep in sync with i18n APP_LOCALES. */
 export const SHOT_APP_LOCALES = [
@@ -80,21 +81,6 @@ export function coerceAppearance(
   if (t === 'light' || t === 'dark' || t === 'system') return t;
   if (t === 'default' || t === 'auto') return 'system';
   return null;
-}
-
-/**
- * Apply forced color scheme for captures.
- * `system` clears the override (follow OS).
- */
-export function applyShotAppearance(appearance: ShotAppearance | null): void {
-  if (!appearance) return;
-  const scheme: ColorSchemeName =
-    appearance === 'system' ? null : appearance;
-  try {
-    Appearance.setColorScheme(scheme);
-  } catch {
-    // Older RN / web — ignore
-  }
 }
 
 function readParams(params: URLSearchParams): {
