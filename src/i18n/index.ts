@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { I18nManager } from 'react-native';
 import * as Localization from 'expo-localization';
 import i18n from 'i18next';
-import { initReactI18next, useTranslation } from 'react-i18next';
+import { initReactI18next, setDefaults, useTranslation } from 'react-i18next';
 import AsyncStorage from '@/platform/storage';
 
 import en from './locales/en.json';
@@ -12,6 +12,10 @@ import ne from './locales/ne.json';
 import hi from './locales/hi.json';
 import es from './locales/es.json';
 import fr from './locales/fr.json';
+
+// Must run at import time — before any useTranslation(). Default true suspends
+// forever if initI18n hasn't finished (release blank screen).
+setDefaults({ useSuspense: false });
 
 export const APP_LOCALES = ['en', 'en-GB', 'pt', 'ne', 'hi', 'es', 'fr'] as const;
 export type AppLocale = (typeof APP_LOCALES)[number];
