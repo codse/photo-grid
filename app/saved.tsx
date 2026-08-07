@@ -121,7 +121,7 @@ export default function SavedScreen() {
                     } catch (e) {
                       Alert.alert(
                         t('saved.shareFailed'),
-                        e instanceof Error ? e.message : 'Unknown error',
+                        e instanceof Error ? e.message : t('common.unknownError'),
                       );
                     }
                   }}

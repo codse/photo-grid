@@ -25,6 +25,7 @@ import {
 import { DEFAULT_ADJUST, type Adjustments } from '@/core/types';
 import { Button } from '@/ui/primitives';
 import { colors, fonts, radii, space, type } from '@/ui/tokens';
+import { useTranslation } from 'react-i18next';
 
 type Props = {
   visible: boolean;
@@ -41,6 +42,7 @@ export function AdjustModal({
   onChange,
   onClose,
 }: Props) {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const { width: winW, height: winH } = useWindowDimensions();
   const [draft, setDraft] = useState(value);
@@ -113,17 +115,17 @@ export function AdjustModal({
 
         <View style={{ gap: space.lg, flex: 1 }}>
           <AdjustSlider
-            label="Brightness"
+            label={t('adjust.brightness')}
             value={draft.brightness}
             onChange={(n) => setField('brightness', n)}
           />
           <AdjustSlider
-            label="Contrast"
+            label={t('adjust.contrast')}
             value={draft.contrast}
             onChange={(n) => setField('contrast', n)}
           />
           <AdjustSlider
-            label="Color"
+            label={t('adjust.color')}
             value={draft.saturation}
             onChange={(n) => setField('saturation', n)}
           />
@@ -132,14 +134,14 @@ export function AdjustModal({
         <View style={{ flexDirection: 'row', gap: space.sm }}>
           <View style={{ flex: 1 }}>
             <Button
-              label="Reset"
+              label={t('common.reset')}
               variant="secondary"
               onPress={() => setDraft({ ...DEFAULT_ADJUST })}
             />
           </View>
           <View style={{ flex: 1 }}>
             <Button
-              label="Done"
+              label={t('common.done')}
               onPress={() => {
                 onChange(draft);
                 onClose();
@@ -156,7 +158,7 @@ export function AdjustModal({
               textAlign: 'center',
             }}
           >
-            Adjusted · some agencies prefer unedited photos
+            {t('adjust.agencyNote')}
           </Text>
         ) : null}
       </View>
@@ -243,9 +245,10 @@ function AdjustSlider({
   value: number;
   onChange: (n: number) => void;
 }) {
+  const { t } = useTranslation();
   const pct = Math.round((value - 1) * 100);
   const labelValue =
-    pct === 0 ? 'Normal' : pct > 0 ? `+${pct}%` : `${pct}%`;
+    pct === 0 ? t('adjust.normal') : pct > 0 ? `+${pct}%` : `${pct}%`;
 
   return (
     <View style={{ gap: space.sm }}>

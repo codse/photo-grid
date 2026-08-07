@@ -12,16 +12,24 @@
     "seeAll": "See all",
     "inProgress": "In progress",
     "continueSheet": "Continue current sheet",
+    "continueSheetShort": "Continue sheet",
+    "addOrReplace": "Add or replace",
+    "photoCount_one": "{{count}} photo",
+    "photoCount_other": "{{count}} photos",
+    "photoSizeFallback": "Photo size",
     "yourPresets": "Your presets",
     "addPhotoTitle": "Add a photo",
     "addPhotoBody": "Preset is ready. Take or choose a photo next.",
     "photoLibraryAction": "Photo Library",
     "cancel": "Cancel",
     "camera": "Camera",
-    "gallery": "Gallery"
+    "gallery": "Gallery",
+    "libraryOpenFailed": "Could not open library"
   },
   "pro": {
     "title": "Pro",
+    "badge": "PRO",
+    "badgeGet": "GET PRO",
     "once": "ONCE",
     "headline": "Print without limits",
     "sub": "Ads off, unlimited exports, and more people on every sheet.",
@@ -68,7 +76,8 @@
     "saved": "Saved",
     "exportFailed": "Export failed",
     "couldntUpdateSaved": "Couldn’t update Saved",
-    "meta": "{{count}} photos · {{size}} · {{dpi}} DPI"
+    "meta": "{{count}} photos · {{size}} · {{dpi}} DPI",
+    "metaInline": "{{count}} photos · {{size}} · {{dpi}} DPI"
   },
   "sheet": {
     "title": "Print sheet",
@@ -77,6 +86,74 @@
     "rotated": "rotated",
     "autoFill": "auto fill",
     "customCount": "custom count"
+  },
+  "crop": {
+    "choosePhoto": "Choose photo",
+    "rotate": "Rotate",
+    "flip": "Flip",
+    "adjust": "Adjust",
+    "bg": "BG",
+    "replace": "Replace",
+    "undoBg": "Undo background removal",
+    "continueSheet": "Continue to sheet",
+    "bgRemovalTitle": "Background removal",
+    "bgWarning": "Some agencies reject digitally altered photos. Undo if unsure."
+  },
+  "adjust": {
+    "brightness": "Brightness",
+    "contrast": "Contrast",
+    "color": "Color",
+    "normal": "Normal",
+    "agencyNote": "Adjusted · some agencies prefer unedited photos"
+  },
+  "sheetOptions": {
+    "customize": "Customize",
+    "customizeA11y": "Customize sheet",
+    "blurb": "Size, paper, packing, and guides. Preview updates as you change them.",
+    "orientation": "Orientation",
+    "auto": "Auto",
+    "portrait": "Portrait",
+    "landscape": "Landscape",
+    "margin": "Margin",
+    "gap": "Gap between photos",
+    "cutGuides": "Cut guides",
+    "showCutLines": "Show cut lines on export",
+    "autoFill": "Auto fill",
+    "customCount": "Custom count",
+    "photo": "Photo",
+    "packing": "Packing",
+    "packingFillHint": "Fill the sheet. Count updates when you change paper or photo size.",
+    "packingExactHint": "Exact count per person. Extras won’t print if they don’t fit.",
+    "autoFillChip": "Auto — fill sheet",
+    "fits_one": "Fits {{count}} photo",
+    "fits_other": "Fits {{count}} photos",
+    "forPerson": "{{count}} for {{name}}",
+    "savePreset": "Save as preset",
+    "savePresetHint": "Reuse size & packing next time — just add a photo",
+    "namePreset": "Name this preset",
+    "namePresetHint": "e.g. “Nepal passport — CVS 4×6” or “US visa dual”",
+    "presetNamePlaceholder": "Preset name",
+    "usePreset": "Use preset",
+    "needN": "Need N — {{name}}",
+    "onSheet": "{{count}} on sheet",
+    "renamePreset": "Rename preset"
+  },
+  "people": {
+    "addPhoto": "Add photo",
+    "takePhoto": "Take photo",
+    "photoLibrary": "Photo library",
+    "addPerson": "Add person",
+    "hintChange": "Opens library to change this photo",
+    "hintShowCrop": "Shows this person’s crop",
+    "hintChoose": "Choose a photo for this person",
+    "hintSheetEmpty": "Take a photo or choose from library"
+  },
+  "photo": {
+    "noPerson": "No person selected.",
+    "noPhotoYet": "No photo yet",
+    "chooseLibrary": "Choose from library",
+    "cropAdjust": "Crop & adjust",
+    "continueSheet": "Continue to sheet"
   },
   "saved": {
     "title": "Saved",
@@ -122,7 +199,11 @@
     "rateAppHint": "App Store review sheet",
     "developer": "Developer",
     "forceFreeAds": "Force free (show ads)",
-    "forceFreeAdsHint": "Ignore Pro entitlement — __DEV__ only"
+    "forceFreeAdsHint": "Ignore Pro entitlement — __DEV__ only",
+    "forceFreeOn": "Force free on",
+    "forceFreeOff": "Force free off",
+    "forceFreeOnBody": "Ads will show even if Pro is unlocked. Reload home to refresh banners.",
+    "forceFreeOffBody": "Back to normal Pro gating."
   },
   "ads": {
     "watchTitle": "Watch ad · ads off 1 hour",
@@ -138,7 +219,14 @@
     "cancel": "Cancel",
     "home": "Home",
     "back": "Back",
-    "done": "Done"
+    "done": "Done",
+    "edit": "Edit",
+    "reset": "Reset",
+    "delete": "Delete",
+    "rename": "Rename",
+    "select": "Select",
+    "opening": "Opening…",
+    "unknownError": "Unknown error"
   },
   "nav": {
     "size": "Size & paper",

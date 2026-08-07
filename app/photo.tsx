@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Alert, ScrollView, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { Image } from 'expo-image';
+import { useTranslation } from 'react-i18next';
 import { PeopleStrip } from '@/features/people/people-strip';
 import { useActivePerson, useSession } from '@/state/session';
 import { pickFromLibrary, preparePersonImage } from '@/platform/media';
@@ -10,6 +11,7 @@ import { colors, radii, space, type } from '@/ui/tokens';
 import { formatSize } from '@/core/units';
 
 export default function PhotoScreen() {
+  const { t } = useTranslation();
   const active = useActivePerson();
   const setPersonUri = useSession((s) => s.setPersonUri);
   const [busy, setBusy] = useState(false);
@@ -17,7 +19,7 @@ export default function PhotoScreen() {
   if (!active) {
     return (
       <View style={{ flex: 1, padding: space.xl }}>
-        <Text>No person selected.</Text>
+        <Text>{t('photo.noPerson')}</Text>
       </View>
     );
   }
@@ -72,7 +74,7 @@ export default function PhotoScreen() {
                   textAlign: 'center',
                 }}
               >
-                No photo yet
+                {t('photo.noPhotoYet')}
               </Text>
             </View>
           )}
@@ -86,12 +88,12 @@ export default function PhotoScreen() {
         </Text>
 
         <Button
-          label="Take photo"
+          label={t('home.takePhoto')}
           disabled={busy}
           onPress={takePhoto}
         />
         <Button
-          label="Choose from library"
+          label={t('photo.chooseLibrary')}
           variant="secondary"
           disabled={busy}
           onPress={async () => {
@@ -106,8 +108,8 @@ export default function PhotoScreen() {
               }
             } catch (e) {
               Alert.alert(
-                'Could not open library',
-                e instanceof Error ? e.message : 'Unknown error',
+                t('home.libraryOpenFailed'),
+                e instanceof Error ? e.message : t('common.unknownError'),
               );
             } finally {
               setBusy(false);
@@ -118,11 +120,11 @@ export default function PhotoScreen() {
         {active.url ? (
           <>
             <Button
-              label="Crop & adjust"
+              label={t('photo.cropAdjust')}
               onPress={() => router.push(`/person/${active.id}/crop`)}
             />
             <Button
-              label="Continue to sheet"
+              label={t('photo.continueSheet')}
               variant="secondary"
               onPress={() => router.push('/sheet')}
             />

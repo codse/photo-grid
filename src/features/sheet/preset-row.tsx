@@ -7,6 +7,7 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import type { ConfigSnapshot } from '@/platform/prefs';
 import { labelForConfig } from '@/features/sheet/config-label';
 import { colors, fonts, radii, space, type } from '@/ui/tokens';
@@ -24,6 +25,7 @@ export function PresetRow({
   onRename,
   onDelete,
 }: Props) {
+  const { t } = useTranslation();
   const { title, detail } = labelForConfig(preset);
   const [menu, setMenu] = useState(false);
   const [renaming, setRenaming] = useState(false);
@@ -126,28 +128,31 @@ export function PresetRow({
               {title}
             </Text>
             <Action
-              label="Use preset"
+              label={t('sheetOptions.usePreset')}
               onPress={() => {
                 setMenu(false);
                 onApply();
               }}
             />
             <Action
-              label="Rename"
+              label={t('common.rename')}
               onPress={() => {
                 setMenu(false);
                 setRenaming(true);
               }}
             />
             <Action
-              label="Delete"
+              label={t('common.delete')}
               destructive
               onPress={() => {
                 setMenu(false);
                 onDelete();
               }}
             />
-            <Action label="Cancel" onPress={() => setMenu(false)} />
+            <Action
+              label={t('common.cancel')}
+              onPress={() => setMenu(false)}
+            />
           </View>
         </Pressable>
       </Modal>
@@ -179,7 +184,7 @@ export function PresetRow({
             }}
           >
             <Text style={{ ...type.title, fontSize: 20, color: colors.ink }}>
-              Rename preset
+              {t('sheetOptions.renamePreset')}
             </Text>
             <TextInput
               value={name}
@@ -215,7 +220,7 @@ export function PresetRow({
                 }}
               >
                 <Text style={{ fontFamily: fonts.semibold, color: colors.ink }}>
-                  Cancel
+                  {t('common.cancel')}
                 </Text>
               </Pressable>
               <Pressable
@@ -232,7 +237,7 @@ export function PresetRow({
                 }}
               >
                 <Text style={{ fontFamily: fonts.semibold, color: '#fff' }}>
-                  Save
+                  {t('export.save')}
                 </Text>
               </Pressable>
             </View>

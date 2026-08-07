@@ -78,8 +78,8 @@ export function PeopleStrip({
       return true;
     } catch (e) {
       Alert.alert(
-        'Could not open library',
-        e instanceof Error ? e.message : 'Unknown error',
+        t('home.libraryOpenFailed'),
+        e instanceof Error ? e.message : t('common.unknownError'),
       );
       return false;
     }
@@ -92,16 +92,16 @@ export function PeopleStrip({
       setPending(null);
       if (opts.removeOnCancel) removePerson(id);
     };
-    Alert.alert('Add photo', undefined, [
+    Alert.alert(t('people.addPhoto'), undefined, [
       {
-        text: 'Take photo',
+        text: t('people.takePhoto'),
         onPress: () => {
           if (opts.removeOnCancel) setPending(id);
           router.push('/camera');
         },
       },
       {
-        text: 'Photo library',
+        text: t('people.photoLibrary'),
         onPress: () => {
           if (opts.removeOnCancel) setPending(id);
           void (async () => {
@@ -112,7 +112,7 @@ export function PeopleStrip({
         },
       },
       {
-        text: 'Cancel',
+        text: t('common.cancel'),
         style: 'cancel',
         onPress: dropIfNew,
       },
@@ -210,12 +210,12 @@ export function PeopleStrip({
               accessibilityHint={
                 mode === 'library'
                   ? selected
-                    ? 'Opens library to change this photo'
+                    ? t('people.hintChange')
                     : p.url
-                      ? 'Shows this person’s crop'
-                      : 'Choose a photo for this person'
+                      ? t('people.hintShowCrop')
+                      : t('people.hintChoose')
                   : mode === 'sheet' && !p.url
-                    ? 'Take a photo or choose from library'
+                    ? t('people.hintSheetEmpty')
                     : undefined
               }
               onPress={() => void onPersonPress(p.id)}
@@ -274,7 +274,7 @@ export function PeopleStrip({
         })}
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Add person"
+          accessibilityLabel={t('people.addPerson')}
           onPress={() => void onAdd()}
           style={{
             width: 52,

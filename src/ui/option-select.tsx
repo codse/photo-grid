@@ -12,6 +12,7 @@ import type { IconProps } from 'phosphor-react-native';
 import { CaretDownIcon } from 'phosphor-react-native/src/icons/CaretDown';
 import { CheckIcon } from 'phosphor-react-native/src/icons/Check';
 import { colors, fonts, radii, space, type } from '@/ui/tokens';
+import { useTranslation } from 'react-i18next';
 
 export type SelectOption = {
   id: string;
@@ -62,6 +63,7 @@ export function OptionPickerModal({
   onClose: () => void;
   title: string;
 }) {
+  const { t } = useTranslation();
   const { height: winH } = useWindowDimensions();
 
   useEffect(() => {
@@ -82,7 +84,7 @@ export function OptionPickerModal({
       onRequestClose={onClose}
     >
       <Pressable
-        accessibilityLabel="Dismiss"
+        accessibilityLabel={t('common.cancel')}
         onPress={onClose}
         style={{
           flex: 1,
@@ -199,6 +201,7 @@ export function OptionSelect({
   onChange,
   accessibilityLabel,
 }: Props) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const selected = options.find((o) => o.id === value) ?? options[0];
 
@@ -238,7 +241,7 @@ export function OptionSelect({
               fontSize: 15,
             }}
           >
-            {selected?.label ?? 'Select'}
+            {selected?.label ?? t('common.select')}
           </Text>
           {selected?.detail ? (
             <Text

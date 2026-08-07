@@ -177,8 +177,8 @@ function ExportBody() {
       router.replace('/');
     } catch (e) {
       Alert.alert(
-        'Export failed',
-        e instanceof Error ? e.message : 'Unknown error',
+        t('export.exportFailed'),
+        e instanceof Error ? e.message : t('common.unknownError'),
       );
     } finally {
       setBusy(null);
@@ -198,8 +198,8 @@ function ExportBody() {
       await archive();
     } catch (e) {
       Alert.alert(
-        'Couldn’t update Saved',
-        e instanceof Error ? e.message : 'Unknown error',
+        t('export.couldntUpdateSaved'),
+        e instanceof Error ? e.message : t('common.unknownError'),
       );
     } finally {
       setBusy(null);
@@ -209,11 +209,11 @@ function ExportBody() {
   const saveLabel =
     Platform.OS === 'web'
       ? busy === 'save'
-        ? 'Downloading…'
-        : 'Download'
+        ? t('export.downloading')
+        : t('export.download')
       : busy === 'save'
-        ? 'Saving…'
-        : 'Save to Photos';
+        ? t('export.saving')
+        : t('export.savePhotos');
 
   return (
     <View style={{ flex: 1 }}>
@@ -227,9 +227,11 @@ function ExportBody() {
         }}
       >
         <Text selectable style={{ ...type.caption, color: colors.inkMuted }}>
-          {layout.cells.length} photos ·{' '}
-          {formatSize(layout.paperWidthMm, layout.paperHeightMm)} · {exportDpi}{' '}
-          DPI
+          {t('export.metaInline', {
+            count: layout.cells.length,
+            size: formatSize(layout.paperWidthMm, layout.paperHeightMm),
+            dpi: exportDpi,
+          })}
         </Text>
 
         {Platform.OS !== 'web' && !isPro ? (
@@ -297,7 +299,7 @@ function ExportBody() {
           }}
         >
           <IconAction
-            label="Share"
+            label={t('export.share')}
             disabled={!!busy || empty}
             busy={busy === 'share'}
             onPress={() =>
@@ -322,7 +324,7 @@ function ExportBody() {
           />
           {SAVED_SHEETS_AVAILABLE ? (
             <IconAction
-              label={savedId ? 'Saved' : 'Save'}
+              label={savedId ? t('export.saved') : t('export.save')}
               disabled={!!busy || empty}
               busy={busy === 'bookmark'}
               onPress={() => void toggleBookmark()}

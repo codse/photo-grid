@@ -30,6 +30,7 @@ import { Button } from '@/ui/primitives';
 import { colors, radii, space, type } from '@/ui/tokens';
 import { RequirePhoto } from '@/features/session/require-photo';
 import type { PhIcon } from '@/features/sheet/size-icons';
+import { useTranslation } from 'react-i18next';
 
 export default function PersonCropScreen() {
   return (
@@ -40,6 +41,7 @@ export default function PersonCropScreen() {
 }
 
 function PersonCropBody() {
+  const { t } = useTranslation();
   const { id } = useLocalSearchParams<{ id: string }>();
   const subjects = useSession((s) => s.subjects);
   const setActivePerson = useSession((s) => s.setActivePerson);
@@ -95,8 +97,8 @@ function PersonCropBody() {
       });
     } catch (e) {
       Alert.alert(
-        'Could not open library',
-        e instanceof Error ? e.message : 'Unknown error',
+        t('home.libraryOpenFailed'),
+        e instanceof Error ? e.message : t('common.unknownError'),
       );
     } finally {
       setBusy(false);
@@ -128,7 +130,7 @@ function PersonCropBody() {
       >
         {!active.url ? (
           <Button
-            label={busy ? 'Opening…' : 'Choose photo'}
+            label={busy ? t('common.opening') : t('crop.choosePhoto')}
             disabled={busy}
             onPress={() => void choosePhoto()}
           />
@@ -157,21 +159,21 @@ function PersonCropBody() {
             >
               <EditAction
                 icon={ArrowClockwiseIcon}
-                label="Rotate"
+                label={t('crop.rotate')}
                 onPress={() =>
                   setPersonCrop(active.id, rotateCropCW(active.crop))
                 }
               />
               <EditAction
                 icon={FlipHorizontalIcon}
-                label="Flip"
+                label={t('crop.flip')}
                 onPress={() =>
                   setPersonCrop(active.id, flipCropHorizontal(active.crop))
                 }
               />
               <EditAction
                 icon={CircleHalfIcon}
-                label="Adjust"
+                label={t('crop.adjust')}
                 selected={adjusted}
                 disabled={busy}
                 onPress={() => setAdjustOpen(true)}
@@ -179,7 +181,7 @@ function PersonCropBody() {
               {BG_REMOVAL_AVAILABLE ? (
                 <EditAction
                   icon={ScissorsIcon}
-                  label={busy ? '…' : 'BG'}
+                  label={busy ? '…' : t('crop.bg')}
                   disabled={busy}
                   onPress={async () => {
                     setBusy(true);
@@ -203,11 +205,9 @@ function PersonCropBody() {
                         if (orientationBaked) {
                           setPersonCrop(active.id, { ...DEFAULT_CROP });
                         }
-                        setBgNote(
-                          'Some agencies reject digitally altered photos. Undo if unsure.',
-                        );
+                        setBgNote(t('crop.bgWarning'));
                       } else {
-                        Alert.alert('Background removal', result.reason);
+                        Alert.alert(t('crop.bgRemovalTitle'), result.reason);
                       }
                     } finally {
                       setBusy(false);
@@ -217,7 +217,7 @@ function PersonCropBody() {
               ) : null}
               <EditAction
                 icon={ImagesIcon}
-                label={busy ? '…' : 'Replace'}
+                label={busy ? '…' : t('crop.replace')}
                 disabled={busy}
                 onPress={() => void choosePhoto()}
               />
@@ -225,7 +225,7 @@ function PersonCropBody() {
 
             {active.previousUrl ? (
               <Button
-                label="Undo background removal"
+                label={t('crop.undoBg')}
                 variant="ghost"
                 onPress={() => {
                   undoPersonUri(active.id);
@@ -240,7 +240,7 @@ function PersonCropBody() {
             ) : null}
 
             <Button
-              label="Continue to sheet"
+              label={t('crop.continueSheet')}
               onPress={() => router.push('/sheet')}
             />
 

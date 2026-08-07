@@ -1,10 +1,12 @@
 import { Stack } from 'expo-router';
 import { Platform } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { colors } from '@/ui/tokens';
 
 const GROUPED_BG = Platform.OS === 'ios' ? '#F2F2F7' : colors.bg;
 
 export default function HomeStackLayout() {
+  const { t } = useTranslation();
   return (
     <Stack
       screenOptions={{
@@ -22,8 +24,8 @@ export default function HomeStackLayout() {
       <Stack.Screen
         name="index"
         options={{
-          title: 'Passport Photo Print',
-          headerBackTitle: 'Home',
+          title: t('app.name'),
+          headerBackTitle: t('common.home'),
         }}
       />
     </Stack>

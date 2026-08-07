@@ -18,6 +18,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { colors, fonts } from '@/ui/tokens';
+import { useTranslation } from 'react-i18next';
 
 type Props = {
   /** Unlocked marker vs acquisition CTA. */
@@ -28,6 +29,7 @@ type Props = {
 
 /** Gold pill for nav chrome — shine only on the Get Pro CTA. */
 export function ProBadge({ variant = 'pro', onPress, busy }: Props) {
+  const { t } = useTranslation();
   const shine = useSharedValue(-1);
   const showShine = variant === 'get';
 
@@ -59,7 +61,7 @@ export function ProBadge({ variant = 'pro', onPress, busy }: Props) {
     ],
   }));
 
-  const label = variant === 'get' ? 'GET PRO' : 'PRO';
+  const label = variant === 'get' ? t('pro.badgeGet') : t('pro.badge');
   const interactive = !!onPress && !busy;
 
   const body = (

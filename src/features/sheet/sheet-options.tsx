@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import {
   Modal,
   Pressable,
@@ -9,6 +8,7 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import { SlidersHorizontalIcon } from 'phosphor-react-native/src/icons/SlidersHorizontal';
 import { PHOTO_PRESETS } from '@/core/presets';
 import { formatSize } from '@/core/units';
@@ -24,13 +24,8 @@ import { SavePresetButton } from '@/features/sheet/save-preset-button';
 import { Chip, SectionLabel } from '@/ui/primitives';
 import { colors, fonts, radii, space, type } from '@/ui/tokens';
 
-const ORIENTATIONS: { id: Orientation; label: string }[] = [
-  { id: 'auto', label: 'Auto' },
-  { id: 'portrait', label: 'Portrait' },
-  { id: 'landscape', label: 'Landscape' },
-];
-
 export function useSheetOptionsSummary() {
+  const { t } = useTranslation();
   const photoId = useSession((s) => s.photoId);
   const paperId = useSession((s) => s.paperId);
   const marginMm = useSession((s) => s.marginMm);
@@ -39,15 +34,25 @@ export function useSheetOptionsSummary() {
   const paper = getPaperSize(paperId);
   const photoBit = photo
     ? `${Math.round(photo.widthMm)}×${Math.round(photo.heightMm)} mm`
-    : 'Photo';
+    : t('sheetOptions.photo');
   const paperBit =
     paper.id === '4x6' ? '4×6 in' : formatSize(paper.widthMm, paper.heightMm);
-  const packBit = packMode === 'fill' ? 'Auto fill' : 'Custom count';
-  return { packBit, photoBit, paperBit, marginMm, line: `${packBit} · ${photoBit} · ${paperBit}` };
+  const packBit =
+    packMode === 'fill'
+      ? t('sheetOptions.autoFill')
+      : t('sheetOptions.customCount');
+  return {
+    packBit,
+    photoBit,
+    paperBit,
+    marginMm,
+    line: `${packBit} · ${photoBit} · ${paperBit}`,
+  };
 }
 
 /** Full customize body — packing + photo/paper + geometry. */
 export function SheetOptionsBody() {
+  const { t } = useTranslation();
   const orientation = useSession((s) => s.orientation);
   const gapMm = useSession((s) => s.gapMm);
   const marginMm = useSession((s) => s.marginMm);
@@ -57,6 +62,12 @@ export function SheetOptionsBody() {
   const setMarginMm = useSession((s) => s.setMarginMm);
   const setCutGuides = useSession((s) => s.setCutGuides);
 
+  const orientations: { id: Orientation; label: string }[] = [
+    { id: 'auto', label: t('sheetOptions.auto') },
+    { id: 'portrait', label: t('sheetOptions.portrait') },
+    { id: 'landscape', label: t('sheetOptions.landscape') },
+  ];
+
   return (
     <View style={{ gap: space.xl }}>
       <PackingControls compact />
@@ -64,9 +75,9 @@ export function SheetOptionsBody() {
       <PhotoPaperPicker compact />
 
       <View style={{ gap: space.sm }}>
-        <SectionLabel>Orientation</SectionLabel>
+        <SectionLabel>{t('sheetOptions.orientation')}</SectionLabel>
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: space.sm }}>
-          {ORIENTATIONS.map((o) => (
+          {orientations.map((o) => (
             <Chip
               key={o.id}
               label={o.label}
@@ -79,7 +90,7 @@ export function SheetOptionsBody() {
 
       <View style={{ gap: space.md }}>
         <MmStepper
-          label="Margin"
+          label={t('sheetOptions.margin')}
           valueMm={marginMm}
           onChange={setMarginMm}
           min={0}
@@ -87,7 +98,7 @@ export function SheetOptionsBody() {
           step={0.5}
         />
         <MmStepper
-          label="Gap between photos"
+          label={t('sheetOptions.gap')}
           valueMm={gapMm}
           onChange={setGapMm}
           min={0}
@@ -97,7 +108,7 @@ export function SheetOptionsBody() {
       </View>
 
       <View style={{ gap: space.sm }}>
-        <SectionLabel>Cut guides</SectionLabel>
+        <SectionLabel>{t('sheetOptions.cutGuides')}</SectionLabel>
         <View
           style={{
             flexDirection: 'row',
@@ -107,7 +118,7 @@ export function SheetOptionsBody() {
           }}
         >
           <Text style={{ ...type.body, color: colors.ink }}>
-            Show cut lines on export
+            {t('sheetOptions.showCutLines')}
           </Text>
           <Switch
             value={cutGuides}
@@ -122,10 +133,11 @@ export function SheetOptionsBody() {
 
 /** Header / toolbar control — Photos-style entry to customize. */
 export function CustomizeHeaderButton({ onPress }: { onPress: () => void }) {
+  const { t } = useTranslation();
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel="Customize sheet"
+      accessibilityLabel={t('sheetOptions.customizeA11y')}
       onPress={onPress}
       hitSlop={8}
       style={({ pressed }) => ({
@@ -147,11 +159,12 @@ export function CustomizeHeaderButton({ onPress }: { onPress: () => void }) {
  * Keeps customize reachable without eating the first viewport.
  */
 export function CustomizeSummaryBar({ onPress }: { onPress: () => void }) {
+  const { t } = useTranslation();
   const { line, marginMm } = useSheetOptionsSummary();
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel="Customize sheet"
+      accessibilityLabel={t('sheetOptions.customizeA11y')}
       onPress={onPress}
       style={({ pressed }) => ({
         alignSelf: 'stretch',
@@ -179,7 +192,7 @@ export function CustomizeSummaryBar({ onPress }: { onPress: () => void }) {
         {line} · {marginMm} mm
       </Text>
       <Text style={{ ...type.caption, color: colors.accent, fontWeight: '600' }}>
-        Edit
+        {t('common.edit')}
       </Text>
     </Pressable>
   );
@@ -193,6 +206,7 @@ export function CustomizeSheet({
   visible: boolean;
   onClose: () => void;
 }) {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const { height } = useWindowDimensions();
 
@@ -229,7 +243,7 @@ export function CustomizeSheet({
               color: colors.ink,
             }}
           >
-            Customize
+            {t('sheetOptions.customize')}
           </Text>
           <Pressable onPress={onClose} hitSlop={10}>
             <Text
@@ -239,7 +253,7 @@ export function CustomizeSheet({
                 color: colors.accent,
               }}
             >
-              Done
+              {t('common.done')}
             </Text>
           </Pressable>
         </View>
@@ -251,8 +265,7 @@ export function CustomizeSheet({
           }}
         >
           <Text style={{ ...type.caption, color: colors.inkMuted }}>
-            Size, paper, packing, and guides. Preview updates as you change
-            them.
+            {t('sheetOptions.blurb')}
           </Text>
           <SheetOptionsBody />
           <SavePresetButton />
@@ -264,6 +277,7 @@ export function CustomizeSheet({
 
 /** Full-height docked sidebar for tablet / wide web — not a floating card. */
 export function SheetOptionsSidebar({ width = 320 }: { width?: number }) {
+  const { t } = useTranslation();
   const { line } = useSheetOptionsSummary();
   const insets = useSafeAreaInsets();
 
@@ -295,7 +309,7 @@ export function SheetOptionsSidebar({ width = 320 }: { width?: number }) {
               letterSpacing: 0.8,
             }}
           >
-            Customize
+            {t('sheetOptions.customize')}
           </Text>
           <Text style={{ ...type.caption, color: colors.inkMuted }}>{line}</Text>
         </View>

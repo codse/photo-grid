@@ -80,7 +80,7 @@ export default function HomeScreen() {
   const regionLabel =
     REGIONS.find((r) => r.id === regionForPhotoId(photoId))?.label ?? '';
 
-  const sizeTitle = activePhoto?.label ?? 'Photo size';
+  const sizeTitle = activePhoto?.label ?? t('home.photoSizeFallback');
   const sizeDetail = [
     activePhoto
       ? `${Math.round(activePhoto.widthMm)}×${Math.round(activePhoto.heightMm)} mm`
@@ -119,8 +119,8 @@ export default function HomeScreen() {
       router.push(`/person/${activeId}/crop`);
     } catch (e) {
       Alert.alert(
-        'Could not open library',
-        e instanceof Error ? e.message : 'Unknown error',
+        t('home.libraryOpenFailed'),
+        e instanceof Error ? e.message : t('common.unknownError'),
       );
     } finally {
       setBusy(false);
@@ -168,7 +168,7 @@ export default function HomeScreen() {
       <Stack.Screen
         options={{
           title: appName,
-          headerBackTitle: 'Home',
+          headerBackTitle: t('common.home'),
           headerShown: true,
           headerTransparent: false,
           headerShadowVisible: false,
@@ -269,7 +269,7 @@ export default function HomeScreen() {
                       letterSpacing: -0.2,
                     }}
                   >
-                    Continue sheet
+                    {t('home.continueSheetShort')}
                   </Text>
                   <Text
                     style={{
@@ -278,8 +278,8 @@ export default function HomeScreen() {
                       lineHeight: 18,
                     }}
                   >
-                    {withPhoto.length} photo
-                    {withPhoto.length === 1 ? '' : 's'} · {sizeDetail}
+                    {t('home.photoCount', { count: withPhoto.length })} ·{' '}
+                    {sizeDetail}
                   </Text>
                 </View>
                 <CaretRightIcon size={16} color={colors.inkFaint} weight="bold" />
@@ -289,7 +289,9 @@ export default function HomeScreen() {
         ) : null}
 
         <View style={{ gap: space.sm }}>
-          {hasPhoto ? <SectionHeader title="Add or replace" /> : null}
+          {hasPhoto ? (
+            <SectionHeader title={t('home.addOrReplace')} />
+          ) : null}
           <View
             style={{
               flexDirection: 'row',

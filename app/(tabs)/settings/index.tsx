@@ -70,10 +70,8 @@ export default function SettingsScreen() {
     setForceFree(next);
     await setForceFreeAds(next);
     Alert.alert(
-      next ? 'Force free on' : 'Force free off',
-      next
-        ? 'Ads will show even if Pro is unlocked. Reload home to refresh banners.'
-        : 'Back to normal Pro gating.',
+      next ? t('settings.forceFreeOn') : t('settings.forceFreeOff'),
+      next ? t('settings.forceFreeOnBody') : t('settings.forceFreeOffBody'),
     );
   };
 

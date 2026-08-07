@@ -7,12 +7,14 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import { defaultPresetName } from '@/features/sheet/config-label';
 import { useSession } from '@/state/session';
 import { colors, fonts, radii, space, type } from '@/ui/tokens';
 
 /** Name + save current print settings as a reusable preset. */
 export function SavePresetButton() {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
   const insets = useSafeAreaInsets();
@@ -34,7 +36,7 @@ export function SavePresetButton() {
     <>
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel="Save as preset"
+        accessibilityLabel={t('sheetOptions.savePreset')}
         onPress={() => setOpen(true)}
         style={({ pressed }) => ({
           paddingVertical: 14,
@@ -54,10 +56,10 @@ export function SavePresetButton() {
             color: colors.accent,
           }}
         >
-          Save as preset
+          {t('sheetOptions.savePreset')}
         </Text>
         <Text style={{ ...type.caption, color: colors.inkFaint, marginTop: 2 }}>
-          Reuse size & packing next time — just add a photo
+          {t('sheetOptions.savePresetHint')}
         </Text>
       </Pressable>
 
@@ -89,10 +91,10 @@ export function SavePresetButton() {
               }}
             >
               <Text style={{ ...type.title, fontSize: 20, color: colors.ink }}>
-                Name this preset
+                {t('sheetOptions.namePreset')}
               </Text>
               <Text style={{ ...type.caption, color: colors.inkMuted }}>
-                e.g. “Nepal passport — CVS 4×6” or “US visa dual”
+                {t('sheetOptions.namePresetHint')}
               </Text>
               <TextInput
                 value={name}
@@ -100,7 +102,7 @@ export function SavePresetButton() {
                 autoFocus
                 selectTextOnFocus
                 maxLength={48}
-                placeholder="Preset name"
+                placeholder={t('sheetOptions.presetNamePlaceholder')}
                 placeholderTextColor={colors.inkFaint}
                 returnKeyType="done"
                 onSubmitEditing={save}
@@ -129,7 +131,7 @@ export function SavePresetButton() {
                   }}
                 >
                   <Text style={{ fontFamily: fonts.semibold, color: colors.ink }}>
-                    Cancel
+                    {t('common.cancel')}
                   </Text>
                 </Pressable>
                 <Pressable
@@ -144,7 +146,7 @@ export function SavePresetButton() {
                   }}
                 >
                   <Text style={{ fontFamily: fonts.semibold, color: '#fff' }}>
-                    Save
+                    {t('export.save')}
                   </Text>
                 </Pressable>
               </View>

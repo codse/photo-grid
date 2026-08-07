@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { Pressable, Text, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { packSubjects } from '@/core/layout';
 import {
   getPaperSize,
@@ -14,6 +15,7 @@ import { colors, fonts, radii, space, type } from '@/ui/tokens';
  * so size/paper changes and count stay in one place.
  */
 export function PackingControls({ compact }: { compact?: boolean }) {
+  const { t } = useTranslation();
   const subjects = useSession((s) => s.subjects);
   const paperId = useSession((s) => s.paperId);
   const packMode = useSession((s) => s.packMode);
@@ -49,26 +51,34 @@ export function PackingControls({ compact }: { compact?: boolean }) {
   }, [layout.cells]);
 
   const cellCount = layout.cells.length;
+  const fitsLabel = t('sheetOptions.fits', { count: cellCount });
+  const forActive =
+    active && withPhoto.length > 1
+      ? ` · ${t('sheetOptions.forPerson', {
+          count: countsBySubject.get(active.id) ?? 0,
+          name: active.label,
+        })}`
+      : '';
 
   return (
     <View style={{ gap: compact ? space.md : space.lg }}>
       <View style={{ gap: 4 }}>
-        <SectionLabel>Packing</SectionLabel>
+        <SectionLabel>{t('sheetOptions.packing')}</SectionLabel>
         <Text style={{ ...type.caption, color: colors.inkMuted }}>
           {packMode === 'fill'
-            ? 'Fill the sheet. Count updates when you change paper or photo size.'
-            : 'Exact count per person. Extras won’t print if they don’t fit.'}
+            ? t('sheetOptions.packingFillHint')
+            : t('sheetOptions.packingExactHint')}
         </Text>
       </View>
 
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: space.sm }}>
         <Chip
-          label="Auto — fill sheet"
+          label={t('sheetOptions.autoFillChip')}
           selected={packMode === 'fill'}
           onPress={() => setPackMode('fill')}
         />
         <Chip
-          label="Custom count"
+          label={t('sheetOptions.customCount')}
           selected={packMode === 'exact'}
           onPress={() => setPackMode('exact')}
         />
@@ -76,14 +86,8 @@ export function PackingControls({ compact }: { compact?: boolean }) {
 
       {packMode === 'fill' ? (
         <Text style={{ ...type.body, color: colors.ink }}>
-          Fits{' '}
-          <Text style={{ fontFamily: fonts.semibold }}>
-            {cellCount}
-          </Text>{' '}
-          photo{cellCount === 1 ? '' : 's'}
-          {active && withPhoto.length > 1
-            ? ` · ${countsBySubject.get(active.id) ?? 0} for ${active.label}`
-            : ''}
+          <Text style={{ fontFamily: fonts.semibold }}>{fitsLabel}</Text>
+          {forActive}
         </Text>
       ) : (
         <View style={{ gap: space.sm }}>
@@ -105,12 +109,16 @@ export function PackingControls({ compact }: { compact?: boolean }) {
                 <Pressable
                   onPress={() => setActivePerson(person.id)}
                   accessibilityRole="button"
-                  accessibilityLabel={`Edit count for ${person.label}`}
+                  accessibilityLabel={t('sheetOptions.needN', {
+                    name: person.label,
+                  })}
                 >
                   <Text style={{ ...type.caption, color: colors.inkMuted }}>
-                    Need N — {person.label}
+                    {t('sheetOptions.needN', { name: person.label })}
                     {withPhoto.length > 1
-                      ? ` · ${countsBySubject.get(person.id) ?? 0} on sheet`
+                      ? ` · ${t('sheetOptions.onSheet', {
+                          count: countsBySubject.get(person.id) ?? 0,
+                        })}`
                       : ''}
                   </Text>
                 </Pressable>
