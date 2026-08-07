@@ -212,6 +212,7 @@ export async function initAds(): Promise<boolean> {
 /**
  * Full-screen ad at natural pauses (after export).
  * Cooldown + Pro / rewarded mute / force-free aware.
+ * Skips silently if a creative isn’t already loaded — never blocks on fetch.
  */
 export async function showInterstitialIfNeeded(
   reason: 'export' | 'sheet' | 'home' = 'export',
@@ -228,15 +229,19 @@ export async function showInterstitialIfNeeded(
 
   if (!interstitial || !interstitialLoaded) {
     interstitial?.load();
+    if (__DEV__) console.log('[AdMob] interstitial not ready', reason);
     return false;
   }
 
   try {
     await interstitial.show();
     lastInterstitialAt = Date.now();
+    if (__DEV__) console.log('[AdMob] interstitial shown', reason);
     return true;
   } catch (e) {
     if (__DEV__) console.warn('[AdMob] interstitial show failed', e);
+    interstitialLoaded = false;
+    interstitial?.load();
     return false;
   }
 }

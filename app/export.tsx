@@ -158,10 +158,9 @@ function ExportBody() {
       // End “In progress” on home — size/presets stay.
       completeSheet();
       if (Platform.OS !== 'web') {
-        void (async () => {
-          await showInterstitialIfNeeded('export');
-          void onExportSuccessEngagement();
-        })();
+        // Present before navigate — fire-and-forget + replace() drops the ad.
+        await showInterstitialIfNeeded('export');
+        void onExportSuccessEngagement();
       }
       router.replace('/');
     } catch (e) {
