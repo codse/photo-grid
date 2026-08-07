@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "app": {
+    "bundle_id": "com.codse.passport.photo.print",
+    "project": "ios/PassportPhotoPrint.xcodeproj",
+    "scheme": "PassportPhotoPrint",
+    "simulator_udid": "D97585FB-CC31-4F07-BE56-FFCBDE5A0E19"
+  },
+  "paths": {
+    "plan": ".asc/screenshots.json",
+    "raw_dir": "./screenshots/raw",
+    "framed_dir": "./screenshots/fancy/iphone65"
+  },
+  "pipeline": {
+    "frame_enabled": true,
+    "upload_enabled": false
+  },
+  "upload": {
+    "version_localization_id": "",
+    "device_type": "IPHONE_65",
+    "source_dir": "./screenshots/fancy/iphone65"
+  }
+}
