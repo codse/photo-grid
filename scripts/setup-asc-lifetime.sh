@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Create ASC non-consumable Lifetime @ $4.99 for Passport Photo Print.
+# Create ASC non-consumable Lifetime @ $9.99 for Passport Photo Print.
 #
 # Required: APP_ID (ASC numeric app id after the app exists)
 # Product: com.codse.passport.photo.print.lifetime
@@ -25,7 +25,7 @@ for item in d.get('data') or []:
 ")"
 
 if [[ -z "$IAP_ID" ]]; then
-  echo "==> Creating NON_CONSUMABLE $PRODUCT_ID @ \$4.99"
+  echo "==> Creating NON_CONSUMABLE $PRODUCT_ID @ \$9.99"
   CREATE="$(asc iap setup \
     --app "$APP_ID" \
     --type NON_CONSUMABLE \
@@ -34,7 +34,7 @@ if [[ -z "$IAP_ID" ]]; then
     --display-name "Lifetime" \
     --description "Remove ads forever with a one-time purchase." \
     --locale en-US \
-    --price "4.99" \
+    --price "9.99" \
     --base-territory "United States" \
     --no-verify \
     --output json)"

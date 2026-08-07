@@ -65,8 +65,9 @@ export function isProFromInfo(info: CustomerInfo | null | undefined): boolean {
   const ids = info.allPurchasedProductIdentifiers;
   return (
     ids.includes(LIFETIME_PRODUCT_ID) ||
-    // Test Store product id used in __DEV__
-    ids.includes('lifetime')
+    // Test Store identifiers used in __DEV__
+    ids.includes('lifetime') ||
+    ids.includes('lifetime_9_99')
   );
 }
 
@@ -131,7 +132,7 @@ async function findLifetimePackage(): Promise<PurchasesPackage | null> {
   const current = offerings.current;
   if (!current) return null;
 
-  // Prefer RC's $rc_lifetime slot (works for both ASC id and Test Store "lifetime")
+  // Prefer RC's $rc_lifetime slot (ASC id + Test Store lifetime_9_99)
   if (current.lifetime) return current.lifetime;
 
   const match = current.availablePackages.find(
@@ -224,8 +225,20 @@ export async function lifetimePriceString(): Promise<string | null> {
   await configurePurchases();
   try {
     const pkg = await findLifetimePackage();
-    return pkg?.product.priceString ?? null;
+    return sanitizeLifetimePrice(pkg?.product.priceString ?? null);
   } catch {
     return null;
   }
+}
+
+/**
+ * Drop empty / absurd store prices (e.g. mistaken Test Store $99.99)
+ * so the UI falls back to LIFETIME_PRICE_LABEL ($9.99).
+ */
+function sanitizeLifetimePrice(priceString: string | null): string | null {
+  if (!priceString) return null;
+  const n = Number(String(priceString).replace(/[^0-9.]/g, ''));
+  if (!Number.isFinite(n) || n <= 0) return null;
+  if (n >= 50) return null;
+  return priceString;
 }
