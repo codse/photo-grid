@@ -263,6 +263,10 @@ Do **not** only localize koubou frame copy — switch the **in-app** language (a
 
 Caps live in `src/monetization/free-limits.ts`. Paywall: `app/pro.tsx`. `__DEV__` Force free applies the free caps even when entitlement is active.
 
+**Daily export day key:** device-**local** `YYYY-MM-DD` in AsyncStorage. Count resets when the local calendar day changes (midnight, timezone travel, or clock edit). Soft freemium only — we don’t harden against clock-back.
+
+**Paywall reason:** open with `openProPaywall('people'|'exports'|'ads')` or deep link `passportphotoprint://pro?reason=exports` (root deep-link handler must preserve `reason` — don’t bare-`replace('/pro')`).
+
 ### RevenueCat
 
 - `__DEV__`: Test Store key `EXPO_PUBLIC_REVENUECAT_TEST_API_KEY` when set.
