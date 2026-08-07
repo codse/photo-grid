@@ -36,6 +36,7 @@ import {
   FREE_EXPORTS_PER_DAY,
   canExportNow,
 } from '@/monetization/free-limits';
+import { ProOffer } from '@/monetization/pro-offer';
 import { useIsPro } from '@/monetization/purchases';
 import { useTranslation } from 'react-i18next';
 
@@ -234,37 +235,7 @@ function ExportBody() {
           })}
         </Text>
 
-        {Platform.OS !== 'web' && !isPro ? (
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={t('pro.openPaywall')}
-            onPress={() => router.push('/pro')}
-            style={({ pressed }) => ({
-              backgroundColor: pressed ? colors.accentSoft : colors.bgElevated,
-              borderWidth: 1.5,
-              borderColor: colors.ink,
-              borderRadius: radii.md,
-              borderCurve: 'continuous',
-              paddingVertical: 14,
-              paddingHorizontal: 16,
-              gap: 4,
-            })}
-          >
-            <Text
-              style={{
-                fontFamily: fonts.playful,
-                fontSize: 18,
-                color: colors.ink,
-                letterSpacing: -0.3,
-              }}
-            >
-              {t('pro.headline')}
-            </Text>
-            <Text style={{ ...type.caption, color: colors.inkMuted }}>
-              {t('pro.openPaywallHint')}
-            </Text>
-          </Pressable>
-        ) : null}
+        {Platform.OS !== 'web' ? <ProOffer /> : null}
 
         <View style={{ gap: space.md }}>
           <FormatSegment
