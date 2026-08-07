@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react';
-import { Platform, Pressable, ScrollView, Text, View } from 'react-native';
+import { useEffect, useMemo, useState } from 'react';
+import { Alert, Platform, Pressable, ScrollView, Text, View } from 'react-native';
 import Constants from 'expo-constants';
 import { Stack, router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -14,6 +14,9 @@ import { ChatCircleIcon } from 'phosphor-react-native/src/icons/ChatCircle';
 import { ScissorsIcon } from 'phosphor-react-native/src/icons/Scissors';
 import { ShieldCheckIcon } from 'phosphor-react-native/src/icons/ShieldCheck';
 import { WarningCircleIcon } from 'phosphor-react-native/src/icons/WarningCircle';
+import { ShareNetworkIcon } from 'phosphor-react-native/src/icons/ShareNetwork';
+import { StarIcon } from 'phosphor-react-native/src/icons/Star';
+import { FlaskIcon } from 'phosphor-react-native/src/icons/Flask';
 import type { ExportImageExt } from '@/core/export-name';
 import { EXPORT_DPI_OPTIONS, type ExportDpi } from '@/core/units';
 import { useSession } from '@/state/session';
@@ -29,6 +32,11 @@ import {
   useAppLocale,
   type AppLocale,
 } from '@/i18n';
+import {
+  loadForceFreeAds,
+  setForceFreeAds,
+} from '@/monetization/ads-prefs';
+import { requestReviewNow, shareApp } from '@/monetization/engagement';
 
 const VERSION =
   Constants.expoConfig?.version ??
@@ -50,6 +58,24 @@ export default function SettingsScreen() {
   const setCutGuides = useSession((s) => s.setCutGuides);
 
   const [picker, setPicker] = useState<PickerKind>(null);
+  const [forceFree, setForceFree] = useState(false);
+
+  useEffect(() => {
+    if (!__DEV__) return;
+    void loadForceFreeAds().then(setForceFree);
+  }, []);
+
+  const toggleForceFree = async () => {
+    const next = !forceFree;
+    setForceFree(next);
+    await setForceFreeAds(next);
+    Alert.alert(
+      next ? 'Force free on' : 'Force free off',
+      next
+        ? 'Ads will show even if Pro is unlocked. Reload home to refresh banners.'
+        : 'Back to normal Pro gating.',
+    );
+  };
 
   const languageOptions = useMemo<SelectOption[]>(
     () =>
@@ -198,6 +224,38 @@ export default function SettingsScreen() {
               }
               onPress={() => router.push('/settings/about')}
             />
+            {Platform.OS !== 'web' ? (
+              <>
+                <ListRow
+                  title={t('settings.shareApp')}
+                  subtitle={t('settings.shareAppHint')}
+                  icon={
+                    <ShareNetworkIcon
+                      size={18}
+                      color={colors.accent}
+                      weight="duotone"
+                    />
+                  }
+                  onPress={() => {
+                    void shareApp().catch(() => undefined);
+                  }}
+                />
+                <ListRow
+                  title={t('settings.rateApp')}
+                  subtitle={t('settings.rateAppHint')}
+                  icon={
+                    <StarIcon
+                      size={18}
+                      color={colors.accent}
+                      weight="duotone"
+                    />
+                  }
+                  onPress={() => {
+                    void requestReviewNow().catch(() => undefined);
+                  }}
+                />
+              </>
+            ) : null}
           </InsetGroup>
         </View>
 
@@ -239,6 +297,27 @@ export default function SettingsScreen() {
             />
           </InsetGroup>
         </View>
+
+        {__DEV__ ? (
+          <View style={{ gap: space.sm }}>
+            <SectionHeader title={t('settings.developer')} />
+            <InsetGroup>
+              <ListRow
+                title={t('settings.forceFreeAds')}
+                subtitle={t('settings.forceFreeAdsHint')}
+                icon={
+                  <FlaskIcon size={18} color={colors.accent} weight="duotone" />
+                }
+                onPress={() => void toggleForceFree()}
+                accessory={
+                  <Text style={{ ...type.caption, color: colors.accent }}>
+                    {forceFree ? t('settings.on') : t('settings.off')}
+                  </Text>
+                }
+              />
+            </InsetGroup>
+          </View>
+        ) : null}
 
         <View style={{ gap: space.md, alignItems: 'center', paddingTop: 4 }}>
           <Pressable

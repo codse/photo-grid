@@ -11,7 +11,7 @@ import {
 import { Image as ExpoImage } from 'expo-image';
 import { CameraType } from 'expo-image-picker';
 import * as Haptics from 'expo-haptics';
-import { router, Stack } from 'expo-router';
+import { router, Stack, useFocusEffect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CaretRightIcon } from 'phosphor-react-native/src/icons/CaretRight';
 import { PHOTO_PRESETS, PAPER_PRESETS } from '@/core/presets';
@@ -28,10 +28,12 @@ import { colors, space } from '@/ui/tokens';
 import { ProOffer } from '@/monetization/pro-offer';
 import { ProBadge } from '@/monetization/pro-badge';
 import { AdBanner } from '@/monetization/ads';
+import { RewardedAdRow } from '@/monetization/rewarded-row';
 import {
   purchaseLifetime,
   useIsPro,
 } from '@/monetization/purchases';
+import { loadForceFreeAds } from '@/monetization/ads-prefs';
 import { useTranslation } from 'react-i18next';
 
 /** iOS Settings-style grouped canvas. */
@@ -61,6 +63,23 @@ export default function HomeScreen() {
   const [busy, setBusy] = useState(false);
   const [buyBusy, setBuyBusy] = useState(false);
   const [recent, setRecent] = useState<SavedSheet[]>([]);
+  const [bannerKey, setBannerKey] = useState(0);
+  const [forceFree, setForceFree] = useState(false);
+
+  useEffect(() => {
+    void loadForceFreeAds().then((v) => setForceFree(v));
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      void loadForceFreeAds().then((v) => {
+        setForceFree(v);
+        setBannerKey((k) => k + 1);
+      });
+    }, []),
+  );
+
+  const showMonetization = Platform.OS !== 'web' && (!isPro || forceFree);
 
   const activePhoto = PHOTO_PRESETS.find((p) => p.id === photoId);
   const paper = PAPER_PRESETS.find((p) => p.id === paperId);
@@ -388,11 +407,12 @@ export default function HomeScreen() {
           </InsetGroup>
         </View>
 
-        {Platform.OS !== 'web' && !isPro ? (
+        {showMonetization ? (
           <View>
             <SectionHeader title="Pro" />
             <InsetGroup dividerInset={16}>
-              <ProOffer variant="row" />
+              {!isPro || forceFree ? <ProOffer variant="row" /> : null}
+              <RewardedAdRow onMuted={() => setBannerKey((k) => k + 1)} />
             </InsetGroup>
           </View>
         ) : null}
@@ -449,7 +469,7 @@ export default function HomeScreen() {
         ) : null}
 
         {Platform.OS !== 'web' ? (
-          <AdBanner style={{ marginTop: 4 }} />
+          <AdBanner key={bannerKey} style={{ marginTop: 4 }} />
         ) : null}
 
         {savedPresets.length > 0 ? (

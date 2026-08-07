@@ -22,6 +22,7 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.codse.passport.photo.print",
       "appleTeamId": "53WLLK8L87",
+      "appStoreUrl": "https://apps.apple.com/app/id6798807833",
       "infoPlist": {
         "NSCameraUsageDescription": "Passport Photo Print needs the camera to take passport and ID photos.",
         "NSPhotoLibraryUsageDescription": "Passport Photo Print needs photo library access to import and save ID photos.",

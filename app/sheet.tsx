@@ -21,6 +21,7 @@ import { getPaperSize, useSession } from '@/state/session';
 import { loadImageSource, type ImageSource } from '@/platform/render-sheet';
 import { Button } from '@/ui/primitives';
 import { colors, radii, space, type } from '@/ui/tokens';
+import { AdBanner } from '@/monetization/ads';
 import { RequirePhoto } from '@/features/session/require-photo';
 
 const WIDE_MIN = 900;
@@ -205,6 +206,7 @@ function SheetBody() {
       >
         {primary}
         {wide ? <SheetOptionsSidebar /> : null}
+        <AdBanner size="anchored" style={{ marginTop: space.sm }} />
       </ScrollView>
 
       {!wide ? (

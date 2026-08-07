@@ -99,7 +99,24 @@
     "on": "On",
     "off": "Off",
     "savedHint": "Bookmarked sheets live in Saved",
-    "version": "Version {{version}}"
+    "version": "Version {{version}}",
+    "shareApp": "Share app",
+    "shareAppHint": "Send a friend the App Store link",
+    "rateApp": "Rate Passport Photo Print",
+    "rateAppHint": "App Store review sheet",
+    "developer": "Developer",
+    "forceFreeAds": "Force free (show ads)",
+    "forceFreeAdsHint": "Ignore Pro entitlement — __DEV__ only"
+  },
+  "ads": {
+    "watchTitle": "Watch ad · ads off 1 hour",
+    "watchHint": "Optional — keep printing without a banner",
+    "watchCta": "Watch",
+    "mutedActive": "Ads paused",
+    "mutedUntilHint": "Back at {{time}}",
+    "mutedTitle": "Ads off for an hour",
+    "mutedBody": "Banners and full-screen ads stay hidden until then. Pro removes them forever.",
+    "unavailableTitle": "Ad unavailable"
   },
   "common": {
     "cancel": "Cancel",

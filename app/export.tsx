@@ -30,6 +30,7 @@ import { Button } from '@/ui/primitives';
 import { colors, fonts, radii, space, type } from '@/ui/tokens';
 import { RequirePhoto } from '@/features/session/require-photo';
 import { showInterstitialIfNeeded } from '@/monetization/ads';
+import { onExportSuccessEngagement } from '@/monetization/engagement';
 import { ProOffer } from '@/monetization/pro-offer';
 
 type Busy = 'save' | 'share' | 'bookmark' | null;
@@ -142,7 +143,10 @@ function ExportBody() {
       // End “In progress” on home — size/presets stay.
       completeSheet();
       if (Platform.OS !== 'web') {
-        void showInterstitialIfNeeded();
+        void (async () => {
+          await showInterstitialIfNeeded('export');
+          void onExportSuccessEngagement();
+        })();
       }
       router.replace('/(tabs)/index');
     } catch (e) {
