@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Stack, useRouter } from 'expo-router';
-import { Platform, View } from 'react-native';
+import { Appearance, Platform, View } from 'react-native';
 import * as Linking from 'expo-linking';
 import { useTranslation } from 'react-i18next';
 import { colors, fonts } from '@/ui/tokens';
@@ -10,10 +10,12 @@ import { initAds } from '@/monetization/ads';
 import { configurePurchases } from '@/monetization/purchases';
 import { initI18n, setAppLocale, type AppLocale } from '@/i18n';
 import {
+  appearanceFromUrl,
   localeFromUrl,
   parseShotBootstrap,
   pathFromUrl,
-} from '@/i18n/shot-locale';
+  type ShotAppearance,
+} from '@/platform/shot-bootstrap';
 import * as SplashScreen from 'expo-splash-screen';
 import * as FileSystem from 'expo-file-system/legacy';
 import {
@@ -58,6 +60,8 @@ async function peekLaunchLocale(): Promise<AppLocale | null> {
     const url = await Linking.getInitialURL();
     const fromLink = localeFromUrl(url);
     if (fromLink) return fromLink as AppLocale;
+    const appearance = appearanceFromUrl(url);
+    if (appearance) applyShotAppearance(appearance);
   } catch {
     // ignore
   }
@@ -70,7 +74,9 @@ async function peekLaunchLocale(): Promise<AppLocale | null> {
     const info = await FileSystem.getInfoAsync(path);
     if (!info.exists) return null;
     const raw = await FileSystem.readAsStringAsync(path);
-    return parseShotBootstrap(raw).locale as AppLocale | null;
+    const boot = parseShotBootstrap(raw);
+    if (boot.appearance) applyShotAppearance(boot.appearance);
+    return boot.locale as AppLocale | null;
   } catch {
     return null;
   }
@@ -172,7 +178,8 @@ export default function RootLayout() {
         if (!info.exists) return;
         const raw = (await FileSystem.readAsStringAsync(path)).trim();
         await FileSystem.deleteAsync(path, { idempotent: true });
-        const { path: route, locale } = parseShotBootstrap(raw);
+        const { path: route, locale, appearance } = parseShotBootstrap(raw);
+        if (appearance) applyShotAppearance(appearance);
         if (locale) await setAppLocale(locale as AppLocale);
         if (route && ALLOWED_SHOT_ROUTES.has(route)) {
           router.replace(route as '/(tabs)/index');
@@ -190,7 +197,9 @@ export default function RootLayout() {
     const applyUrl = async (url: string | null) => {
       if (!url) return;
       const locale = localeFromUrl(url);
+      const appearance = appearanceFromUrl(url);
       const route = pathFromUrl(url);
+      if (appearance) applyShotAppearance(appearance);
       if (locale) await setAppLocale(locale as AppLocale);
       if (route && ALLOWED_SHOT_ROUTES.has(route)) {
         router.replace(route as '/(tabs)/index');
