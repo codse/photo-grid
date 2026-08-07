@@ -20,6 +20,7 @@ import { newPresetId, upsertPreset } from '@/platform/prefs';
 import { defaultPresetName } from '@/features/sheet/config-label';
 import type { ExportImageExt } from '@/core/export-name';
 import type { ExportDpi } from '@/core/units';
+import { releasePreviewUri } from '@/platform/release-preview-uri';
 
 export type PackMode = 'exact' | 'fill';
 export type Orientation = 'auto' | 'portrait' | 'landscape';
@@ -68,6 +69,9 @@ type SessionState = {
   setMarginMm: (mm: number) => void;
   setCutGuides: (on: boolean) => void;
   setActivePerson: (id: string | null) => void;
+  /** Person added via sheet chooser awaiting camera/library — drop if cancelled empty. */
+  pendingCapturePersonId: string | null;
+  setPendingCapturePersonId: (id: string | null) => void;
   addPerson: () => string;
   removePerson: (id: string) => void;
   duplicatePerson: (id: string) => string | null;
@@ -77,6 +81,7 @@ type SessionState = {
   undoPersonUri: (id: string) => void;
   setPersonCrop: (id: string, crop: CropState) => void;
   setPersonAdjust: (id: string, adjust: Adjustments) => void;
+  setPersonPreviewUri: (id: string, previewUri: string | undefined) => void;
   setPersonCopies: (id: string, copies: number) => void;
   applyCropToAllOfPerson: (id: string) => void;
 };
@@ -109,9 +114,14 @@ export function getPaperSize(paperId: string) {
   return PAPER_PRESETS.find((p) => p.id === paperId) ?? PAPER_PRESETS[1];
 }
 
+function dropPreview(uri: string | undefined) {
+  if (uri) releasePreviewUri(uri);
+}
+
 export const useSession = create<SessionState>((set, get) => ({
   subjects: [newSubject('Person 1', DEFAULT_PHOTO_ID)],
   activePersonId: null,
+  pendingCapturePersonId: null,
   photoId: DEFAULT_PHOTO_ID,
   paperId: DEFAULT_PAPER_ID,
   packMode: 'fill',
@@ -148,11 +158,21 @@ export const useSession = create<SessionState>((set, get) => ({
     const size = sizeFromPhotoId(photoId);
     set((s) => ({
       photoId,
-      subjects: s.subjects.map((sub) =>
-        sub.id === (s.activePersonId ?? s.subjects[0]?.id)
-          ? { ...sub, widthMm: size.widthMm, heightMm: size.heightMm }
-          : sub,
-      ),
+      subjects: s.subjects.map((sub) => {
+        if (
+          sub.widthMm === size.widthMm &&
+          sub.heightMm === size.heightMm
+        ) {
+          return sub;
+        }
+        dropPreview(sub.previewUri);
+        return {
+          ...sub,
+          widthMm: size.widthMm,
+          heightMm: size.heightMm,
+          previewUri: undefined,
+        };
+      }),
     }));
   },
 
@@ -171,11 +191,21 @@ export const useSession = create<SessionState>((set, get) => ({
       gapMm: config.gapMm ?? 2,
       marginMm: config.marginMm ?? 3,
       cutGuides: config.cutGuides ?? true,
-      subjects: s.subjects.map((sub) =>
-        sub.id === (s.activePersonId ?? s.subjects[0]?.id)
-          ? { ...sub, widthMm: size.widthMm, heightMm: size.heightMm }
-          : sub,
-      ),
+      subjects: s.subjects.map((sub) => {
+        if (
+          sub.widthMm === size.widthMm &&
+          sub.heightMm === size.heightMm
+        ) {
+          return sub;
+        }
+        dropPreview(sub.previewUri);
+        return {
+          ...sub,
+          widthMm: size.widthMm,
+          heightMm: size.heightMm,
+          previewUri: undefined,
+        };
+      }),
     }));
   },
 
@@ -253,11 +283,13 @@ export const useSession = create<SessionState>((set, get) => ({
   },
 
   completeSheet: () => {
-    const { photoId } = get();
+    const { photoId, subjects } = get();
+    for (const sub of subjects) dropPreview(sub.previewUri);
     const fresh = newSubject('Person 1', photoId);
     set({
       subjects: [fresh],
       activePersonId: fresh.id,
+      pendingCapturePersonId: null,
     });
   },
 
@@ -294,6 +326,8 @@ export const useSession = create<SessionState>((set, get) => ({
   setMarginMm: (marginMm) => set({ marginMm: clampMm(marginMm, 0, 30) }),
   setCutGuides: (cutGuides) => set({ cutGuides }),
   setActivePerson: (activePersonId) => set({ activePersonId }),
+  setPendingCapturePersonId: (pendingCapturePersonId) =>
+    set({ pendingCapturePersonId }),
 
   addPerson: () => {
     const { subjects, photoId } = get();
@@ -304,25 +338,31 @@ export const useSession = create<SessionState>((set, get) => ({
   },
 
   removePerson: (id) => {
-    const { subjects, activePersonId } = get();
+    const { subjects, activePersonId, pendingCapturePersonId } = get();
     if (subjects.length <= 1) return;
+    const doomed = subjects.find((s) => s.id === id);
+    dropPreview(doomed?.previewUri);
     const next = subjects.filter((s) => s.id !== id);
     set({
       subjects: next,
       activePersonId:
         activePersonId === id ? (next[0]?.id ?? null) : activePersonId,
+      pendingCapturePersonId:
+        pendingCapturePersonId === id ? null : pendingCapturePersonId,
     });
   },
 
   duplicatePerson: (id) => {
     const src = get().subjects.find((s) => s.id === id);
     if (!src) return null;
+    // Don't share previewUri file/blob handles — re-bake for the copy.
     const copy: Subject = {
       ...src,
       id: uid('person'),
       label: `${src.label} copy`,
       crop: { ...src.crop },
       adjust: { ...src.adjust },
+      previewUri: undefined,
     };
     set((s) => ({
       subjects: [...s.subjects, copy],
@@ -338,7 +378,9 @@ export const useSession = create<SessionState>((set, get) => ({
       ),
     })),
 
-  setPersonUri: (id, uri, meta) =>
+  setPersonUri: (id, uri, meta) => {
+    const prev = get().subjects.find((s) => s.id === id);
+    dropPreview(prev?.previewUri);
     set((s) => ({
       subjects: s.subjects.map((sub) =>
         sub.id === id
@@ -346,6 +388,7 @@ export const useSession = create<SessionState>((set, get) => ({
               ...sub,
               url: uri,
               previousUrl: undefined,
+              previewUri: undefined,
               crop: { ...DEFAULT_CROP },
               ...(meta?.sourceName !== undefined
                 ? { sourceName: meta.sourceName }
@@ -354,18 +397,31 @@ export const useSession = create<SessionState>((set, get) => ({
           : sub,
       ),
       activePersonId: id,
-    })),
+      pendingCapturePersonId:
+        s.pendingCapturePersonId === id ? null : s.pendingCapturePersonId,
+    }));
+  },
 
-  replacePersonUri: (id, uri) =>
+  replacePersonUri: (id, uri) => {
+    const prev = get().subjects.find((s) => s.id === id);
+    dropPreview(prev?.previewUri);
     set((s) => ({
       subjects: s.subjects.map((sub) =>
         sub.id === id
-          ? { ...sub, previousUrl: sub.url || undefined, url: uri }
+          ? {
+              ...sub,
+              previousUrl: sub.url || undefined,
+              url: uri,
+              previewUri: undefined,
+            }
           : sub,
       ),
-    })),
+    }));
+  },
 
-  undoPersonUri: (id) =>
+  undoPersonUri: (id) => {
+    const prev = get().subjects.find((s) => s.id === id);
+    dropPreview(prev?.previewUri);
     set((s) => ({
       subjects: s.subjects.map((sub) => {
         if (sub.id !== id || !sub.previousUrl) return sub;
@@ -373,23 +429,43 @@ export const useSession = create<SessionState>((set, get) => ({
           ...sub,
           url: sub.previousUrl,
           previousUrl: undefined,
+          previewUri: undefined,
         };
       }),
-    })),
+    }));
+  },
 
-  setPersonCrop: (id, crop) =>
+  setPersonCrop: (id, crop) => {
+    const prev = get().subjects.find((s) => s.id === id);
+    dropPreview(prev?.previewUri);
     set((s) => ({
       subjects: s.subjects.map((sub) =>
-        sub.id === id ? { ...sub, crop: normalizeCrop(crop) } : sub,
+        sub.id === id
+          ? { ...sub, crop: normalizeCrop(crop), previewUri: undefined }
+          : sub,
       ),
-    })),
+    }));
+  },
 
-  setPersonAdjust: (id, adjust) =>
+  setPersonAdjust: (id, adjust) => {
+    const prev = get().subjects.find((s) => s.id === id);
+    dropPreview(prev?.previewUri);
     set((s) => ({
       subjects: s.subjects.map((sub) =>
-        sub.id === id ? { ...sub, adjust } : sub,
+        sub.id === id ? { ...sub, adjust, previewUri: undefined } : sub,
       ),
-    })),
+    }));
+  },
+
+  setPersonPreviewUri: (id, previewUri) => {
+    const prev = get().subjects.find((s) => s.id === id)?.previewUri;
+    if (prev && prev !== previewUri) dropPreview(prev);
+    set((s) => ({
+      subjects: s.subjects.map((sub) =>
+        sub.id === id ? { ...sub, previewUri } : sub,
+      ),
+    }));
+  },
 
   setPersonCopies: (id, copies) =>
     set((s) => ({

@@ -9,6 +9,8 @@ export type ImageSource = {
   width: number;
   height: number;
   element?: CanvasImageSource;
+  /** Native Skia-safe path (HEIC normalized). Present when loaded via native. */
+  skiaUri?: string;
 };
 
 export type RenderSheetOptions = {

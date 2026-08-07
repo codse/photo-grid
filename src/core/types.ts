@@ -49,6 +49,11 @@ export type Subject = {
   id: string;
   label: string;
   url: string;
+  /**
+   * Baked crop+adjust JPEG (~512–768px) for sheet cells / strip thumbs.
+   * Cleared when url, crop, or adjust change; export still uses `url`.
+   */
+  previewUri?: string;
   /** Original upload/camera file stem or name (for export naming). */
   sourceName?: string;
   /** Previous URI for undo (e.g. before BG removal). */
