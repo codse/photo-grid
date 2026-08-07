@@ -301,7 +301,7 @@ export function CropCanvas({
                   top: '14%',
                   bottom: '28%',
                   borderWidth: 1.5,
-                  borderColor: 'rgba(196,92,50,0.55)',
+                  borderColor: 'rgba(184,149,63,0.55)',
                   borderRadius: 999,
                 }}
               />
