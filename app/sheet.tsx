@@ -1,17 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
-import {
-  Platform,
-  ScrollView,
-  Text,
-  View,
-  useWindowDimensions,
-} from 'react-native';
-import { Image } from 'expo-image';
+import { ScrollView, Text, View, useWindowDimensions } from 'react-native';
 import { Stack, router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { PeopleStrip } from '@/features/people/people-strip';
 import { usePersonPreviews } from '@/features/people/use-person-previews';
-import { CroppedImagePreview } from '@/features/sheet/cropped-image-preview';
+import { SheetPreview } from '@/features/sheet/sheet-preview';
 import {
   CustomizeHeaderButton,
   CustomizeSheet,
@@ -23,7 +16,7 @@ import { formatSize } from '@/core/units';
 import { getPaperSize, useSession } from '@/state/session';
 import { loadImageSource, type ImageSource } from '@/platform/render-sheet';
 import { Button } from '@/ui/primitives';
-import { colors, radii, space, type } from '@/ui/tokens';
+import { colors, space, type } from '@/ui/tokens';
 import { AdBanner } from '@/monetization/ads';
 import { RequirePhoto } from '@/features/session/require-photo';
 
@@ -124,67 +117,19 @@ function SheetBody() {
   const openCustomize = () => setCustomizeOpen(true);
 
   const preview = (
-    <View
-      style={{
-        alignSelf: wide ? 'flex-start' : 'center',
-        width: previewW,
-        height: previewH,
-        backgroundColor: colors.paper,
-        borderRadius: radii.sm,
-        borderCurve: 'continuous',
-        borderWidth: 1,
-        borderColor: colors.line,
-        overflow: 'hidden',
-        ...(Platform.OS === 'web'
-          ? { boxShadow: '0 8px 24px rgba(28,27,25,0.08)' }
-          : null),
-      }}
-    >
-      {layout.cells.map((cell) => {
-        const img = images.get(cell.subjectId);
-        const subject = subjects.find((s) => s.id === cell.subjectId);
-        const left = (cell.xMm / layout.paperWidthMm) * previewW;
-        const top = (cell.yMm / layout.paperHeightMm) * previewH;
-        const w = (cell.widthMm / layout.paperWidthMm) * previewW;
-        const h = (cell.heightMm / layout.paperHeightMm) * previewH;
-        const previewUri = subject?.previewUri;
-        return (
-          <View
-            key={cell.id}
-            style={{
-              position: 'absolute',
-              left,
-              top,
-              width: w,
-              height: h,
-              borderWidth: cutGuides ? 1 : 0,
-              borderColor: 'rgba(0,0,0,0.2)',
-              overflow: 'hidden',
-              backgroundColor: colors.line,
-            }}
-          >
-            {previewUri ? (
-              <Image
-                source={{ uri: previewUri }}
-                style={{ width: w, height: h }}
-                contentFit="cover"
-                recyclingKey={previewUri}
-              />
-            ) : img ? (
-              <CroppedImagePreview
-                uri={img.uri}
-                imgW={img.width}
-                imgH={img.height}
-                width={w}
-                height={h}
-                crop={cell.crop}
-                adjust={subject?.adjust}
-              />
-            ) : null}
-          </View>
-        );
-      })}
-    </View>
+    <SheetPreview
+      layout={layout}
+      subjects={subjects}
+      images={images}
+      previewW={previewW}
+      previewH={previewH}
+      cutGuides={cutGuides}
+      packMode={packMode}
+      gapMm={gapMm}
+      marginMm={marginMm}
+      orientation={orientation}
+      wide={wide}
+    />
   );
 
   const meta = (
