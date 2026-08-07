@@ -143,20 +143,47 @@ export function ProPaywall({ reason }: Props) {
 
   if (pro) {
     return (
-      <View
-        style={[
-          styles.root,
-          { paddingBottom: Math.max(insets.bottom, space.lg) },
-        ]}
-      >
-        <View style={styles.hero}>
-          <View style={styles.pill}>
-            <Text style={styles.pillText}>{t('pro.proPass')}</Text>
+      <View style={styles.root}>
+        <ScrollView
+          contentContainerStyle={[
+            styles.scroll,
+            styles.unlockedScroll,
+            { paddingBottom: space.lg },
+          ]}
+          bounces={false}
+        >
+          <View style={styles.unlockedHero}>
+            <View style={styles.pill}>
+              <Text style={styles.pillText}>{t('pro.proPass')}</Text>
+            </View>
+            <Text style={styles.headline}>{t('pro.unlockedTitle')}</Text>
+            <Text style={[styles.sub, styles.unlockedSub]}>
+              {t('pro.unlockedSub')}
+            </Text>
           </View>
-          <Text style={styles.headline}>{t('pro.unlockedTitle')}</Text>
-          <Text style={styles.sub}>{t('pro.unlockedSub')}</Text>
+
+          <View style={styles.features}>
+            {FEATURES.map((feature) => (
+              <View key={feature.key} style={styles.featureRow}>
+                <CheckCircleIcon
+                  size={22}
+                  color={colors.accent}
+                  weight="fill"
+                />
+                <Text style={styles.featureText}>{t(feature.key)}</Text>
+              </View>
+            ))}
+          </View>
+        </ScrollView>
+
+        <View
+          style={[
+            styles.footer,
+            { paddingBottom: Math.max(insets.bottom, space.lg) },
+          ]}
+        >
+          <Button label={t('common.done')} onPress={() => router.back()} />
         </View>
-        <Button label={t('common.done')} onPress={() => router.back()} />
       </View>
     );
   }
@@ -279,9 +306,21 @@ const styles = StyleSheet.create({
     paddingTop: space.lg,
     gap: space.xl,
   },
+  unlockedScroll: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    paddingVertical: space.xxl,
+  },
   hero: {
     gap: space.sm,
     alignItems: 'flex-start',
+  },
+  unlockedHero: {
+    gap: space.sm,
+    alignItems: 'flex-start',
+  },
+  unlockedSub: {
+    maxWidth: undefined,
   },
   pill: {
     backgroundColor: '#FFD166',

@@ -1,6 +1,5 @@
 import {
   ActivityIndicator,
-  Platform,
   Pressable,
   StyleSheet,
   Text,
@@ -16,7 +15,7 @@ type Props = {
   busy?: boolean;
 };
 
-/** Quiet nav chrome — sell Pro after value, not on first paint. */
+/** Nav chrome — GET PRO to unlock; solid gold PRO when owned. */
 export function ProBadge({ variant = 'pro', onPress, busy }: Props) {
   const { t } = useTranslation();
   const label = variant === 'get' ? t('pro.badgeGet') : t('pro.badge');
@@ -45,7 +44,7 @@ export function ProBadge({ variant = 'pro', onPress, busy }: Props) {
       accessibilityLabel={label}
       onPress={onPress}
       hitSlop={6}
-      style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
+      style={({ pressed }) => ({ opacity: pressed ? 0.82 : 1 })}
     >
       {body}
     </Pressable>
@@ -54,36 +53,36 @@ export function ProBadge({ variant = 'pro', onPress, busy }: Props) {
 
 const styles = StyleSheet.create({
   wrap: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    minWidth: 36,
-    minHeight: 26,
+    paddingHorizontal: 9,
+    paddingVertical: 5,
+    minWidth: 44,
+    minHeight: 28,
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 999,
     borderCurve: 'continuous',
   },
+  /** Unlocked — gold fill, quiet PRO mark. */
   wrapPro: {
-    backgroundColor: 'rgba(184, 149, 63, 0.18)',
+    backgroundColor: '#FFD166',
+    borderWidth: 1.5,
+    borderColor: colors.ink,
   },
+  /** Locked — ink pill, white GET PRO. */
   wrapGet: {
-    backgroundColor: 'transparent',
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.inkFaint,
+    paddingHorizontal: 11,
+    backgroundColor: colors.ink,
+    borderWidth: 0,
   },
   label: {
     fontFamily: fonts.playful,
     fontSize: 11,
     lineHeight: 13,
     color: colors.ink,
-    letterSpacing: 0.8,
+    letterSpacing: 1.15,
   },
   labelGet: {
-    color: colors.inkMuted,
-    letterSpacing: 0.6,
-    ...Platform.select({
-      ios: { fontWeight: '600' as const },
-      default: null,
-    }),
+    color: '#FFFFFF',
+    letterSpacing: 0.9,
   },
 });
