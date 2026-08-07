@@ -217,7 +217,16 @@ export async function initAds(): Promise<boolean> {
 export async function showInterstitialIfNeeded(
   reason: 'export' | 'sheet' | 'home' = 'export',
 ): Promise<boolean> {
-  if (!(await shouldShowAds())) return false;
+  if (!(await shouldShowAds())) {
+    if (__DEV__) {
+      console.log('[AdMob] interstitial skipped — suppressed', {
+        reason,
+        pro: getCachedIsPro(),
+        forceFree: getForceFreeAdsSync(),
+      });
+    }
+    return false;
+  }
   if (!adsReady) await initAds();
   ensureInterstitial();
 

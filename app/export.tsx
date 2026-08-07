@@ -4,15 +4,14 @@ import {
   Alert,
   Platform,
   Pressable,
-  ScrollView,
   Text,
   View,
 } from 'react-native';
-import { router } from 'expo-router';
+import { router, Stack } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BookmarkSimpleIcon } from 'phosphor-react-native/src/icons/BookmarkSimple';
 import { ExportIcon } from 'phosphor-react-native/src/icons/Export';
 import { ShareNetworkIcon } from 'phosphor-react-native/src/icons/ShareNetwork';
-import { PeopleStrip } from '@/features/people/people-strip';
 import { usePersonPreviews } from '@/features/people/use-person-previews';
 import { packSubjects } from '@/core/layout';
 import type { ExportImageExt } from '@/core/export-name';
@@ -26,20 +25,22 @@ import {
   saveImageToLibrary,
   type ImageSource,
 } from '@/platform/render-sheet';
-import { saveSheet, deleteSavedSheet, SAVED_SHEETS_AVAILABLE } from '@/platform/saved-sheets';
+import {
+  saveSheet,
+  deleteSavedSheet,
+  SAVED_SHEETS_AVAILABLE,
+} from '@/platform/saved-sheets';
 import { Button } from '@/ui/primitives';
 import { colors, fonts, radii, space, type } from '@/ui/tokens';
 import { RequirePhoto } from '@/features/session/require-photo';
 import { showInterstitialIfNeeded } from '@/monetization/ads';
 import { onExportSuccessEngagement } from '@/monetization/engagement';
-import {
-  canExportNow,
-} from '@/monetization/free-limits';
-import { ProOffer } from '@/monetization/pro-offer';
+import { canExportNow } from '@/monetization/free-limits';
 import { openProPaywall } from '@/monetization/pro-route';
 import { useTranslation } from 'react-i18next';
 
 type Busy = 'save' | 'share' | 'bookmark' | null;
+type ExportKind = 'save' | 'share';
 
 export default function ExportScreen() {
   return (
@@ -51,6 +52,7 @@ export default function ExportScreen() {
 
 function ExportBody() {
   const { t } = useTranslation();
+  const insets = useSafeAreaInsets();
   const subjects = useSession((s) => s.subjects);
   const paperId = useSession((s) => s.paperId);
   const photoId = useSession((s) => s.photoId);
@@ -143,7 +145,36 @@ function ExportBody() {
 
   const empty = layout.cells.length === 0;
 
-  const run = async (label: Busy, fn: () => Promise<unknown>) => {
+  const finishAfterSuccess = async (kind: ExportKind) => {
+    if (Platform.OS === 'web') {
+      router.replace('/');
+      return;
+    }
+
+    const title =
+      kind === 'save' ? t('export.savedOkTitle') : t('export.sharedOkTitle');
+    const body =
+      kind === 'save' ? t('export.savedOkBody') : t('export.sharedOkBody');
+
+    await new Promise<void>((resolve) => {
+      Alert.alert(title, body, [
+        {
+          text: t('common.ok'),
+          onPress: () => resolve(),
+        },
+      ]);
+    });
+
+    // Leave the form sheet first — presenting a full-screen interstitial from a
+    // sheet (then replace) fails or gets dismissed instantly on iOS.
+    router.replace('/');
+    void onExportSuccessEngagement();
+    setTimeout(() => {
+      void showInterstitialIfNeeded('export');
+    }, 700);
+  };
+
+  const run = async (kind: ExportKind, fn: () => Promise<unknown>) => {
     if (Platform.OS !== 'web') {
       const allowed = await canExportNow();
       if (!allowed) {
@@ -151,18 +182,12 @@ function ExportBody() {
         return;
       }
     }
-    setBusy(label);
+    setBusy(kind);
     try {
       await fn();
       recordExportedConfig();
-      // End “In progress” on home — size/presets stay.
       completeSheet();
-      if (Platform.OS !== 'web') {
-        // Present before navigate — fire-and-forget + replace() drops the ad.
-        await showInterstitialIfNeeded('export');
-        void onExportSuccessEngagement();
-      }
-      router.replace('/');
+      await finishAfterSuccess(kind);
     } catch (e) {
       Alert.alert(
         t('export.exportFailed'),
@@ -173,7 +198,6 @@ function ExportBody() {
     }
   };
 
-  /** Toggle bookmark — filled = in Saved; tap again removes it. */
   const toggleBookmark = async () => {
     if (!SAVED_SHEETS_AVAILABLE || empty) return;
     setBusy('bookmark');
@@ -204,56 +228,66 @@ function ExportBody() {
         : t('export.savePhotos');
 
   return (
-    <View style={{ flex: 1 }}>
-      <PeopleStrip captureMode="sheet" />
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        contentContainerStyle={{
-          padding: space.xl,
+    <>
+      <Stack.Screen options={{ headerShown: false, title: t('export.title') }} />
+      <View
+        style={{
+          paddingHorizontal: space.xl,
+          // Grabber sits above content — leave room so nothing clips.
+          paddingTop: Platform.OS === 'ios' ? space.xl + 4 : space.lg,
+          paddingBottom: Math.max(insets.bottom, space.lg),
           gap: space.lg,
-          paddingBottom: 56,
+          backgroundColor: colors.bgElevated,
         }}
       >
-        <Text selectable style={{ ...type.caption, color: colors.inkMuted }}>
-          {t('export.metaInline', {
-            count: layout.cells.length,
-            size: formatSize(layout.paperWidthMm, layout.paperHeightMm),
-            dpi: exportDpi,
-          })}
-        </Text>
-
-        {Platform.OS !== 'web' ? <ProOffer /> : null}
-
-        <View style={{ gap: space.md }}>
-          <FormatSegment
-            value={format}
-            disabled={!!busy || empty}
-            onChange={setFormat}
-          />
-          <Button
-            label={saveLabel}
-            disabled={!!busy || empty}
-            onPress={() =>
-              run('save', () =>
-                saveImageToLibrary(
-                  layout,
-                  images,
-                  subjects,
-                  cutGuides,
-                  format,
-                  exportDpi,
-                ),
-              )
-            }
-          />
+        <View style={{ gap: 4 }}>
+          <Text
+            style={{
+              fontFamily: fonts.semibold,
+              fontSize: 20,
+              letterSpacing: -0.3,
+              color: colors.ink,
+            }}
+          >
+            {t('export.title')}
+          </Text>
+          <Text selectable style={{ ...type.caption, color: colors.inkMuted }}>
+            {t('export.metaInline', {
+              count: layout.cells.length,
+              size: formatSize(layout.paperWidthMm, layout.paperHeightMm),
+              dpi: exportDpi,
+            })}
+          </Text>
         </View>
+
+        <FormatSegment
+          value={format}
+          disabled={!!busy || empty}
+          onChange={setFormat}
+        />
+
+        <Button
+          label={saveLabel}
+          disabled={!!busy || empty}
+          onPress={() =>
+            run('save', () =>
+              saveImageToLibrary(
+                layout,
+                images,
+                subjects,
+                cutGuides,
+                format,
+                exportDpi,
+              ),
+            )
+          }
+        />
 
         <View
           style={{
             flexDirection: 'row',
             justifyContent: 'center',
             gap: space.xl,
-            paddingTop: space.sm,
           }}
         >
           <IconAction
@@ -296,14 +330,11 @@ function ExportBody() {
             />
           ) : null}
         </View>
-
-        {busy ? <ActivityIndicator color={colors.accent} /> : null}
-      </ScrollView>
-    </View>
+      </View>
+    </>
   );
 }
 
-/** Quiet segmented control — not fused into the primary CTA. */
 function FormatSegment({
   value,
   onChange,
@@ -313,13 +344,16 @@ function FormatSegment({
   onChange: (v: ExportImageExt) => void;
   disabled?: boolean;
 }) {
+  const { t } = useTranslation();
   const opts: { id: ExportImageExt; label: string }[] = [
     { id: 'jpg', label: 'JPG' },
     { id: 'png', label: 'PNG' },
   ];
   return (
     <View style={{ gap: 6 }}>
-      <Text style={{ ...type.caption, color: colors.inkFaint }}>Format</Text>
+      <Text style={{ ...type.caption, color: colors.inkFaint }}>
+        {t('export.format')}
+      </Text>
       <View
         style={{
           flexDirection: 'row',
@@ -337,7 +371,7 @@ function FormatSegment({
               key={opt.id}
               accessibilityRole="button"
               accessibilityState={{ selected, disabled: !!disabled }}
-              accessibilityLabel={`Format ${opt.label}`}
+              accessibilityLabel={`${t('export.format')} ${opt.label}`}
               disabled={disabled}
               onPress={() => onChange(opt.id)}
               style={{
@@ -384,12 +418,13 @@ function IconAction({
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={label}
+      accessibilityState={{ busy: !!busy, disabled: !!disabled }}
       disabled={disabled}
       onPress={onPress}
       style={({ pressed }) => ({
         alignItems: 'center',
         gap: 6,
-        opacity: disabled ? 0.4 : pressed ? 0.7 : 1,
+        opacity: disabled && !busy ? 0.4 : pressed && !busy ? 0.7 : 1,
       })}
     >
       <View
@@ -402,9 +437,27 @@ function IconAction({
           backgroundColor: colors.bgElevated,
           borderWidth: 1,
           borderColor: colors.line,
+          overflow: 'hidden',
         }}
       >
-        {busy ? <ActivityIndicator color={colors.accent} /> : icon}
+        <View style={{ opacity: busy ? 0.2 : 1 }}>{icon}</View>
+        {busy ? (
+          <View
+            pointerEvents="none"
+            style={{
+              position: 'absolute',
+              top: 0,
+              right: 0,
+              bottom: 0,
+              left: 0,
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: 'rgba(255,252,249,0.55)',
+            }}
+          >
+            <ActivityIndicator color={colors.accent} />
+          </View>
+        ) : null}
       </View>
       <Text style={{ ...type.caption, color: colors.inkMuted, fontSize: 12 }}>
         {label}

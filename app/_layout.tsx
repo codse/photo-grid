@@ -345,7 +345,18 @@ export default function RootLayout() {
             name="export"
             options={{
               title: t('export.title'),
-              headerBackTitle: t('sheet.title'),
+              headerShown: false,
+              ...(Platform.OS === 'ios'
+                ? {
+                    presentation: 'formSheet' as const,
+                    sheetAllowedDetents: 'fitToContents' as const,
+                    sheetGrabberVisible: true,
+                    sheetCornerRadius: 20,
+                    contentStyle: { backgroundColor: colors.bgElevated },
+                  }
+                : {
+                    presentation: 'modal' as const,
+                  }),
             }}
           />
           <Stack.Screen
