@@ -190,19 +190,7 @@ export function ProOffer({ variant = 'row' }: Props) {
   };
 
   if (pro) {
-    if (variant === 'card') {
-      return (
-        <RaisedPlate dark>
-          <View style={styles.rowPro}>
-            <View style={styles.copy}>
-              <Text style={styles.eyebrowLight}>{t('pro.proPass')}</Text>
-              <Text style={styles.headlineLight}>{t('pro.unlockedTitle')}</Text>
-              <Text style={styles.subLight}>{t('pro.unlockedSub')}</Text>
-            </View>
-          </View>
-        </RaisedPlate>
-      );
-    }
+    // Unlocked state lives in the home header badge — no footer card.
     return null;
   }
 
