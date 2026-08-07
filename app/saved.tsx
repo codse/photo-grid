@@ -55,122 +55,139 @@ export default function SavedScreen() {
     return <Redirect href="/" />;
   }
 
+  const empty = !loading && items.length === 0;
+
   return (
     <>
       <Stack.Screen options={{ title: t('saved.title') }} />
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        contentContainerStyle={{
-          padding: space.xl,
-          gap: space.md,
-          paddingBottom: 48,
-          flexGrow: 1,
-        }}
-      >
-        {loading ? <ActivityIndicator color={colors.accent} /> : null}
+      {empty ? (
+        <View style={{ flex: 1, backgroundColor: colors.bg }}>
+          <SavedEmpty />
+        </View>
+      ) : (
+        <ScrollView
+          contentInsetAdjustmentBehavior="automatic"
+          style={{ flex: 1, backgroundColor: colors.bg }}
+          contentContainerStyle={{
+            padding: space.xl,
+            gap: space.md,
+            paddingBottom: 48,
+          }}
+        >
+          {loading ? <ActivityIndicator color={colors.accent} /> : null}
 
-        {!loading && items.length === 0 ? <SavedEmpty /> : null}
-
-        {items.map((item) => (
-          <View
-            key={item.id}
-            style={{
-              borderRadius: radii.md,
-              borderCurve: 'continuous',
-              borderWidth: 1,
-              borderColor: colors.line,
-              backgroundColor: colors.bgElevated,
-              overflow: 'hidden',
-            }}
-          >
-            <View style={{ height: 160, backgroundColor: colors.line }}>
-              {thumbs[item.id] ? (
-                <Image
-                  source={{ uri: thumbs[item.id] }}
-                  style={{ width: '100%', height: '100%' }}
-                  contentFit="contain"
-                />
-              ) : null}
-            </View>
-            <View style={{ padding: space.lg, gap: space.sm }}>
-              <Text
-                style={{
-                  ...type.body,
-                  fontFamily: fonts.semibold,
-                  color: colors.ink,
-                }}
-              >
-                {item.title}
-              </Text>
-              <Text selectable style={{ ...type.caption, color: colors.inkMuted }}>
-                {new Date(item.createdAt).toLocaleString()} · {item.cellCount}{' '}
-                photos · {item.paperLabel}
-              </Text>
-              <Text
-                numberOfLines={2}
-                style={{ ...type.caption, color: colors.inkFaint }}
-              >
-                {item.photoSummary}
-              </Text>
-              <View style={{ flexDirection: 'row', gap: space.sm, marginTop: 4 }}>
-                <Pressable
-                  accessibilityRole="button"
-                  onPress={async () => {
-                    try {
-                      await shareSavedSheet(item.uri);
-                    } catch (e) {
+          {items.map((item) => (
+            <View
+              key={item.id}
+              style={{
+                borderRadius: radii.md,
+                borderCurve: 'continuous',
+                borderWidth: 1,
+                borderColor: colors.line,
+                backgroundColor: colors.bgElevated,
+                overflow: 'hidden',
+              }}
+            >
+              <View style={{ height: 160, backgroundColor: colors.line }}>
+                {thumbs[item.id] ? (
+                  <Image
+                    source={{ uri: thumbs[item.id] }}
+                    style={{ width: '100%', height: '100%' }}
+                    contentFit="contain"
+                  />
+                ) : null}
+              </View>
+              <View style={{ padding: space.lg, gap: space.sm }}>
+                <Text
+                  style={{
+                    ...type.body,
+                    fontFamily: fonts.semibold,
+                    color: colors.ink,
+                  }}
+                >
+                  {item.title}
+                </Text>
+                <Text
+                  selectable
+                  style={{ ...type.caption, color: colors.inkMuted }}
+                >
+                  {new Date(item.createdAt).toLocaleString()} · {item.cellCount}{' '}
+                  photos · {item.paperLabel}
+                </Text>
+                <Text
+                  numberOfLines={2}
+                  style={{ ...type.caption, color: colors.inkFaint }}
+                >
+                  {item.photoSummary}
+                </Text>
+                <View
+                  style={{ flexDirection: 'row', gap: space.sm, marginTop: 4 }}
+                >
+                  <Pressable
+                    accessibilityRole="button"
+                    onPress={async () => {
+                      try {
+                        await shareSavedSheet(item.uri);
+                      } catch (e) {
+                        Alert.alert(
+                          t('saved.shareFailed'),
+                          e instanceof Error
+                            ? e.message
+                            : t('common.unknownError'),
+                        );
+                      }
+                    }}
+                    style={{
+                      flex: 1,
+                      paddingVertical: 12,
+                      borderRadius: radii.sm,
+                      backgroundColor: colors.accent,
+                      alignItems: 'center',
+                    }}
+                  >
+                    <Text style={{ color: '#fff', fontWeight: '600' }}>
+                      {t('saved.share')}
+                    </Text>
+                  </Pressable>
+                  <Pressable
+                    accessibilityRole="button"
+                    onPress={() => {
                       Alert.alert(
-                        t('saved.shareFailed'),
-                        e instanceof Error ? e.message : t('common.unknownError'),
+                        t('saved.deleteTitle'),
+                        t('saved.deleteBody'),
+                        [
+                          { text: t('saved.cancel'), style: 'cancel' },
+                          {
+                            text: t('saved.delete'),
+                            style: 'destructive',
+                            onPress: () => {
+                              void (async () => {
+                                await deleteSavedSheet(item.id);
+                                await refresh();
+                              })();
+                            },
+                          },
+                        ],
                       );
-                    }
-                  }}
-                  style={{
-                    flex: 1,
-                    paddingVertical: 12,
-                    borderRadius: radii.sm,
-                    backgroundColor: colors.accent,
-                    alignItems: 'center',
-                  }}
-                >
-                  <Text style={{ color: '#fff', fontWeight: '600' }}>
-                    {t('saved.share')}
-                  </Text>
-                </Pressable>
-                <Pressable
-                  accessibilityRole="button"
-                  onPress={() => {
-                    Alert.alert(t('saved.deleteTitle'), t('saved.deleteBody'), [
-                      { text: t('saved.cancel'), style: 'cancel' },
-                      {
-                        text: t('saved.delete'),
-                        style: 'destructive',
-                        onPress: () => {
-                          void (async () => {
-                            await deleteSavedSheet(item.id);
-                            await refresh();
-                          })();
-                        },
-                      },
-                    ]);
-                  }}
-                  style={{
-                    paddingVertical: 12,
-                    paddingHorizontal: 16,
-                    borderRadius: radii.sm,
-                    backgroundColor: 'rgba(180,35,24,0.1)',
-                    alignItems: 'center',
-                  }}
-                >
-                  <Text style={{ color: colors.danger, fontWeight: '600' }}>
-                    {t('saved.delete')}
-                  </Text>
-                </Pressable>
+                    }}
+                    style={{
+                      paddingVertical: 12,
+                      paddingHorizontal: 16,
+                      borderRadius: radii.sm,
+                      backgroundColor: 'rgba(180,35,24,0.1)',
+                      alignItems: 'center',
+                    }}
+                  >
+                    <Text style={{ color: colors.danger, fontWeight: '600' }}>
+                      {t('saved.delete')}
+                    </Text>
+                  </Pressable>
+                </View>
               </View>
             </View>
-          </View>
-        ))}
-      </ScrollView>
+          ))}
+        </ScrollView>
+      )}
     </>
   );
 }
@@ -181,11 +198,10 @@ function SavedEmpty() {
     <View
       style={{
         flex: 1,
-        minHeight: 420,
         alignItems: 'center',
         justifyContent: 'center',
         gap: space.xl,
-        paddingHorizontal: space.md,
+        paddingHorizontal: space.xl,
       }}
     >
       <EmptySheetArt />
