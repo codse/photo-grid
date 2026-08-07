@@ -44,9 +44,10 @@ function resolveDeviceLocale(): AppLocale {
 
 let initDone: Promise<void> | null = null;
 
-export function initI18n(): Promise<void> {
-  if (initDone) return initDone;
-  initDone = (async () => {
+export async function initI18n(opts?: {
+  prefer?: AppLocale | null;
+}): Promise<void> {
+  const run = async () => {
     let lng: AppLocale = resolveDeviceLocale();
     try {
       const stored = await AsyncStorage.getItem(STORAGE_KEY);
@@ -55,6 +56,10 @@ export function initI18n(): Promise<void> {
       }
     } catch {
       // keep device
+    }
+
+    if (opts?.prefer && APP_LOCALES.includes(opts.prefer)) {
+      lng = opts.prefer;
     }
 
     if (!i18n.isInitialized) {
@@ -69,12 +74,29 @@ export function initI18n(): Promise<void> {
       await i18n.changeLanguage(lng);
     }
 
+    if (opts?.prefer && APP_LOCALES.includes(opts.prefer)) {
+      try {
+        await AsyncStorage.setItem(STORAGE_KEY, opts.prefer);
+      } catch {
+        // non-fatal
+      }
+    }
+
     // None of v1 locales are RTL.
     if (I18nManager.isRTL) {
       I18nManager.allowRTL(false);
       I18nManager.forceRTL(false);
     }
-  })();
+  };
+
+  // Shot / deep-link can re-apply prefer after first init.
+  if (opts?.prefer && initDone) {
+    await run();
+    return;
+  }
+
+  if (initDone) return initDone;
+  initDone = run();
   return initDone;
 }
 

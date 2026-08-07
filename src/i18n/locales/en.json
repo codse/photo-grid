@@ -5,11 +5,7 @@
   },
   "home": {
     "takePhoto": "Take photo",
-    "orStartFrom": "Or start from",
     "photoLibrary": "Photo Library",
-    "photoLibraryHint": "Crop next",
-    "tileReady": "Tile ready photos",
-    "tileReadyHint": "Skip crop · go straight to sheet",
     "printSize": "Print size",
     "change": "Change",
     "saved": "Saved",
@@ -20,7 +16,9 @@
     "addPhotoTitle": "Add a photo",
     "addPhotoBody": "Preset is ready. Take or choose a photo next.",
     "photoLibraryAction": "Photo Library",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "camera": "Camera",
+    "gallery": "Gallery"
   },
   "pro": {
     "once": "ONCE",
@@ -122,6 +120,11 @@
     "cancel": "Cancel",
     "home": "Home",
     "back": "Back"
+  },
+  "nav": {
+    "size": "Size & paper",
+    "photo": "Photo",
+    "crop": "Crop"
   },
   "locales": {
     "en": "English (US)",

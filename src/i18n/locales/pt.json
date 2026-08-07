@@ -5,11 +5,7 @@
   },
   "home": {
     "takePhoto": "Tirar foto",
-    "orStartFrom": "Ou comece por",
     "photoLibrary": "Biblioteca de fotos",
-    "photoLibraryHint": "Recortar a seguir",
-    "tileReady": "Fotos prontas para grelha",
-    "tileReadyHint": "Saltar recorte · ir à folha",
     "printSize": "Tamanho de impressão",
     "change": "Alterar",
     "saved": "Guardados",
@@ -20,7 +16,9 @@
     "addPhotoTitle": "Adicionar foto",
     "addPhotoBody": "Preset pronto. Tire ou escolha uma foto.",
     "photoLibraryAction": "Biblioteca de fotos",
-    "cancel": "Cancelar"
+    "cancel": "Cancelar",
+    "camera": "Câmara",
+    "gallery": "Galeria"
   },
   "pro": {
     "once": "UMA VEZ",
@@ -114,5 +112,10 @@
     "hi": "हिन्दी",
     "es": "Español",
     "fr": "Français"
+  },
+  "nav": {
+    "size": "Tamanho e papel",
+    "photo": "Foto",
+    "crop": "Corte"
   }
 }

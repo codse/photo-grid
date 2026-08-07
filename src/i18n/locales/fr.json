@@ -5,11 +5,7 @@
   },
   "home": {
     "takePhoto": "Prendre une photo",
-    "orStartFrom": "Ou commencez par",
     "photoLibrary": "Photothèque",
-    "photoLibraryHint": "Recadrer ensuite",
-    "tileReady": "Photos prêtes à mosaïquer",
-    "tileReadyHint": "Sauter le recadrage · aller à la feuille",
     "printSize": "Format d’impression",
     "change": "Modifier",
     "saved": "Enregistrés",
@@ -20,7 +16,9 @@
     "addPhotoTitle": "Ajouter une photo",
     "addPhotoBody": "Préréglage prêt. Prenez ou choisissez une photo.",
     "photoLibraryAction": "Photothèque",
-    "cancel": "Annuler"
+    "cancel": "Annuler",
+    "camera": "Appareil photo",
+    "gallery": "Galerie"
   },
   "pro": {
     "once": "UNE FOIS",
@@ -114,5 +112,10 @@
     "hi": "हिन्दी",
     "es": "Español",
     "fr": "Français"
+  },
+  "nav": {
+    "size": "Format et papier",
+    "photo": "Photo",
+    "crop": "Recadrage"
   }
 }

@@ -5,11 +5,7 @@
   },
   "home": {
     "takePhoto": "फोटो खिच्नुहोस्",
-    "orStartFrom": "वा सुरु गर्नुहोस्",
     "photoLibrary": "फोटो लाइब्रेरी",
-    "photoLibraryHint": "अर्को: क्रप",
-    "tileReady": "तयार फोटो टाइल",
-    "tileReadyHint": "क्रप छोड्नुहोस् · सिधै पाना",
     "printSize": "प्रिन्ट साइज",
     "change": "बदल्नुहोस्",
     "saved": "सुरक्षित",
@@ -20,7 +16,9 @@
     "addPhotoTitle": "फोटो थप्नुहोस्",
     "addPhotoBody": "प्रिसेट तयार। फोटो खिच्नुहोस् वा छान्नुहोस्।",
     "photoLibraryAction": "फोटो लाइब्रेरी",
-    "cancel": "रद्द"
+    "cancel": "रद्द",
+    "camera": "क्यामेरा",
+    "gallery": "ग्यालेरी"
   },
   "pro": {
     "once": "एक पटक",
@@ -114,5 +112,10 @@
     "hi": "हिन्दी",
     "es": "Español",
     "fr": "Français"
+  },
+  "nav": {
+    "size": "साइज र कागज",
+    "photo": "फोटो",
+    "crop": "क्रप"
   }
 }

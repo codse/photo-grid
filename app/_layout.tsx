@@ -1,12 +1,19 @@
 import { useEffect, useState } from 'react';
 import { Stack, useRouter } from 'expo-router';
 import { Platform, View } from 'react-native';
+import * as Linking from 'expo-linking';
+import { useTranslation } from 'react-i18next';
 import { colors, fonts } from '@/ui/tokens';
 import { useSession } from '@/state/session';
 import { loadPrefs, savePrefs } from '@/platform/prefs';
 import { initAds } from '@/monetization/ads';
 import { configurePurchases } from '@/monetization/purchases';
-import { initI18n } from '@/i18n';
+import { initI18n, setAppLocale, type AppLocale } from '@/i18n';
+import {
+  localeFromUrl,
+  parseShotBootstrap,
+  pathFromUrl,
+} from '@/i18n/shot-locale';
 import * as SplashScreen from 'expo-splash-screen';
 import * as FileSystem from 'expo-file-system/legacy';
 import {
@@ -33,8 +40,45 @@ void SplashScreen.preventAutoHideAsync().catch(() => undefined);
 /** Headless sim capture: plant Documents/shot-route.txt then relaunch. */
 const SHOT_ROUTE_FILE = 'shot-route.txt';
 
+const ALLOWED_SHOT_ROUTES = new Set([
+  '/(tabs)/index',
+  '/size',
+  '/saved',
+  '/settings',
+  '/(tabs)/settings',
+  '/crop',
+  '/sheet',
+  '/export',
+  '/camera',
+  '/photo',
+]);
+
+async function peekLaunchLocale(): Promise<AppLocale | null> {
+  try {
+    const url = await Linking.getInitialURL();
+    const fromLink = localeFromUrl(url);
+    if (fromLink) return fromLink as AppLocale;
+  } catch {
+    // ignore
+  }
+
+  if (Platform.OS === 'web') return null;
+  const dir = FileSystem.documentDirectory;
+  if (!dir) return null;
+  try {
+    const path = `${dir}${SHOT_ROUTE_FILE}`;
+    const info = await FileSystem.getInfoAsync(path);
+    if (!info.exists) return null;
+    const raw = await FileSystem.readAsStringAsync(path);
+    return parseShotBootstrap(raw).locale as AppLocale | null;
+  } catch {
+    return null;
+  }
+}
+
 export default function RootLayout() {
   const router = useRouter();
+  const { t } = useTranslation();
   const [fontsLoaded] = useFonts({
     Figtree_400Regular,
     Figtree_500Medium,
@@ -59,7 +103,11 @@ export default function RootLayout() {
   const prefsHydrated = useSession((s) => s.prefsHydrated);
 
   useEffect(() => {
-    void initI18n().finally(() => setI18nReady(true));
+    void (async () => {
+      const prefer = await peekLaunchLocale();
+      await initI18n({ prefer });
+      setI18nReady(true);
+    })();
   }, []);
 
   useEffect(() => {
@@ -73,7 +121,6 @@ export default function RootLayout() {
 
   useEffect(() => {
     if (Platform.OS === 'web') return;
-    // Don't serialize ads behind RC — Pro gate reads cache later either way.
     void configurePurchases().catch((e) => {
       if (__DEV__) console.warn('[RevenueCat] init failed', e);
     });
@@ -105,14 +152,15 @@ export default function RootLayout() {
   const bootReady = (fontsLoaded && i18nReady) || bootForced;
 
   useEffect(() => {
-    const t = setTimeout(() => setBootForced(true), 4000);
-    return () => clearTimeout(t);
+    const tmr = setTimeout(() => setBootForced(true), 4000);
+    return () => clearTimeout(tmr);
   }, []);
 
   useEffect(() => {
     if (bootReady) void SplashScreen.hideAsync();
   }, [bootReady]);
 
+  // Headless screenshot bootstrap: locale + route from Documents/shot-route.txt
   useEffect(() => {
     if (!bootReady || Platform.OS === 'web') return;
     const dir = FileSystem.documentDirectory;
@@ -124,31 +172,42 @@ export default function RootLayout() {
         if (!info.exists) return;
         const raw = (await FileSystem.readAsStringAsync(path)).trim();
         await FileSystem.deleteAsync(path, { idempotent: true });
-        if (!raw.startsWith('/')) return;
-        // Allow only known in-app paths.
-        const allowed = new Set([
-          '/(tabs)/index',
-          '/size',
-          '/saved',
-          '/settings',
-          '/(tabs)/settings',
-          '/crop',
-          '/sheet',
-          '/export',
-          '/camera',
-          '/photo',
-        ]);
-        if (!allowed.has(raw)) return;
-        router.replace(raw as '/(tabs)/index');
+        const { path: route, locale } = parseShotBootstrap(raw);
+        if (locale) await setAppLocale(locale as AppLocale);
+        if (route && ALLOWED_SHOT_ROUTES.has(route)) {
+          router.replace(route as '/(tabs)/index');
+        }
       } catch {
         // ignore — screenshot helper only
       }
     })();
   }, [bootReady, router]);
 
+  // Deep link: passportphotoprint://sheet?lang=es
+  useEffect(() => {
+    if (!bootReady) return;
+
+    const applyUrl = async (url: string | null) => {
+      if (!url) return;
+      const locale = localeFromUrl(url);
+      const route = pathFromUrl(url);
+      if (locale) await setAppLocale(locale as AppLocale);
+      if (route && ALLOWED_SHOT_ROUTES.has(route)) {
+        router.replace(route as '/(tabs)/index');
+      }
+    };
+
+    void Linking.getInitialURL().then((url) => void applyUrl(url));
+    const sub = Linking.addEventListener('url', ({ url }) => {
+      void applyUrl(url);
+    });
+    return () => sub.remove();
+  }, [bootReady, router]);
+
   if (!bootReady) return null;
 
   const isWeb = Platform.OS === 'web';
+  const homeBack = t('common.home');
 
   return (
     <View
@@ -181,19 +240,28 @@ export default function RootLayout() {
         >
           <Stack.Screen
             name="(tabs)"
-            options={{ headerShown: false, title: 'Home' }}
+            options={{ headerShown: false, title: homeBack }}
           />
           <Stack.Screen
             name="size"
-            options={{ title: 'Size & paper', headerBackTitle: 'Home' }}
+            options={{
+              title: t('nav.size'),
+              headerBackTitle: homeBack,
+            }}
           />
           <Stack.Screen
             name="saved"
-            options={{ title: 'Saved', headerBackTitle: 'Home' }}
+            options={{
+              title: t('saved.title'),
+              headerBackTitle: homeBack,
+            }}
           />
           <Stack.Screen
             name="photo"
-            options={{ title: 'Photo', headerBackTitle: 'Home' }}
+            options={{
+              title: t('nav.photo'),
+              headerBackTitle: homeBack,
+            }}
           />
           <Stack.Screen
             name="camera"
@@ -209,16 +277,28 @@ export default function RootLayout() {
           />
           <Stack.Screen
             name="crop"
-            options={{ title: 'Crop', headerBackTitle: 'Home' }}
+            options={{
+              title: t('nav.crop'),
+              headerBackTitle: homeBack,
+            }}
           />
           <Stack.Screen
             name="person/[id]/crop"
-            options={{ title: 'Crop', headerBackTitle: 'Home' }}
+            options={{
+              title: t('nav.crop'),
+              headerBackTitle: homeBack,
+            }}
           />
-          <Stack.Screen name="sheet" options={{ title: 'Print sheet' }} />
+          <Stack.Screen
+            name="sheet"
+            options={{ title: t('sheet.title') }}
+          />
           <Stack.Screen
             name="export"
-            options={{ title: 'Share', headerBackTitle: 'Sheet' }}
+            options={{
+              title: t('export.title'),
+              headerBackTitle: t('sheet.title'),
+            }}
           />
         </Stack>
       </GestureHandlerRootView>
