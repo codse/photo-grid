@@ -16,7 +16,6 @@ import Animated, {
 } from 'react-native-reanimated';
 import Svg, { Circle, Defs, Pattern, Rect } from 'react-native-svg';
 import { useTranslation } from 'react-i18next';
-import { router } from 'expo-router';
 import { LIFETIME_PRICE_LABEL } from './catalog';
 import {
   getCachedIsPro,
@@ -24,6 +23,7 @@ import {
   lifetimePriceString,
   restorePurchases,
 } from './purchases';
+import { openProPaywall } from './pro-route';
 import { colors, fonts, space } from '@/ui/tokens';
 
 const R = 18;
@@ -150,7 +150,7 @@ export function ProOffer() {
   }, [refresh]);
 
   const openPaywall = () => {
-    router.push('/pro');
+    openProPaywall('ads');
   };
 
   const restore = async () => {

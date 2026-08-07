@@ -62,7 +62,12 @@
     "limitExportBody": "Free includes {{limit}} exports per day. You’ve used today’s allowance. Unlock Pro for unlimited exports.",
     "limitPeopleTitle": "People limit",
     "limitPeopleBody": "Free includes up to {{limit}} people on a sheet. Unlock Pro to add more.",
-    "limitCta": "Get Pro"
+    "limitCta": "Get Pro",
+    "reasonPeopleHeadline": "Need another person on this sheet?",
+    "reasonExportsHeadline": "Daily export limit reached",
+    "reasonAdsHeadline": "Print without ads",
+    "reasonAdsSub": "Lifetime Pro removes banners and full-screen ads forever.",
+    "reasonHighlight": "Needed"
   },
   "export": {
     "title": "Share",

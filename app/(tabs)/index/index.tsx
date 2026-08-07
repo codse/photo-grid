@@ -25,6 +25,7 @@ import { InsetGroup, ListRow, SectionHeader } from '@/ui/list-row';
 import { CameraIcon, LibraryIcon } from '@/ui/icons';
 import { colors, space } from '@/ui/tokens';
 import { ProBadge } from '@/monetization/pro-badge';
+import { openProPaywall } from '@/monetization/pro-route';
 import { AdBanner } from '@/monetization/ads';
 import { useIsPro } from '@/monetization/purchases';
 import { loadForceFreeAds } from '@/monetization/ads-prefs';
@@ -160,7 +161,7 @@ export default function HomeScreen() {
   const openPro = () => {
     if (Platform.OS === 'web') return;
     lightTap();
-    router.push('/pro');
+    openProPaywall();
   };
 
   return (

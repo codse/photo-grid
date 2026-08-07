@@ -8,10 +8,10 @@ import { useSession } from '@/state/session';
 import { pickFromLibrary, preparePersonImage } from '@/platform/media';
 import { loadForceFreeAds } from '@/monetization/ads-prefs';
 import {
-  FREE_MAX_PEOPLE,
   canAddPersonCount,
   hasEffectiveProSync,
 } from '@/monetization/free-limits';
+import { openProPaywall } from '@/monetization/pro-route';
 import { useIsPro } from '@/monetization/purchases';
 import { colors, radii, space, type } from '@/ui/tokens';
 
@@ -154,17 +154,7 @@ export function PeopleStrip({
       void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
     if (!canAddPersonCount(subjects.length, effectivePro)) {
-      Alert.alert(
-        t('pro.limitPeopleTitle'),
-        t('pro.limitPeopleBody', { limit: FREE_MAX_PEOPLE }),
-        [
-          { text: t('common.cancel'), style: 'cancel' },
-          {
-            text: t('pro.limitCta'),
-            onPress: () => router.push('/pro'),
-          },
-        ],
-      );
+      openProPaywall('people');
       return;
     }
     const id = addPerson();

@@ -62,7 +62,12 @@
     "limitExportBody": "La versión gratis incluye {{limit}} exportaciones al día. Ya usaste el cupo de hoy. Desbloquea Pro para exportar sin límite.",
     "limitPeopleTitle": "Límite de personas",
     "limitPeopleBody": "La versión gratis permite hasta {{limit}} personas en una hoja. Desbloquea Pro para añadir más.",
-    "limitCta": "Hazte Pro"
+    "limitCta": "Hazte Pro",
+    "reasonPeopleHeadline": "¿Necesitas otra persona en esta hoja?",
+    "reasonExportsHeadline": "Límite diario de exportación alcanzado",
+    "reasonAdsHeadline": "Imprime sin anuncios",
+    "reasonAdsSub": "Pro Lifetime quita banners y anuncios a pantalla completa para siempre.",
+    "reasonHighlight": "Necesario"
   },
   "export": {
     "title": "Compartir",

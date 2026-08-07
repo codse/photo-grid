@@ -33,10 +33,10 @@ import { RequirePhoto } from '@/features/session/require-photo';
 import { showInterstitialIfNeeded } from '@/monetization/ads';
 import { onExportSuccessEngagement } from '@/monetization/engagement';
 import {
-  FREE_EXPORTS_PER_DAY,
   canExportNow,
 } from '@/monetization/free-limits';
 import { ProOffer } from '@/monetization/pro-offer';
+import { openProPaywall } from '@/monetization/pro-route';
 import { useTranslation } from 'react-i18next';
 
 type Busy = 'save' | 'share' | 'bookmark' | null;
@@ -51,7 +51,6 @@ export default function ExportScreen() {
 
 function ExportBody() {
   const { t } = useTranslation();
-  const isPro = useIsPro();
   const subjects = useSession((s) => s.subjects);
   const paperId = useSession((s) => s.paperId);
   const photoId = useSession((s) => s.photoId);
@@ -148,17 +147,7 @@ function ExportBody() {
     if (Platform.OS !== 'web') {
       const allowed = await canExportNow();
       if (!allowed) {
-        Alert.alert(
-          t('pro.limitExportTitle'),
-          t('pro.limitExportBody', { limit: FREE_EXPORTS_PER_DAY }),
-          [
-            { text: t('common.cancel'), style: 'cancel' },
-            {
-              text: t('pro.limitCta'),
-              onPress: () => router.push('/pro'),
-            },
-          ],
-        );
+        openProPaywall('exports');
         return;
       }
     }

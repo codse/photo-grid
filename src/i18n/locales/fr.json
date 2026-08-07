@@ -62,7 +62,12 @@
     "limitExportBody": "La version gratuite inclut {{limit}} exports par jour. Le quota du jour est atteint. Passez Pro pour des exports illimités.",
     "limitPeopleTitle": "Limite de personnes",
     "limitPeopleBody": "La version gratuite permet jusqu’à {{limit}} personnes sur une feuille. Passez Pro pour en ajouter.",
-    "limitCta": "Passer Pro"
+    "limitCta": "Passer Pro",
+    "reasonPeopleHeadline": "Besoin d’une autre personne sur cette feuille ?",
+    "reasonExportsHeadline": "Limite d’export quotidienne atteinte",
+    "reasonAdsHeadline": "Imprimez sans pub",
+    "reasonAdsSub": "Pro Lifetime retire bannières et pubs plein écran pour de bon.",
+    "reasonHighlight": "Requis"
   },
   "export": {
     "title": "Partager",
