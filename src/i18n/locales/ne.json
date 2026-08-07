@@ -1,7 +1,7 @@
 {
   "app": {
     "name": "Passport Photo Print",
-    "tagline": "फार्मेसी पानामा सही साइज। अफलाइन।"
+    "tagline": "साइजमा क्रप गर्नुहोस्। घरमा प्रिन्ट गर्नुहोस्।"
   },
   "home": {
     "takePhoto": "फोटो खिच्नुहोस्",
@@ -86,7 +86,20 @@
     "disclaimer": "अस्वीकरण",
     "on": "चालु",
     "savedHint": "बुकमार्क गरिएका पाना सुरक्षितमा छन्",
-    "version": "संस्करण {{version}}"
+    "version": "संस्करण {{version}}",
+    "export": "एक्सपोर्ट",
+    "dpi": "DPI",
+    "dpiHint": "Resolution for share and save",
+    "dpiStandard": "{{dpi}} · lab standard",
+    "dpiHigh": "{{dpi}} · sharper",
+    "defaultFormat": "Default format",
+    "defaultFormatHint": "Pre-selected on Share",
+    "cutGuides": "Cut guides",
+    "cutGuidesHint": "Default crop marks on new sheets",
+    "helpSection": "मद्दत",
+    "help": "कसरी प्रयोग गर्ने",
+    "faq": "FAQ",
+    "off": "अफ"
   },
   "common": {
     "cancel": "रद्द",

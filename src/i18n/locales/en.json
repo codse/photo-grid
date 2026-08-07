@@ -1,7 +1,7 @@
 {
   "app": {
     "name": "Passport Photo Print",
-    "tagline": "Exact sizes on a pharmacy sheet. Offline."
+    "tagline": "Crop to size. Print at home."
   },
   "home": {
     "takePhoto": "Take photo",
@@ -52,7 +52,7 @@
     "saved": "Saved",
     "exportFailed": "Export failed",
     "couldntUpdateSaved": "Couldn’t update Saved",
-    "meta": "{{count}} photos · {{size}} · 300 DPI"
+    "meta": "{{count}} photos · {{size}} · {{dpi}} DPI"
   },
   "sheet": {
     "title": "Print sheet",
@@ -79,12 +79,25 @@
     "blurb": "Print size, language, and the fine print — all offline.",
     "preferences": "Preferences",
     "language": "Language",
+    "export": "Export",
+    "dpi": "DPI",
+    "dpiHint": "Resolution for share and save",
+    "dpiStandard": "{{dpi}} · lab standard",
+    "dpiHigh": "{{dpi}} · sharper",
+    "defaultFormat": "Default format",
+    "defaultFormatHint": "Pre-selected on Share",
+    "cutGuides": "Cut guides",
+    "cutGuidesHint": "Default crop marks on new sheets",
+    "helpSection": "Help",
+    "help": "How to use",
+    "faq": "FAQ",
     "legal": "Legal",
     "about": "About",
     "privacy": "Privacy Policy",
     "terms": "Terms of Use",
     "disclaimer": "Disclaimer",
     "on": "On",
+    "off": "Off",
     "savedHint": "Bookmarked sheets live in Saved",
     "version": "Version {{version}}"
   },

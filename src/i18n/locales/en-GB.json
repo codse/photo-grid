@@ -1,7 +1,7 @@
 {
   "app": {
     "name": "Passport Photo Print",
-    "tagline": "Exact sizes on a chemist’s sheet. Offline."
+    "tagline": "Crop to size. Print at home."
   },
   "home": {
     "takePhoto": "Take photo",
@@ -86,7 +86,20 @@
     "disclaimer": "Disclaimer",
     "on": "On",
     "savedHint": "Bookmarked sheets live in Saved",
-    "version": "Version {{version}}"
+    "version": "Version {{version}}",
+    "export": "Export",
+    "dpi": "DPI",
+    "dpiHint": "Resolution for share and save",
+    "dpiStandard": "{{dpi}} · lab standard",
+    "dpiHigh": "{{dpi}} · sharper",
+    "defaultFormat": "Default format",
+    "defaultFormatHint": "Pre-selected on Share",
+    "cutGuides": "Cut guides",
+    "cutGuidesHint": "Default crop marks on new sheets",
+    "helpSection": "Help",
+    "help": "How to use",
+    "faq": "FAQ",
+    "off": "Off"
   },
   "common": {
     "cancel": "Cancel",

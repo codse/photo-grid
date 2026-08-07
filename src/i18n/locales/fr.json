@@ -1,7 +1,7 @@
 {
   "app": {
     "name": "Passport Photo Print",
-    "tagline": "Formats exacts sur une feuille photo. Hors ligne."
+    "tagline": "Recadrez. Imprimez au bon format."
   },
   "home": {
     "takePhoto": "Prendre une photo",
@@ -86,7 +86,20 @@
     "disclaimer": "Avertissement",
     "on": "Actif",
     "savedHint": "Les feuilles marquées sont dans Enregistrés",
-    "version": "Version {{version}}"
+    "version": "Version {{version}}",
+    "export": "Export",
+    "dpi": "DPI",
+    "dpiHint": "Resolution for share and save",
+    "dpiStandard": "{{dpi}} · lab standard",
+    "dpiHigh": "{{dpi}} · sharper",
+    "defaultFormat": "Format par défaut",
+    "defaultFormatHint": "Pre-selected on Share",
+    "cutGuides": "Repères de coupe",
+    "cutGuidesHint": "Default crop marks on new sheets",
+    "helpSection": "Aide",
+    "help": "Mode d’emploi",
+    "faq": "FAQ",
+    "off": "Off"
   },
   "common": {
     "cancel": "Annuler",

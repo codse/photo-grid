@@ -1,7 +1,7 @@
 {
   "app": {
     "name": "Passport Photo Print",
-    "tagline": "Tamanhos exatos numa folha de farmácia. Offline."
+    "tagline": "Recorte no tamanho. Imprima em casa."
   },
   "home": {
     "takePhoto": "Tirar foto",
@@ -86,7 +86,20 @@
     "disclaimer": "Aviso",
     "on": "Ativo",
     "savedHint": "Folhas marcadas ficam em Guardados",
-    "version": "Versão {{version}}"
+    "version": "Versão {{version}}",
+    "export": "Exportar",
+    "dpi": "DPI",
+    "dpiHint": "Resolution for share and save",
+    "dpiStandard": "{{dpi}} · lab standard",
+    "dpiHigh": "{{dpi}} · sharper",
+    "defaultFormat": "Formato padrão",
+    "defaultFormatHint": "Pre-selected on Share",
+    "cutGuides": "Guias de corte",
+    "cutGuidesHint": "Default crop marks on new sheets",
+    "helpSection": "Ajuda",
+    "help": "Como usar",
+    "faq": "FAQ",
+    "off": "Off"
   },
   "common": {
     "cancel": "Cancelar",
