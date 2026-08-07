@@ -1,11 +1,10 @@
 import { useState } from 'react';
-import { Alert, Platform, ScrollView, Text, View } from 'react-native';
-import { CameraType } from 'expo-image-picker';
+import { Alert, ScrollView, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { Image } from 'expo-image';
 import { PeopleStrip } from '@/features/people/people-strip';
 import { useActivePerson, useSession } from '@/state/session';
-import { pickFromCamera, pickFromLibrary } from '@/platform/media';
+import { pickFromLibrary, preparePersonImage } from '@/platform/media';
 import { Button } from '@/ui/primitives';
 import { colors, radii, space, type } from '@/ui/tokens';
 import { formatSize } from '@/core/units';
@@ -23,33 +22,8 @@ export default function PhotoScreen() {
     );
   }
 
-  const takePhoto = async () => {
-    if (Platform.OS !== 'web') {
-      router.push('/camera');
-      return;
-    }
-    setBusy(true);
-    try {
-      const img =
-        (await pickFromCamera(CameraType.front)) ?? (await pickFromLibrary());
-      if (!img) {
-        Alert.alert(
-          'No photo',
-          'Camera was canceled or unavailable. On desktop, pick a file — or use your phone.',
-        );
-        return;
-      }
-      setPersonUri(active.id, img.uri, {
-        sourceName: img.fileName ?? img.uri,
-      });
-    } catch (e) {
-      Alert.alert(
-        'Could not open camera',
-        e instanceof Error ? e.message : 'Unknown error',
-      );
-    } finally {
-      setBusy(false);
-    }
+  const takePhoto = () => {
+    router.push('/camera');
   };
 
   return (
@@ -112,9 +86,9 @@ export default function PhotoScreen() {
         </Text>
 
         <Button
-          label={busy ? 'Opening…' : 'Take photo'}
+          label="Take photo"
           disabled={busy}
-          onPress={() => void takePhoto()}
+          onPress={takePhoto}
         />
         <Button
           label="Choose from library"
@@ -125,8 +99,9 @@ export default function PhotoScreen() {
             try {
               const img = await pickFromLibrary();
               if (img) {
-                setPersonUri(active.id, img.uri, {
-                  sourceName: img.fileName ?? img.uri,
+                const prepared = await preparePersonImage(img);
+                setPersonUri(active.id, prepared.uri, {
+                  sourceName: prepared.fileName ?? prepared.uri,
                 });
               }
             } catch (e) {
