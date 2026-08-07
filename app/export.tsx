@@ -37,7 +37,6 @@ import {
   canExportNow,
 } from '@/monetization/free-limits';
 import { ProOffer } from '@/monetization/pro-offer';
-import { useIsPro } from '@/monetization/purchases';
 import { useTranslation } from 'react-i18next';
 
 type Busy = 'save' | 'share' | 'bookmark' | null;
