@@ -85,6 +85,9 @@ export async function initI18n(opts?: {
         fallbackLng: 'en',
         compatibilityJSON: 'v4',
         interpolation: { escapeValue: false },
+        // Default true → RootLayout useTranslation suspends before initI18n
+        // effects run → permanent blank screen in release (DEV often warm via HMR).
+        react: { useSuspense: false },
       });
     } else {
       syncResourceBundles();

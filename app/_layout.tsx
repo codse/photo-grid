@@ -48,6 +48,7 @@ export const unstable_settings = {
 
 /** Headless sim capture: plant Documents/shot-route.txt then relaunch. */
 const SHOT_ROUTE_FILE = 'shot-route.txt';
+const BOOT_FORCE_MS = 2500;
 
 const ALLOWED_SHOT_ROUTES = new Set([
   '/(tabs)/index',
@@ -100,11 +101,13 @@ async function peekLaunchLocale(): Promise<AppLocale | null> {
   }
 }
 
+/**
+ * Boot gate must NOT call useTranslation — react-i18next defaults to
+ * useSuspense:true, which suspends before initI18n's useEffect can run →
+ * permanent blank screen in release builds.
+ */
 export default function RootLayout() {
-  const router = useRouter();
-  const { t } = useTranslation();
-  const { width: winW } = useWindowDimensions();
-  const [fontsLoaded] = useFonts({
+  const [fontsLoaded, fontError] = useFonts({
     Figtree_400Regular,
     Figtree_500Medium,
     Figtree_600SemiBold,
@@ -129,9 +132,19 @@ export default function RootLayout() {
 
   useEffect(() => {
     void (async () => {
-      const prefer = await peekLaunchLocale();
-      await initI18n({ prefer });
-      setI18nReady(true);
+      try {
+        const prefer = await peekLaunchLocale();
+        await initI18n({ prefer });
+      } catch (e) {
+        if (__DEV__) console.warn('[i18n] init failed', e);
+        try {
+          await initI18n();
+        } catch {
+          // still force UI below
+        }
+      } finally {
+        setI18nReady(true);
+      }
     })();
   }, []);
 
@@ -174,10 +187,11 @@ export default function RootLayout() {
     prefsHydrated,
   ]);
 
-  const bootReady = (fontsLoaded && i18nReady) || bootForced;
+  const fontsReady = fontsLoaded || !!fontError;
+  const bootReady = (fontsReady && i18nReady) || bootForced;
 
   useEffect(() => {
-    const tmr = setTimeout(() => setBootForced(true), 4000);
+    const tmr = setTimeout(() => setBootForced(true), BOOT_FORCE_MS);
     return () => clearTimeout(tmr);
   }, []);
 
@@ -185,9 +199,21 @@ export default function RootLayout() {
     if (bootReady) void SplashScreen.hideAsync();
   }, [bootReady]);
 
+  if (!bootReady) {
+    return <View style={{ flex: 1, backgroundColor: colors.bg }} />;
+  }
+
+  return <RootNavigator />;
+}
+
+function RootNavigator() {
+  const router = useRouter();
+  const { t } = useTranslation();
+  const { width: winW } = useWindowDimensions();
+
   // Headless screenshot bootstrap: locale + route from Documents/shot-route.txt
   useEffect(() => {
-    if (!bootReady || Platform.OS === 'web') return;
+    if (Platform.OS === 'web') return;
     const dir = FileSystem.documentDirectory;
     if (!dir) return;
     const path = `${dir}${SHOT_ROUTE_FILE}`;
@@ -207,12 +233,10 @@ export default function RootLayout() {
         // ignore — screenshot helper only
       }
     })();
-  }, [bootReady, router]);
+  }, [router]);
 
   // Deep link: passportphotoprint://sheet?lang=es
   useEffect(() => {
-    if (!bootReady) return;
-
     const applyUrl = async (url: string | null) => {
       if (!url) return;
       const locale = localeFromUrl(url);
@@ -238,9 +262,7 @@ export default function RootLayout() {
       void applyUrl(url);
     });
     return () => sub.remove();
-  }, [bootReady, router]);
-
-  if (!bootReady) return null;
+  }, [router]);
 
   const isWeb = Platform.OS === 'web';
   // Phone chrome by default; widen for sheet sidebar / desktop layouts.
