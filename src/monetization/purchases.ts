@@ -49,7 +49,14 @@ export async function configurePurchases(): Promise<void> {
 
     if (__DEV__) Purchases.setLogLevel(LOG_LEVEL.DEBUG);
     Purchases.configure({ apiKey });
-    lastCustomerInfo = await Purchases.getCustomerInfo();
+    // Don't block startup on the network round-trip — warm cache in background.
+    void Purchases.getCustomerInfo()
+      .then((info) => {
+        lastCustomerInfo = info;
+      })
+      .catch((e) => {
+        if (__DEV__) console.warn('[RevenueCat] getCustomerInfo failed', e);
+      });
   })();
 
   return initPromise;
