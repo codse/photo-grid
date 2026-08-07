@@ -25,11 +25,16 @@ type Props = {
   busy?: boolean;
 };
 
-/** Gold pill for nav chrome — soft looping shine. */
+/** Gold pill for nav chrome — shine only on the Get Pro CTA. */
 export function ProBadge({ variant = 'pro', onPress, busy }: Props) {
   const shine = useSharedValue(-1);
+  const showShine = variant === 'get';
 
   useEffect(() => {
+    if (!showShine) {
+      shine.value = -1;
+      return;
+    }
     shine.value = withRepeat(
       withSequence(
         withTiming(1.4, {
@@ -42,9 +47,10 @@ export function ProBadge({ variant = 'pro', onPress, busy }: Props) {
       -1,
       false,
     );
-  }, [shine]);
+  }, [shine, showShine]);
 
   const shineStyle = useAnimatedStyle(() => ({
+    opacity: showShine ? 1 : 0,
     transform: [
       { translateX: shine.value * 72 },
       { skewX: '-22deg' },
@@ -60,7 +66,9 @@ export function ProBadge({ variant = 'pro', onPress, busy }: Props) {
       accessibilityRole={interactive ? 'button' : 'text'}
       style={[styles.wrap, variant === 'get' && styles.wrapGet]}
     >
-      <Animated.View pointerEvents="none" style={[styles.shine, shineStyle]} />
+      {showShine ? (
+        <Animated.View pointerEvents="none" style={[styles.shine, shineStyle]} />
+      ) : null}
       {busy ? (
         <ActivityIndicator color={colors.ink} size="small" />
       ) : (
