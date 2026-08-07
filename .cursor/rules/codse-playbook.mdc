@@ -1,0 +1,31 @@
+---
+description: CODSE ship playbook — commits, ASC, i18n, ads, secrets
+alwaysApply: true
+---
+
+# CODSE agent operating rules
+
+Read and follow **`AGENTS.md`** at the repo root for full playbooks (ASC CLI, i18n, screenshots, RC, AdMob, EAS).
+
+## Must do without being asked
+
+- **Commit after each logical unit** of work (see `.cursor/rules/granular-commits.mdc`). Do not wait for “pls commit”.
+- When you discover a durable process (new ASC command, screenshot pipeline step, i18n gotcha), **update `AGENTS.md`** in the same session and commit it as `docs: …`.
+- Keep secrets in **`.secrets/`** and public `EXPO_PUBLIC_*` in `.env` — never commit keys/p8s.
+
+## Must not
+
+- `git add -A` / `git add .`
+- Push unless the user asks
+- Put secrets in `.env.*.local` filenames that Metro can ingest
+- Leave user-facing strings English-only in `en.json` without wiring `t()` when touching that UI
+
+## Quick pointers
+
+| Topic | Where |
+|-------|--------|
+| Commits | `.cursor/rules/granular-commits.mdc` + AGENTS §2 |
+| i18n | `src/i18n/` + AGENTS §4 |
+| ASC / IAP | `scripts/setup-asc-lifetime.sh` + AGENTS §5 |
+| Screenshots | `.asc/shots.settings.json`, `screenshots/` + AGENTS §6 |
+| Ads / Pro | `src/monetization/` + AGENTS §7 |
