@@ -10,17 +10,10 @@ import {
 } from 'react-native';
 import { Image as ExpoImage } from 'expo-image';
 import { CameraType } from 'expo-image-picker';
+import * as Haptics from 'expo-haptics';
 import { router, Stack } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Animated, {
-  Extrapolation,
-  interpolate,
-  useAnimatedScrollHandler,
-  useAnimatedStyle,
-  useSharedValue,
-} from 'react-native-reanimated';
 import { CaretRightIcon } from 'phosphor-react-native/src/icons/CaretRight';
-import { GearSixIcon } from 'phosphor-react-native/src/icons/GearSix';
 import { PHOTO_PRESETS, PAPER_PRESETS } from '@/core/presets';
 import { useSession } from '@/state/session';
 import { pickFromCamera, pickFromLibrary } from '@/platform/media';
@@ -31,15 +24,21 @@ import { PresetRow } from '@/features/sheet/preset-row';
 import { Button } from '@/ui/primitives';
 import { InsetGroup, ListRow, SectionHeader } from '@/ui/list-row';
 import { CameraIcon, GridIcon, LibraryIcon } from '@/ui/icons';
-import { colors, fonts, radii, space, type } from '@/ui/tokens';
+import { colors, space } from '@/ui/tokens';
 import { ProOffer } from '@/monetization/pro-offer';
-import { ProBadge } from '@/monetization/pro-badge';
 import { AdBanner } from '@/monetization/ads';
 import { useIsPro } from '@/monetization/purchases';
 import { useTranslation } from 'react-i18next';
 
-/** Scroll distance over which the large title collapses into the nav bar. */
-const TITLE_COLLAPSE = 56;
+/** iOS Settings-style grouped canvas. */
+const GROUPED_BG = Platform.OS === 'ios' ? '#F2F2F7' : colors.bg;
+const ROW_PRESS = Platform.OS === 'ios' ? '#D1D1D6' : colors.accentSoft;
+
+function lightTap() {
+  if (Platform.OS === 'ios') {
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+  }
+}
 
 export default function HomeScreen() {
   const { t } = useTranslation();
@@ -92,6 +91,7 @@ export default function HomeScreen() {
 
   const importToActive = async (opts: { go: 'crop' | 'sheet' }) => {
     if (!activeId) return;
+    lightTap();
     setBusy(true);
     try {
       const img = await pickFromLibrary();
@@ -112,6 +112,7 @@ export default function HomeScreen() {
   };
 
   const takePhoto = async () => {
+    lightTap();
     if (Platform.OS !== 'web') {
       router.push('/camera');
       return;
@@ -142,8 +143,8 @@ export default function HomeScreen() {
     }
   };
 
-  /** Apply size/paper, then continue — pick photo or open the sheet. */
   const usePreset = (cfg: (typeof savedPresets)[number]) => {
+    lightTap();
     applyConfig(cfg);
     if (hasPhoto) {
       router.push('/sheet');
@@ -167,44 +168,10 @@ export default function HomeScreen() {
   };
 
   const appName = t('app.name');
-  const scrollY = useSharedValue(0);
-
-  const onScroll = useAnimatedScrollHandler({
-    onScroll: (e) => {
-      scrollY.value = e.contentOffset.y;
-    },
-  });
-
-  // Large title in the page fades/shrinks away as you scroll.
-  const largeTitleStyle = useAnimatedStyle(() => {
-    const p = interpolate(
-      scrollY.value,
-      [0, TITLE_COLLAPSE],
-      [0, 1],
-      Extrapolation.CLAMP,
-    );
-    return {
-      opacity: 1 - p,
-      maxHeight: interpolate(p, [0, 1], [56, 0]),
-      marginBottom: interpolate(p, [0, 1], [0, -space.xl]),
-      transform: [{ translateY: interpolate(p, [0, 1], [0, -16]) }],
-      overflow: 'hidden' as const,
-    };
-  });
-
-  // Compact title in the nav bar fades in.
-  const navTitleStyle = useAnimatedStyle(() => {
-    const p = interpolate(
-      scrollY.value,
-      [TITLE_COLLAPSE * 0.45, TITLE_COLLAPSE],
-      [0, 1],
-      Extrapolation.CLAMP,
-    );
-    return { opacity: p };
-  });
+  const largeTitle = Platform.OS === 'ios';
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.bg }}>
+    <>
       <Stack.Screen
         options={{
           title: appName,
@@ -212,186 +179,133 @@ export default function HomeScreen() {
           headerShown: true,
           headerTransparent: false,
           headerShadowVisible: false,
-          headerLargeTitleEnabled: false,
+          headerLargeTitleEnabled: largeTitle,
+          headerLargeTitleShadowVisible: false,
           headerTintColor: colors.ink,
-          headerStyle: { backgroundColor: colors.bg },
-          headerTitle: () => (
-            <Animated.View
-              style={[
-                {
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  gap: 8,
-                  maxWidth: 220,
-                },
-                navTitleStyle,
-              ]}
-            >
-              {isPro ? <ProBadge /> : null}
-              <Text
-                numberOfLines={1}
-                style={{
-                  fontFamily: fonts.semibold,
-                  fontSize: 17,
-                  fontWeight: '600',
-                  color: colors.ink,
-                  letterSpacing: -0.2,
-                }}
-              >
-                {appName}
-              </Text>
-            </Animated.View>
-          ),
+          headerStyle: { backgroundColor: GROUPED_BG },
+          headerLargeStyle: { backgroundColor: GROUPED_BG },
+          // System type for chrome — Figtree fights large-title optics.
+          headerTitleStyle: {
+            fontWeight: '600',
+            color: colors.ink,
+          },
+          headerLargeTitleStyle: {
+            fontWeight: '700',
+            color: colors.ink,
+          },
+          contentStyle: { backgroundColor: GROUPED_BG },
         }}
       />
 
-      <Stack.Toolbar placement="right" asChild>
-        <Pressable
-          accessibilityRole="button"
+      <Stack.Toolbar placement="right">
+        {isPro ? (
+          <Stack.Toolbar.Button accessibilityLabel="Pro" tintColor={colors.ink}>
+            PRO
+          </Stack.Toolbar.Button>
+        ) : null}
+        <Stack.Toolbar.Button
+          icon="gearshape"
           accessibilityLabel={t('settings.title')}
           onPress={() => router.push('/settings')}
-          hitSlop={8}
-          style={({ pressed }) => ({
-            width: 36,
-            height: 36,
-            borderRadius: 18,
-            alignItems: 'center',
-            justifyContent: 'center',
-            backgroundColor: colors.line,
-            opacity: pressed ? 0.7 : 1,
-          })}
-        >
-          <GearSixIcon size={18} color={colors.ink} weight="bold" />
-        </Pressable>
+        />
       </Stack.Toolbar>
 
-      <Animated.ScrollView
-        onScroll={onScroll}
-        scrollEventThrottle={16}
+      <ScrollView
         contentInsetAdjustmentBehavior="automatic"
-        style={{ flex: 1 }}
+        style={{ flex: 1, backgroundColor: GROUPED_BG }}
         contentContainerStyle={{
-          paddingHorizontal: space.xl,
-          paddingBottom: 64 + insets.bottom,
-          gap: space.xl,
+          paddingHorizontal: 16,
+          paddingTop: largeTitle ? 8 : space.md,
+          paddingBottom: 48 + insets.bottom,
+          gap: 28,
         }}
       >
-        <Animated.View style={[{ gap: 8 }, largeTitleStyle]}>
-          <View
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              flexWrap: 'wrap',
-              gap: 10,
-            }}
-          >
-            {isPro ? <ProBadge /> : null}
-            <Text style={{ ...type.display, color: colors.ink, flexShrink: 1 }}>
-              {appName}
-            </Text>
-          </View>
-        </Animated.View>
-
         {hasPhoto ? (
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Continue current sheet"
-            onPress={() => router.push('/sheet')}
-            style={({ pressed }) => ({
-              borderRadius: radii.lg,
-              borderCurve: 'continuous',
-              backgroundColor: colors.accent,
-              padding: space.lg,
-              gap: space.md,
-              opacity: pressed ? 0.9 : 1,
-            })}
-          >
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'space-between',
+          <InsetGroup dividerInset={72}>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={t('home.continueSheet')}
+              onPress={() => {
+                lightTap();
+                router.push('/sheet');
               }}
+              style={({ pressed }) => ({
+                backgroundColor: pressed ? ROW_PRESS : 'transparent',
+              })}
             >
-              <Text
+              <View
                 style={{
-                  ...type.caption,
-                  color: 'rgba(255,255,255,0.7)',
-                  textTransform: 'uppercase',
-                  letterSpacing: 0.6,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 12,
+                  paddingVertical: 12,
+                  paddingHorizontal: 16,
+                  minHeight: 72,
                 }}
               >
-                {t('home.inProgress')}
-              </Text>
-              <CaretRightIcon
-                size={16}
-                color="rgba(255,255,255,0.85)"
-                weight="bold"
-              />
-            </View>
-            <View
-              style={{ flexDirection: 'row', alignItems: 'center', gap: space.md }}
-            >
-              <View style={{ flexDirection: 'row', marginRight: 4 }}>
-                {withPhoto.slice(0, 3).map((s, i) => (
-                  <View
-                    key={s.id}
+                <View style={{ flexDirection: 'row' }}>
+                  {withPhoto.slice(0, 3).map((s, i) => (
+                    <View
+                      key={s.id}
+                      style={{
+                        width: 40,
+                        height: 52,
+                        borderRadius: 6,
+                        borderCurve: 'continuous',
+                        overflow: 'hidden',
+                        marginLeft: i === 0 ? 0 : -10,
+                        borderWidth: StyleHairline,
+                        borderColor: colors.bgElevated,
+                        backgroundColor: colors.line,
+                      }}
+                    >
+                      {s.url ? (
+                        <ExpoImage
+                          source={{ uri: s.url }}
+                          style={{ width: '100%', height: '100%' }}
+                          contentFit="cover"
+                        />
+                      ) : null}
+                    </View>
+                  ))}
+                </View>
+                <View style={{ flex: 1, gap: 2 }}>
+                  <Text
                     style={{
-                      width: 44,
-                      height: 56,
-                      borderRadius: 8,
-                      borderCurve: 'continuous',
-                      overflow: 'hidden',
-                      marginLeft: i === 0 ? 0 : -12,
-                      borderWidth: 2,
-                      borderColor: colors.accent,
-                      backgroundColor: 'rgba(255,255,255,0.2)',
+                      fontSize: 17,
+                      fontWeight: '600',
+                      color: colors.ink,
+                      letterSpacing: -0.2,
                     }}
                   >
-                    {s.url ? (
-                      <ExpoImage
-                        source={{ uri: s.url }}
-                        style={{ width: '100%', height: '100%' }}
-                        contentFit="cover"
-                      />
-                    ) : null}
-                  </View>
-                ))}
+                    Continue sheet
+                  </Text>
+                  <Text
+                    style={{
+                      fontSize: 13,
+                      color: colors.inkMuted,
+                      lineHeight: 18,
+                    }}
+                  >
+                    {withPhoto.length} photo
+                    {withPhoto.length === 1 ? '' : 's'} · {sizeDetail}
+                  </Text>
+                </View>
+                <CaretRightIcon size={16} color={colors.inkFaint} weight="bold" />
               </View>
-              <View style={{ flex: 1, gap: 2 }}>
-                <Text
-                  style={{
-                    ...type.body,
-                    fontFamily: fonts.semibold,
-                    color: '#fff',
-                  }}
-                >
-                  Continue sheet
-                </Text>
-                <Text
-                  style={{
-                    ...type.caption,
-                    color: 'rgba(255,255,255,0.72)',
-                  }}
-                >
-                  {withPhoto.length} photo{withPhoto.length === 1 ? '' : 's'} ·{' '}
-                  {sizeDetail}
-                </Text>
-              </View>
-            </View>
-          </Pressable>
+            </Pressable>
+          </InsetGroup>
         ) : (
-          <View style={{ gap: space.md }}>
-            <Button
-              label={busy ? 'Opening…' : t('home.takePhoto')}
-              disabled={busy}
-              icon={<CameraIcon color="#fff" size={20} />}
-              onPress={() => void takePhoto()}
-            />
-          </View>
+          <Button
+            label={busy ? 'Opening…' : t('home.takePhoto')}
+            disabled={busy}
+            icon={<CameraIcon color="#fff" size={20} />}
+            onPress={() => void takePhoto()}
+            style={{ borderRadius: 14 }}
+          />
         )}
 
-        <View style={{ gap: space.sm }}>
+        <View>
           <SectionHeader
             title={hasPhoto ? 'Add or replace' : t('home.orStartFrom')}
           />
@@ -410,30 +324,38 @@ export default function HomeScreen() {
               subtitle={t('home.photoLibraryHint')}
               disabled={busy}
               icon={<LibraryIcon color={colors.accent} size={18} />}
-              onPress={() => importToActive({ go: 'crop' })}
+              onPress={() => void importToActive({ go: 'crop' })}
             />
             <ListRow
               title={t('home.tileReady')}
               subtitle={t('home.tileReadyHint')}
               disabled={busy}
               icon={<GridIcon color={colors.accent} size={18} />}
-              onPress={() => importToActive({ go: 'sheet' })}
+              onPress={() => void importToActive({ go: 'sheet' })}
             />
           </InsetGroup>
         </View>
 
-        <View style={{ gap: space.sm }}>
+        <View>
           <SectionHeader title={t('home.printSize')} />
           <InsetGroup>
             <ListRow
               title={sizeTitle}
               subtitle={sizeDetail}
-              onPress={() => router.push('/size')}
+              onPress={() => {
+                lightTap();
+                router.push('/size');
+              }}
               accessory={
                 <View
                   style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}
                 >
-                  <Text style={{ ...type.caption, color: colors.accent }}>
+                  <Text
+                    style={{
+                      fontSize: 15,
+                      color: colors.inkFaint,
+                    }}
+                  >
                     {t('home.change')}
                   </Text>
                   <CaretRightIcon
@@ -447,11 +369,17 @@ export default function HomeScreen() {
           </InsetGroup>
         </View>
 
-        {/* Upgrade only — unlocked Pro is the header badge */}
-        {Platform.OS !== 'web' ? <ProOffer variant="card" /> : null}
+        {Platform.OS !== 'web' && !isPro ? (
+          <View>
+            <SectionHeader title="Pro" />
+            <InsetGroup dividerInset={16}>
+              <ProOffer variant="row" />
+            </InsetGroup>
+          </View>
+        ) : null}
 
         {SAVED_SHEETS_AVAILABLE && recent.length > 0 ? (
-          <View style={{ gap: space.sm }}>
+          <View>
             <SectionHeader
               title={t('home.saved')}
               action={{
@@ -462,23 +390,24 @@ export default function HomeScreen() {
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{ gap: space.md, paddingRight: space.xl }}
+              contentContainerStyle={{ gap: 12, paddingRight: 8 }}
             >
               {recent.map((item) => (
                 <Pressable
                   key={item.id}
-                  onPress={() => router.push('/saved')}
-                  style={{ width: 112, gap: 8 }}
+                  onPress={() => {
+                    lightTap();
+                    router.push('/saved');
+                  }}
+                  style={{ width: 108, gap: 6 }}
                 >
                   <View
                     style={{
-                      width: 112,
-                      height: 148,
-                      borderRadius: radii.md,
+                      width: 108,
+                      height: 140,
+                      borderRadius: 12,
                       borderCurve: 'continuous',
                       backgroundColor: colors.bgElevated,
-                      borderWidth: 1,
-                      borderColor: colors.line,
                       overflow: 'hidden',
                     }}
                   >
@@ -487,8 +416,9 @@ export default function HomeScreen() {
                   <Text
                     numberOfLines={2}
                     style={{
-                      ...type.caption,
+                      fontSize: 12,
                       color: colors.inkMuted,
+                      lineHeight: 16,
                     }}
                   >
                     {item.cellCount} photos · {item.paperLabel}
@@ -500,24 +430,22 @@ export default function HomeScreen() {
         ) : null}
 
         {Platform.OS !== 'web' ? (
-          <AdBanner style={{ marginTop: space.sm }} />
+          <AdBanner style={{ marginTop: 4 }} />
         ) : null}
 
         {savedPresets.length > 0 ? (
-          <View style={{ gap: space.sm }}>
+          <View>
             <SectionHeader title={t('home.yourPresets')} />
             <InsetGroup>
-              {savedPresets.map((cfg) => {
-                return (
-                  <PresetRow
-                    key={cfg.id}
-                    preset={cfg}
-                    onApply={() => usePreset(cfg)}
-                    onRename={(name) => renamePreset(cfg.id, name)}
-                    onDelete={() => deletePreset(cfg.id)}
-                  />
-                );
-              })}
+              {savedPresets.map((cfg) => (
+                <PresetRow
+                  key={cfg.id}
+                  preset={cfg}
+                  onApply={() => usePreset(cfg)}
+                  onRename={(name) => renamePreset(cfg.id, name)}
+                  onDelete={() => deletePreset(cfg.id)}
+                />
+              ))}
             </InsetGroup>
           </View>
         ) : null}
@@ -528,10 +456,12 @@ export default function HomeScreen() {
             style={{ marginTop: space.sm }}
           />
         ) : null}
-      </Animated.ScrollView>
-    </View>
+      </ScrollView>
+    </>
   );
 }
+
+const StyleHairline = Platform.select({ ios: 1 / 3, default: 1 }) ?? 1;
 
 function RecentThumb({ uri }: { uri: string }) {
   const [src, setSrc] = useState<string | null>(null);

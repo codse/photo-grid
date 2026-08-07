@@ -123,14 +123,14 @@ export default function RootLayout() {
           },
         }}
       >
-        {/* Brand: collapsing title lives on the home screen */}
+        {/* Home owns large-title + grouped chrome via screen options */}
         <Stack.Screen
           name="index"
           options={{
             title: 'Passport Photo Print',
             headerBackTitle: 'Home',
-            headerTransparent: false,
-            headerLargeTitleEnabled: false,
+            headerLargeTitleEnabled: true,
+            headerLargeTitleShadowVisible: false,
             headerShadowVisible: false,
           }}
         />

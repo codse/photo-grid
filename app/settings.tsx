@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Platform, Pressable, ScrollView, Text, View } from 'react-native';
 import Constants from 'expo-constants';
 import { Stack, router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -34,6 +34,8 @@ const VERSION =
   Constants.expoConfig?.version ??
   Constants.nativeAppVersion ??
   '1.0.0';
+
+const GROUPED_BG = Platform.OS === 'ios' ? '#F2F2F7' : colors.bg;
 
 type PickerKind = 'language' | 'dpi' | 'format' | null;
 
@@ -82,13 +84,21 @@ export default function SettingsScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ title: t('settings.title') }} />
+      <Stack.Screen
+        options={{
+          title: t('settings.title'),
+          headerStyle: { backgroundColor: GROUPED_BG },
+          contentStyle: { backgroundColor: GROUPED_BG },
+        }}
+      />
       <ScrollView
         contentInsetAdjustmentBehavior="automatic"
+        style={{ flex: 1, backgroundColor: GROUPED_BG }}
         contentContainerStyle={{
-          padding: space.xl,
+          paddingHorizontal: 16,
+          paddingTop: space.lg,
           paddingBottom: 64,
-          gap: space.xxl,
+          gap: 28,
         }}
       >
         <View style={{ gap: space.sm }}>

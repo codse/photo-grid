@@ -245,7 +245,7 @@ export function ProOffer({ variant = 'row' }: Props) {
   }
 
   return (
-    <View style={{ gap: space.sm }}>
+    <View>
       <Pressable
         accessibilityRole="button"
         disabled={busy != null}
@@ -256,22 +256,29 @@ export function ProOffer({ variant = 'row' }: Props) {
           justifyContent: 'space-between',
           paddingVertical: 14,
           paddingHorizontal: space.lg,
-          backgroundColor: colors.bgElevated,
-          opacity: pressed || busy ? 0.85 : 1,
+          backgroundColor: pressed ? '#D1D1D6' : 'transparent',
+          opacity: busy ? 0.85 : 1,
         })}
       >
         <View style={{ flex: 1, gap: 2, paddingRight: space.md }}>
-          <Text style={{ ...type.body, fontFamily: fonts.semibold, color: colors.ink }}>
+          <Text
+            style={{
+              fontSize: 17,
+              fontWeight: '400',
+              letterSpacing: -0.2,
+              color: colors.ink,
+            }}
+          >
             {t('pro.removeAdsPrice', { price })}
           </Text>
-          <Text style={{ ...type.caption, color: colors.inkMuted }}>
+          <Text style={{ fontSize: 13, color: colors.inkMuted, lineHeight: 18 }}>
             {t('pro.lifetimeApple')}
           </Text>
         </View>
         {busy === 'buy' ? (
           <ActivityIndicator color={colors.accent} />
         ) : (
-          <Text style={{ ...type.caption, fontFamily: fonts.semibold, color: colors.accent }}>
+          <Text style={{ fontSize: 17, fontWeight: '400', color: colors.accent }}>
             {t('pro.buy')}
           </Text>
         )}
@@ -280,9 +287,15 @@ export function ProOffer({ variant = 'row' }: Props) {
         accessibilityRole="button"
         disabled={busy != null}
         onPress={() => void restore()}
-        style={{ paddingHorizontal: space.lg, paddingBottom: 4 }}
+        style={({ pressed }) => ({
+          paddingHorizontal: space.lg,
+          paddingVertical: 12,
+          backgroundColor: pressed ? '#D1D1D6' : 'transparent',
+          borderTopWidth: StyleSheet.hairlineWidth,
+          borderTopColor: '#C6C6C8',
+        })}
       >
-        <Text style={{ ...type.caption, color: colors.inkMuted }}>
+        <Text style={{ fontSize: 17, color: colors.inkMuted }}>
           {busy === 'restore' ? t('pro.restoring') : t('pro.restore')}
         </Text>
       </Pressable>

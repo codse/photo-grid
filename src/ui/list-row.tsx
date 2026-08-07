@@ -1,7 +1,10 @@
 import { Children, Fragment, type ReactNode } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Platform, Pressable, Text, View } from 'react-native';
 import { CaretRightIcon } from 'phosphor-react-native/src/icons/CaretRight';
 import { colors, fonts, radii, space, type } from '@/ui/tokens';
+
+const SEPARATOR = Platform.OS === 'ios' ? '#C6C6C8' : colors.line;
+const ROW_PRESS = Platform.OS === 'ios' ? '#D1D1D6' : colors.accentSoft;
 
 /** iOS-style inset grouped list container. */
 export function InsetGroup({
@@ -17,11 +20,13 @@ export function InsetGroup({
     <View
       style={{
         backgroundColor: colors.bgElevated,
-        borderRadius: radii.lg,
+        borderRadius: Platform.OS === 'ios' ? 10 : radii.lg,
         borderCurve: 'continuous',
-        borderWidth: 1,
-        borderColor: colors.line,
         overflow: 'hidden',
+        // Settings groups sit on grouped gray — border reads as web.
+        ...(Platform.OS === 'ios'
+          ? null
+          : { borderWidth: 1, borderColor: colors.line }),
       }}
     >
       {items.map((child, i) => (
@@ -29,8 +34,8 @@ export function InsetGroup({
           {i > 0 ? (
             <View
               style={{
-                height: 1,
-                backgroundColor: colors.line,
+                height: StyleSheetHairline,
+                backgroundColor: SEPARATOR,
                 marginLeft: dividerInset,
               }}
             />
@@ -41,6 +46,8 @@ export function InsetGroup({
     </View>
   );
 }
+
+const StyleSheetHairline = Platform.select({ ios: 1 / 3, default: 1 }) ?? 1;
 
 export function ListRow({
   title,
@@ -90,16 +97,35 @@ export function ListRow({
       ) : null}
       <View style={{ flex: 1, gap: 2 }}>
         <Text
-          style={{
-            ...type.body,
-            fontFamily: fonts.medium,
-            color: destructive ? colors.danger : colors.ink,
-          }}
+          style={
+            Platform.OS === 'ios'
+              ? {
+                  fontSize: 17,
+                  fontWeight: '400',
+                  letterSpacing: -0.2,
+                  color: destructive ? colors.danger : colors.ink,
+                }
+              : {
+                  ...type.body,
+                  fontFamily: fonts.medium,
+                  color: destructive ? colors.danger : colors.ink,
+                }
+          }
         >
           {title}
         </Text>
         {subtitle ? (
-          <Text style={{ ...type.caption, color: colors.inkFaint }}>
+          <Text
+            style={
+              Platform.OS === 'ios'
+                ? {
+                    fontSize: 13,
+                    color: '#8E8E93',
+                    lineHeight: 18,
+                  }
+                : { ...type.caption, color: colors.inkFaint }
+            }
+          >
             {subtitle}
           </Text>
         ) : null}
@@ -121,7 +147,7 @@ export function ListRow({
       disabled={disabled}
       onPress={onPress}
       style={({ pressed }) => ({
-        backgroundColor: pressed ? colors.accentSoft : 'transparent',
+        backgroundColor: pressed ? ROW_PRESS : 'transparent',
       })}
     >
       {body}
@@ -142,24 +168,30 @@ export function SectionHeader({
         flexDirection: 'row',
         alignItems: 'baseline',
         justifyContent: 'space-between',
-        paddingHorizontal: 4,
-        marginBottom: 8,
+        paddingHorizontal: Platform.OS === 'ios' ? 16 : 4,
+        marginBottom: 6,
       }}
     >
       <Text
         style={{
-          ...type.caption,
-          fontFamily: fonts.semibold,
-          color: colors.inkFaint,
+          fontSize: 13,
+          fontWeight: '400',
+          color: Platform.OS === 'ios' ? '#6D6D72' : colors.inkFaint,
           textTransform: 'uppercase',
-          letterSpacing: 0.6,
+          letterSpacing: 0.2,
         }}
       >
         {title}
       </Text>
       {action ? (
         <Pressable onPress={action.onPress} hitSlop={8}>
-          <Text style={{ ...type.caption, color: colors.accent }}>
+          <Text
+            style={{
+              fontSize: 15,
+              fontWeight: '400',
+              color: colors.accent,
+            }}
+          >
             {action.label}
           </Text>
         </Pressable>
