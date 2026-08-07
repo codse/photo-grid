@@ -144,7 +144,7 @@ function ExportBody() {
       if (Platform.OS !== 'web') {
         void showInterstitialIfNeeded();
       }
-      router.replace('/');
+      router.replace('/(tabs)/index');
     } catch (e) {
       Alert.alert(
         'Export failed',

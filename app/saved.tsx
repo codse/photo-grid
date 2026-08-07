@@ -52,7 +52,7 @@ export default function SavedScreen() {
   }, [refresh]);
 
   if (!SAVED_SHEETS_AVAILABLE) {
-    return <Redirect href="/" />;
+    return <Redirect href="/(tabs)/index" />;
   }
 
   return (
@@ -213,7 +213,7 @@ function SavedEmpty() {
       <Button
         label={t('saved.makeSheet')}
         icon={<ImagesIcon size={18} color="#fff" weight="bold" />}
-        onPress={() => router.replace('/')}
+        onPress={() => router.replace('/(tabs)/index')}
       />
     </View>
   );

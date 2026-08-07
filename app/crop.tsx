@@ -10,7 +10,7 @@ export default function CropRedirect() {
       {active ? (
         <Redirect href={`/person/${active.id}/crop`} />
       ) : (
-        <Redirect href="/" />
+        <Redirect href="/(tabs)/index" />
       )}
     </RequirePhoto>
   );

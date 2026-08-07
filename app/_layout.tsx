@@ -1,8 +1,13 @@
 import { useEffect, useState } from 'react';
-import { Platform } from 'react-native';
 import { Stack } from 'expo-router';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { StatusBar } from 'expo-status-bar';
+import { Platform } from 'react-native';
+import { colors, fonts } from '@/ui/tokens';
+import { useSession } from '@/state/session';
+import { loadPrefs, savePrefs } from '@/platform/prefs';
+import { initAds } from '@/monetization/ads';
+import { configurePurchases } from '@/monetization/purchases';
+import { initI18n } from '@/i18n';
+import * as SplashScreen from 'expo-splash-screen';
 import {
   useFonts,
   Figtree_400Regular,
@@ -19,13 +24,8 @@ import {
   Commissioner_700Bold,
   Commissioner_800ExtraBold,
 } from '@expo-google-fonts/commissioner';
-import * as SplashScreen from 'expo-splash-screen';
-import { colors, fonts } from '@/ui/tokens';
-import { useSession } from '@/state/session';
-import { loadPrefs, savePrefs } from '@/platform/prefs';
-import { initAds } from '@/monetization/ads';
-import { configurePurchases } from '@/monetization/purchases';
-import { initI18n } from '@/i18n';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { StatusBar } from 'expo-status-bar';
 
 void SplashScreen.preventAutoHideAsync().catch(() => undefined);
 
@@ -123,17 +123,7 @@ export default function RootLayout() {
           },
         }}
       >
-        {/* Home owns large-title + grouped chrome via screen options */}
-        <Stack.Screen
-          name="index"
-          options={{
-            title: 'Passport Photo Print',
-            headerBackTitle: 'Home',
-            headerLargeTitleEnabled: true,
-            headerLargeTitleShadowVisible: false,
-            headerShadowVisible: false,
-          }}
-        />
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen
           name="size"
           options={{ title: 'Size & paper', headerBackTitle: 'Home' }}
@@ -166,17 +156,10 @@ export default function RootLayout() {
           name="person/[id]/crop"
           options={{ title: 'Crop', headerBackTitle: 'Home' }}
         />
-        <Stack.Screen
-          name="sheet"
-          options={{ title: 'Print sheet' }}
-        />
+        <Stack.Screen name="sheet" options={{ title: 'Print sheet' }} />
         <Stack.Screen
           name="export"
           options={{ title: 'Share', headerBackTitle: 'Sheet' }}
-        />
-        <Stack.Screen
-          name="settings"
-          options={{ title: 'Settings', headerBackTitle: 'Home' }}
         />
         <Stack.Screen name="help" options={{ title: 'Help' }} />
         <Stack.Screen name="faq" options={{ title: 'FAQ' }} />

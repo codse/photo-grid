@@ -101,8 +101,16 @@ export function useIsPro(): boolean {
       const next = await isPro();
       if (alive) setPro(next);
     })();
+
+    const onUpdate = (info: CustomerInfo) => {
+      lastCustomerInfo = info;
+      if (alive) setPro(isProFromInfo(info));
+    };
+    Purchases.addCustomerInfoUpdateListener(onUpdate);
+
     return () => {
       alive = false;
+      Purchases.removeCustomerInfoUpdateListener(onUpdate);
     };
   }, []);
 

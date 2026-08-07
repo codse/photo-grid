@@ -28,7 +28,10 @@ import { colors, space } from '@/ui/tokens';
 import { ProOffer } from '@/monetization/pro-offer';
 import { ProBadge } from '@/monetization/pro-badge';
 import { AdBanner } from '@/monetization/ads';
-import { useIsPro } from '@/monetization/purchases';
+import {
+  purchaseLifetime,
+  useIsPro,
+} from '@/monetization/purchases';
 import { useTranslation } from 'react-i18next';
 
 /** iOS Settings-style grouped canvas. */
@@ -56,6 +59,7 @@ export default function HomeScreen() {
   const activeId = useSession((s) => s.activePersonId ?? s.subjects[0]?.id);
 
   const [busy, setBusy] = useState(false);
+  const [buyBusy, setBuyBusy] = useState(false);
   const [recent, setRecent] = useState<SavedSheet[]>([]);
 
   const activePhoto = PHOTO_PRESETS.find((p) => p.id === photoId);
@@ -171,6 +175,22 @@ export default function HomeScreen() {
   const appName = t('app.name');
   const largeTitle = Platform.OS === 'ios';
 
+  const buyPro = async () => {
+    if (Platform.OS === 'web') return;
+    lightTap();
+    setBuyBusy(true);
+    try {
+      const result = await purchaseLifetime();
+      if (result.status === 'success') {
+        Alert.alert(t('pro.purchaseOkTitle'), t('pro.purchaseOkBody'));
+      } else if (result.status === 'error' || result.status === 'unavailable') {
+        Alert.alert('Purchase', result.message);
+      }
+    } finally {
+      setBuyBusy(false);
+    }
+  };
+
   return (
     <>
       <Stack.Screen
@@ -185,7 +205,6 @@ export default function HomeScreen() {
           headerTintColor: colors.ink,
           headerStyle: { backgroundColor: GROUPED_BG },
           headerLargeStyle: { backgroundColor: GROUPED_BG },
-          // System type for chrome — Figtree fights large-title optics.
           headerTitleStyle: {
             fontWeight: '600',
             color: colors.ink,
@@ -199,18 +218,15 @@ export default function HomeScreen() {
       />
 
       <Stack.Toolbar placement="right">
-        {isPro ? (
-          <Stack.Toolbar.View hidesSharedBackground>
-            <View style={{ justifyContent: 'center', paddingRight: 4 }}>
-              <ProBadge />
-            </View>
-          </Stack.Toolbar.View>
-        ) : null}
-        <Stack.Toolbar.Button
-          icon="gearshape"
-          accessibilityLabel={t('settings.title')}
-          onPress={() => router.push('/settings')}
-        />
+        <Stack.Toolbar.View hidesSharedBackground>
+          <View style={{ justifyContent: 'center', paddingRight: 2 }}>
+            <ProBadge
+              variant={isPro ? 'pro' : 'get'}
+              busy={buyBusy}
+              onPress={isPro ? undefined : () => void buyPro()}
+            />
+          </View>
+        </Stack.Toolbar.View>
       </Stack.Toolbar>
 
       <ScrollView
