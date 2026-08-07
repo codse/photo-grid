@@ -1,5 +1,7 @@
-/** Web / default stubs — real ads live in ads.native.ts */
-
+/**
+ * Shared ads API surface for TypeScript.
+ * Metro resolves `ads.native.tsx` / `ads.web.ts` at bundle time.
+ */
 export async function initAds(): Promise<boolean> {
   return false;
 }
