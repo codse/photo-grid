@@ -150,7 +150,7 @@ function ExportBody() {
           void onExportSuccessEngagement();
         })();
       }
-      router.replace('/(tabs)/index');
+      router.replace('/');
     } catch (e) {
       Alert.alert(
         'Export failed',
