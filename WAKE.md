@@ -18,5 +18,5 @@
 
 ## Local secrets (gitignored)
 - `.env` — public RC iOS key
-- `.env.rc.local` — RC secret for API setup
-- `.env.asc.local` — ASC p8 env for submit
+- `.secrets/rc.sh` — RC secret for API setup (not `.env*` — Metro require.context matches those)
+- `.secrets/asc.sh` — ASC p8 env for submit
