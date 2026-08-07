@@ -12,7 +12,7 @@ Related always-on Cursor rules: `.cursor/rules/*.mdc`.
 2. **Do not wait** for the human to say “commit”. If a unit is done and the tree is dirty with intentional work, commit it.
 3. **Never commit secrets** — `.env`, `.secrets/`, `*.p8`, `eas.submit.local.json`, AuthKeys, absolute machine paths to keys.
 4. **Do not push** unless the human asks.
-5. Prefer **`.native` / `.web`** platform splits over ambiguous stubs that Metro can mis-resolve.
+5. Prefer **`.native.ts(x)` / `.web.ts(x)`** with matching extensions. A bare `foo.ts` next to `foo.native.tsx` (mismatched ext) can make Metro ship the **web stub on iOS** (seen with ads → “Ads are not available on web” on device). Prefer `foo.web.ts` + `foo.native.tsx`, or same-ext pairs like `render-sheet.ts` / `render-sheet.native.ts`.
 6. When inventing process (ASC, RC, screenshots, i18n), **write it back into this file** so the next session inherits it.
 
 ---
@@ -75,19 +75,50 @@ Source ASC env: `source .secrets/asc.sh` (never paste key material into chat log
 
 **Stack:** `i18next` + `react-i18next` + `expo-localization` — `src/i18n/`.
 
-**Locales:** `en`, `en-GB`, `pt`, `ne`, `hi`, `es`, `fr` in `src/i18n/locales/*.json`.
+**In-app locales:** `en`, `en-GB`, `pt`, `ne`, `hi`, `es`, `fr` → `src/i18n/locales/*.json`  
+Registered in `src/i18n/index.ts` (`resources`, `APP_LOCALES`, `resolveDeviceLocale`).
 
 ### Adding strings
 
 1. Add keys to **`en.json` first** (source of truth).
-2. Mirror into other locale files (translate or temporary English — don’t leave missing keys if the screen ships).
-3. Register new locale files in `src/i18n/index.ts` (`resources` + `APP_LOCALES` + `resolveDeviceLocale`).
-4. UI: `useTranslation()` + `t('namespace.key')` — no hard-coded user-facing English in screens once a key exists.
+2. Mirror into **every** other locale file (translate or temporary English — don’t ship missing keys).
+3. Register new locale files in `src/i18n/index.ts`.
+4. UI: `useTranslation()` + `t('namespace.key')` — no hard-coded user-facing English once a key exists.
 5. Commit: `feat(i18n): …` with locale JSON + callers.
 
-### App Store metadata locales
+### In-app vs App Store locales (gotcha)
 
-Separate from in-app i18n: `metadata/app-info/*.json` (ASC listing copy). Keep in sync conceptually (name/description) but they are **not** the same files.
+| In-app | ASC listing locale | Notes |
+|--------|--------------------|--------|
+| `en` | `en-US` | Default storefront |
+| `en-GB` | `en-GB` | |
+| `es` | `es-ES` | |
+| `fr` | `fr-FR` | |
+| `pt` | `pt-PT` | European Portuguese for store (not `pt-BR` unless we add it) |
+| `hi` | `hi` | |
+| `ne` | **none** | Nepali is **not** an ASC App Store locale — keep in-app only |
+
+ASC metadata files live under `metadata/app-info/{locale}.json` and `metadata/version/1.0/{locale}.json`.  
+They are **not** the same as `src/i18n/locales/*.json` — sync concepts (name/subtitle/description) manually.
+
+### Store metadata workflow
+
+```bash
+# Local only until human says push
+asc metadata validate   # expect 0 issues
+# asc metadata push     # ONLY after explicit OK
+```
+
+- Keep listing name **Passport/ID Photo Maker** unless product asks to rename.
+- Legal URLs (must be live before submit):  
+  `https://www.codse.com/legal/passport-photo-print/privacy`  
+  `https://www.codse.com/legal/passport-photo-print/terms`  
+  Source pages live in **codse-website** repo (`src/app/legal/passport-photo-print/…`) — deploy that site separately; 404 until deployed.
+- Don’t invent ASC locales for in-app-only languages (`ne`).
+
+### Brand for ASO / koubou frames
+
+Warm utilitarian (match `src/ui/tokens.ts`): cream `#FFFCF9`, accent ochre `#B8953F`, Figtree / Commissioner — not purple gradients / generic AI cream+serif.
 
 ---
 
@@ -131,23 +162,54 @@ Auth: API key via env from `.secrets/asc.sh` (`EXPO_ASC_*` / ASC key id + issuer
 
 ---
 
-## 6. Screenshots & ASO assets
+## 6. Screenshots & ASO assets (store preview)
 
 | Path | Role |
 |------|------|
-| `.asc/shots.settings.json` | Shot pipeline config (scheme, sim UDID, dirs) |
-| `screenshots/raw/` | Raw captures |
-| `screenshots/fancy/` | Framed marketing shots |
-| `screenshots/koubou/` | Koubou templates / strings |
-| `metadata/` | ASC listing metadata |
+| `.asc/shots.settings.json` | Scheme, sim UDID, raw/framed dirs, upload flags |
+| `screenshots/raw/{locale}/` | Raw sim captures (`home`, `size`, `crop`, `sheet`, `export`, `settings`) |
+| `screenshots/koubou/` | Koubou YAML + HTML templates |
+| `screenshots/fancy/iphone65/{lang}/` | Framed marketing slides ready for ASC |
+| `metadata/` | ASC listing metadata (validate locally before push) |
 
-Pipeline notes:
+### Size / device
 
-- Prefer **asc shots** / koubou skills when generating App Store screenshots.
-- Config points at Xcode scheme `PassportPhotoPrint` and a simulator UDID — update UDID per machine.
-- Upload to ASC only when `upload_enabled` / human asks — don’t spam ASC from agents.
+- Target **IPHONE_65** → **1242×2688** (koubou / ASC).
+- Prefer Cosmic Orange (or current product frame) — keep consistent across locales.
+- Sim used for this app: iPhone 17 Pro UDID `D97585FB-CC31-4F07-BE56-FFCBDE5A0E19` (update per machine in `.asc/shots.settings.json`).
 
-ASC localization metadata lives under `metadata/app-info/` and `metadata/version/`.
+### Headless capture (Xcode beta / no Simulator.app)
+
+When only Command Line Tools / Xcode-beta without Simulator.app:
+
+```bash
+export DEVELOPER_DIR=/Applications/Xcode-beta.app/Contents/Developer
+# Boot sim via simctl / CoreSimulator; do not assume Simulator.app GUI
+```
+
+- **axe** (UI automation): if `axe` is a broken recursive shell wrapper, reinstall the real binary (e.g. under `~/.local/share/axe/`). Don’t debug the app until axe actually runs.
+- **Route planting:** write an allowed route into the app container `Documents/shot-route.txt`, then relaunch. Reader lives in `app/_layout.tsx` (`SHOT_ROUTE_FILE`) — **allowlist only** (never arbitrary deep links from disk).
+
+### Pipeline order (SISU / Affirmation-style)
+
+1. Release or Debug build on the shot simulator.
+2. Capture **raw** screens (English UI is fine for v1).
+3. `kou setup-html` then koubou generate → `screenshots/fancy/iphone65/{lang}/`.
+4. Localize **marketing frame copy** per lang; in-phone UI may stay English unless doing full per-locale UI captures.
+5. Map koubou langs → ASC upload folders: `en`→`en-US`, `es`→`es-ES`, `fr`→`fr-FR`, `pt`→`pt-PT`, plus `en-GB`, `hi`. Skip `ne`.
+6. Upload **only** when human asks (`upload_enabled` stays `false` by default in `.asc/shots.settings.json`).
+
+### Koubou reminders
+
+- Screenshots sell one outcome per slide — not documentation.
+- Style-intake from real app tokens first (cream / ochre), then generate.
+- Skills: `koubou` + `asc-shots-pipeline` / `asc-screenshot-resize` as needed.
+
+### Do not
+
+- Push metadata or screenshots to ASC without explicit OK.
+- Treat in-app `ne` as a storefront locale.
+- Rely on a stale sim UDID after Xcode upgrades — re-check `xcrun simctl list`.
 
 ---
 

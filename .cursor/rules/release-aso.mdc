@@ -1,0 +1,23 @@
+---
+description: i18n, App Store metadata, screenshots / koubou / store preview — read AGENTS §4–6
+alwaysApply: false
+globs: metadata/**/*,screenshots/**/*,.asc/**/*,src/i18n/**/*,**/AGENTS.md
+---
+
+# Release / ASO memory
+
+Full playbook: **`AGENTS.md` §4 (i18n) and §6 (screenshots & store preview)**.
+
+## Hard gotchas
+
+- In-app `ne` (Nepali) ≠ ASC locale — never push `ne` store metadata.
+- Map: `en`→`en-US`, `es`→`es-ES`, `fr`→`fr-FR`, `pt`→`pt-PT`, plus `en-GB`, `hi`.
+- `asc metadata validate` locally; **push / screenshot upload only when human asks**.
+- Legal privacy/terms on **codse-website** must be deployed before App Review URLs work.
+- Headless shots: `Documents/shot-route.txt` allowlist in `app/_layout.tsx`; Xcode-beta may need `DEVELOPER_DIR` + simctl (no Simulator.app).
+- IPHONE_65 = 1242×2688; framed output under `screenshots/fancy/iphone65/{lang}/`.
+- Brand: cream `#FFFCF9`, ochre `#B8953F` — not generic purple/AI cream themes.
+
+## When changing strings
+
+`en.json` first → all locale JSON → `t()` callers → `feat(i18n): …` commit.
