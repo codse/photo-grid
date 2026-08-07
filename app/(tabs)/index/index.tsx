@@ -5,13 +5,13 @@ import {
   Platform,
   Pressable,
   ScrollView,
+  StyleSheet,
   Text,
   View,
 } from 'react-native';
 import { Image as ExpoImage } from 'expo-image';
 import * as Haptics from 'expo-haptics';
 import { router, Stack, useFocusEffect } from 'expo-router';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CaretRightIcon } from 'phosphor-react-native/src/icons/CaretRight';
 import { PHOTO_PRESETS, PAPER_PRESETS } from '@/core/presets';
 import { useSession } from '@/state/session';
@@ -24,14 +24,9 @@ import { ActionTile } from '@/ui/action-tile';
 import { InsetGroup, ListRow, SectionHeader } from '@/ui/list-row';
 import { CameraIcon, LibraryIcon } from '@/ui/icons';
 import { colors, space } from '@/ui/tokens';
-import { ProOffer } from '@/monetization/pro-offer';
 import { ProBadge } from '@/monetization/pro-badge';
 import { AdBanner } from '@/monetization/ads';
-import { RewardedAdRow } from '@/monetization/rewarded-row';
-import {
-  purchaseLifetime,
-  useIsPro,
-} from '@/monetization/purchases';
+import { useIsPro } from '@/monetization/purchases';
 import { loadForceFreeAds } from '@/monetization/ads-prefs';
 import { useTranslation } from 'react-i18next';
 
@@ -47,7 +42,6 @@ function lightTap() {
 
 export default function HomeScreen() {
   const { t } = useTranslation();
-  const insets = useSafeAreaInsets();
   const isPro = useIsPro();
   const photoId = useSession((s) => s.photoId);
   const paperId = useSession((s) => s.paperId);
@@ -60,7 +54,6 @@ export default function HomeScreen() {
   const activeId = useSession((s) => s.activePersonId ?? s.subjects[0]?.id);
 
   const [busy, setBusy] = useState(false);
-  const [buyBusy, setBuyBusy] = useState(false);
   const [recent, setRecent] = useState<SavedSheet[]>([]);
   const [bannerKey, setBannerKey] = useState(0);
   const [forceFree, setForceFree] = useState(false);
@@ -78,7 +71,7 @@ export default function HomeScreen() {
     }, []),
   );
 
-  const showMonetization = Platform.OS !== 'web' && (!isPro || forceFree);
+  const showBanner = Platform.OS !== 'web' && (!isPro || forceFree);
 
   const activePhoto = PHOTO_PRESETS.find((p) => p.id === photoId);
   const paper = PAPER_PRESETS.find((p) => p.id === paperId);
@@ -164,20 +157,10 @@ export default function HomeScreen() {
   const appName = t('app.name');
   const largeTitle = Platform.OS === 'ios';
 
-  const buyPro = async () => {
+  const openPro = () => {
     if (Platform.OS === 'web') return;
     lightTap();
-    setBuyBusy(true);
-    try {
-      const result = await purchaseLifetime();
-      if (result.status === 'success') {
-        Alert.alert(t('pro.purchaseOkTitle'), t('pro.purchaseOkBody'));
-      } else if (result.status === 'error' || result.status === 'unavailable') {
-        Alert.alert('Purchase', result.message);
-      }
-    } finally {
-      setBuyBusy(false);
-    }
+    router.push('/pro');
   };
 
   return (
@@ -211,20 +194,20 @@ export default function HomeScreen() {
           <View style={{ justifyContent: 'center', paddingRight: 2 }}>
             <ProBadge
               variant={isPro ? 'pro' : 'get'}
-              busy={buyBusy}
-              onPress={isPro ? undefined : () => void buyPro()}
+              onPress={isPro ? undefined : openPro}
             />
           </View>
         </Stack.Toolbar.View>
       </Stack.Toolbar>
 
+      <View style={{ flex: 1, backgroundColor: GROUPED_BG }}>
       <ScrollView
         contentInsetAdjustmentBehavior="automatic"
         style={{ flex: 1, backgroundColor: GROUPED_BG }}
         contentContainerStyle={{
           paddingHorizontal: 16,
           paddingTop: largeTitle ? 8 : space.md,
-          paddingBottom: 48 + insets.bottom,
+          paddingBottom: 32,
           gap: 28,
         }}
       >
@@ -362,16 +345,6 @@ export default function HomeScreen() {
           </InsetGroup>
         </View>
 
-        {showMonetization ? (
-          <View>
-            <SectionHeader title="Pro" />
-            <InsetGroup dividerInset={16}>
-              {!isPro || forceFree ? <ProOffer variant="row" /> : null}
-              <RewardedAdRow onMuted={() => setBannerKey((k) => k + 1)} />
-            </InsetGroup>
-          </View>
-        ) : null}
-
         {SAVED_SHEETS_AVAILABLE && recent.length > 0 ? (
           <View>
             <SectionHeader
@@ -423,10 +396,6 @@ export default function HomeScreen() {
           </View>
         ) : null}
 
-        {Platform.OS !== 'web' ? (
-          <AdBanner key={bannerKey} style={{ marginTop: 4 }} />
-        ) : null}
-
         {savedPresets.length > 0 ? (
           <View>
             <SectionHeader title={t('home.yourPresets')} />
@@ -451,9 +420,27 @@ export default function HomeScreen() {
           />
         ) : null}
       </ScrollView>
+
+      {showBanner ? (
+        <View style={styles.bannerDock}>
+          <AdBanner key={bannerKey} size="anchored" />
+        </View>
+      ) : null}
+      </View>
     </>
   );
 }
+
+const styles = StyleSheet.create({
+  bannerDock: {
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: '#C6C6C8',
+    backgroundColor: GROUPED_BG,
+    alignItems: 'center',
+    paddingTop: 4,
+    paddingBottom: 2,
+  },
+});
 
 const StyleHairline = Platform.select({ ios: 1 / 3, default: 1 }) ?? 1;
 
