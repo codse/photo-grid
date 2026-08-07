@@ -79,6 +79,35 @@ export const REGIONS: RegionOption[] = [
 /** Papers shown by default (Hick: 3 choices). Rest behind “More”. */
 export const PRIMARY_PAPER_IDS = ['4x6', '3.5x5', 'a4'] as const;
 
+/**
+ * Home “Quick sizes” — named popular docs, not raw mm chips.
+ * Order = global demand + this app’s Nepal default.
+ */
+export const QUICK_SIZE_IDS = [
+  'passport-us',
+  'passport-canada',
+  'passport-eu',
+  'india-visa',
+  'china-visa',
+  'japan-visa',
+  'schengen-visa',
+  'np-passport',
+] as const;
+
+export type QuickSizeId = (typeof QUICK_SIZE_IDS)[number];
+
+/** i18n key suffix under `home.quick.` for each chip. */
+export const QUICK_SIZE_LABEL_KEYS: Record<QuickSizeId, string> = {
+  'passport-us': 'us',
+  'passport-canada': 'canada',
+  'passport-eu': 'eu',
+  'india-visa': 'indiaVisa',
+  'china-visa': 'chinaVisa',
+  'japan-visa': 'japanVisa',
+  'schengen-visa': 'schengen',
+  'np-passport': 'nepal',
+};
+
 export function regionForPhotoId(photoId: string): RegionId {
   for (const region of REGIONS) {
     if (region.photoIds.includes(photoId)) return region.id;

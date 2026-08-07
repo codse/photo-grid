@@ -13,17 +13,17 @@ import { Image as ExpoImage } from 'expo-image';
 import * as Haptics from 'expo-haptics';
 import { router, Stack, useFocusEffect } from 'expo-router';
 import { CaretRightIcon } from 'phosphor-react-native/src/icons/CaretRight';
+import { PlusIcon } from 'phosphor-react-native/src/icons/Plus';
 import { PHOTO_PRESETS, PAPER_PRESETS } from '@/core/presets';
 import { useSession } from '@/state/session';
 import { pickFromLibrary, preparePersonImage } from '@/platform/media';
 import { listSavedSheets, SAVED_SHEETS_AVAILABLE } from '@/platform/saved-sheets';
 import type { SavedSheet } from '@/features/library/types';
-import { regionForPhotoId, REGIONS } from '@/features/sheet/size-catalog';
+import { QUICK_SIZE_IDS, QUICK_SIZE_LABEL_KEYS } from '@/features/sheet/size-catalog';
 import { PresetRow } from '@/features/sheet/preset-row';
-import { ActionTile } from '@/ui/action-tile';
-import { InsetGroup, ListRow, SectionHeader } from '@/ui/list-row';
-import { CameraIcon, LibraryIcon } from '@/ui/icons';
-import { colors, space } from '@/ui/tokens';
+import { InsetGroup, SectionHeader } from '@/ui/list-row';
+import { SheetPreviewMark } from '@/ui/sheet-preview-mark';
+import { colors, fonts, radii, space } from '@/ui/tokens';
 import { ProBadge } from '@/monetization/pro-badge';
 import { openProPaywall } from '@/monetization/pro-route';
 import { AdBanner } from '@/monetization/ads';
@@ -41,6 +41,12 @@ function lightTap() {
   }
 }
 
+function mediumTap() {
+  if (Platform.OS === 'ios') {
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+  }
+}
+
 export default function HomeScreen() {
   const { t } = useTranslation();
   const isPro = useIsPro();
@@ -50,6 +56,7 @@ export default function HomeScreen() {
   const applyConfig = useSession((s) => s.applyConfig);
   const deletePreset = useSession((s) => s.deletePreset);
   const renamePreset = useSession((s) => s.renamePreset);
+  const setPhotoPreset = useSession((s) => s.setPhotoPreset);
   const setPersonUri = useSession((s) => s.setPersonUri);
   const subjects = useSession((s) => s.subjects);
   const activeId = useSession((s) => s.activePersonId ?? s.subjects[0]?.id);
@@ -78,16 +85,12 @@ export default function HomeScreen() {
   const paper = PAPER_PRESETS.find((p) => p.id === paperId);
   const withPhoto = subjects.filter((s) => s.url);
   const hasPhoto = withPhoto.length > 0;
-  const regionLabel =
-    REGIONS.find((r) => r.id === regionForPhotoId(photoId))?.label ?? '';
 
-  const sizeTitle = activePhoto?.label ?? t('home.photoSizeFallback');
   const sizeDetail = [
     activePhoto
       ? `${Math.round(activePhoto.widthMm)}×${Math.round(activePhoto.heightMm)} mm`
       : null,
     paper?.id === '4x6' ? '4×6 in' : paper?.label,
-    regionLabel || null,
   ]
     .filter(Boolean)
     .join(' · ');
@@ -108,7 +111,7 @@ export default function HomeScreen() {
 
   const importToActive = async () => {
     if (!activeId) return;
-    lightTap();
+    mediumTap();
     setBusy(true);
     try {
       const img = await pickFromLibrary();
@@ -155,8 +158,7 @@ export default function HomeScreen() {
     ]);
   };
 
-  const appName = t('app.name');
-  const largeTitle = Platform.OS === 'ios';
+  const homeTitle = t('app.homeTitle');
 
   const openPro = () => {
     if (Platform.OS === 'web') return;
@@ -168,22 +170,16 @@ export default function HomeScreen() {
     <>
       <Stack.Screen
         options={{
-          title: appName,
+          title: homeTitle,
           headerBackTitle: t('common.home'),
           headerShown: true,
           headerTransparent: false,
           headerShadowVisible: false,
-          headerLargeTitleEnabled: largeTitle,
-          headerLargeTitleShadowVisible: false,
+          headerLargeTitleEnabled: false,
           headerTintColor: colors.ink,
           headerStyle: { backgroundColor: GROUPED_BG },
-          headerLargeStyle: { backgroundColor: GROUPED_BG },
           headerTitleStyle: {
             fontWeight: '600',
-            color: colors.ink,
-          },
-          headerLargeTitleStyle: {
-            fontWeight: '700',
             color: colors.ink,
           },
           contentStyle: { backgroundColor: GROUPED_BG },
@@ -202,239 +198,374 @@ export default function HomeScreen() {
       </Stack.Toolbar>
 
       <View style={{ flex: 1, backgroundColor: GROUPED_BG }}>
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        style={{ flex: 1, backgroundColor: GROUPED_BG }}
-        contentContainerStyle={{
-          paddingHorizontal: 16,
-          paddingTop: largeTitle ? 8 : space.md,
-          paddingBottom: 32,
-          gap: 28,
-        }}
-      >
-        {hasPhoto ? (
-          <InsetGroup dividerInset={72}>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={t('home.continueSheet')}
-              onPress={() => {
-                lightTap();
-                router.push('/sheet');
-              }}
-              style={({ pressed }) => ({
-                backgroundColor: pressed ? ROW_PRESS : 'transparent',
-              })}
-            >
-              <View
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  gap: 12,
-                  paddingVertical: 12,
-                  paddingHorizontal: 16,
-                  minHeight: 72,
+        <ScrollView
+          contentInsetAdjustmentBehavior="automatic"
+          style={{ flex: 1, backgroundColor: GROUPED_BG }}
+          contentContainerStyle={{
+            paddingHorizontal: 16,
+            paddingTop: space.md,
+            paddingBottom: 32,
+            gap: 28,
+          }}
+        >
+          {!hasPhoto ? (
+            <Text style={styles.tagline}>{t('app.tagline')}</Text>
+          ) : null}
+
+          {hasPhoto ? (
+            <InsetGroup dividerInset={72}>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={t('home.continueSheet')}
+                onPress={() => {
+                  lightTap();
+                  router.push('/sheet');
                 }}
+                style={({ pressed }) => ({
+                  backgroundColor: pressed ? ROW_PRESS : 'transparent',
+                })}
               >
-                <View style={{ flexDirection: 'row' }}>
-                  {withPhoto.slice(0, 3).map((s, i) => (
-                    <View
-                      key={s.id}
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: 12,
+                    paddingVertical: 12,
+                    paddingHorizontal: 16,
+                    minHeight: 72,
+                  }}
+                >
+                  <View style={{ flexDirection: 'row' }}>
+                    {withPhoto.slice(0, 3).map((s, i) => (
+                      <View
+                        key={s.id}
+                        style={{
+                          width: 40,
+                          height: 52,
+                          borderRadius: 6,
+                          borderCurve: 'continuous',
+                          overflow: 'hidden',
+                          marginLeft: i === 0 ? 0 : -10,
+                          borderWidth: StyleHairline,
+                          borderColor: colors.bgElevated,
+                          backgroundColor: colors.line,
+                        }}
+                      >
+                        {s.url ? (
+                          <ExpoImage
+                            source={{ uri: s.url }}
+                            style={{ width: '100%', height: '100%' }}
+                            contentFit="cover"
+                          />
+                        ) : null}
+                      </View>
+                    ))}
+                  </View>
+                  <View style={{ flex: 1, gap: 2 }}>
+                    <Text
                       style={{
-                        width: 40,
-                        height: 52,
-                        borderRadius: 6,
-                        borderCurve: 'continuous',
-                        overflow: 'hidden',
-                        marginLeft: i === 0 ? 0 : -10,
-                        borderWidth: StyleHairline,
-                        borderColor: colors.bgElevated,
-                        backgroundColor: colors.line,
+                        fontSize: 17,
+                        fontWeight: '600',
+                        color: colors.ink,
+                        letterSpacing: -0.2,
                       }}
                     >
-                      {s.url ? (
-                        <ExpoImage
-                          source={{ uri: s.url }}
-                          style={{ width: '100%', height: '100%' }}
-                          contentFit="cover"
-                        />
-                      ) : null}
-                    </View>
-                  ))}
+                      {t('home.continueSheetShort')}
+                    </Text>
+                    <Text
+                      style={{
+                        fontSize: 13,
+                        color: colors.inkMuted,
+                        lineHeight: 18,
+                      }}
+                    >
+                      {t('home.photoCount', { count: withPhoto.length })} ·{' '}
+                      {sizeDetail}
+                    </Text>
+                  </View>
+                  <CaretRightIcon size={16} color={colors.inkFaint} weight="bold" />
                 </View>
-                <View style={{ flex: 1, gap: 2 }}>
-                  <Text
-                    style={{
-                      fontSize: 17,
-                      fontWeight: '600',
-                      color: colors.ink,
-                      letterSpacing: -0.2,
-                    }}
-                  >
-                    {t('home.continueSheetShort')}
-                  </Text>
-                  <Text
-                    style={{
-                      fontSize: 13,
-                      color: colors.inkMuted,
-                      lineHeight: 18,
-                    }}
-                  >
-                    {t('home.photoCount', { count: withPhoto.length })} ·{' '}
-                    {sizeDetail}
-                  </Text>
-                </View>
-                <CaretRightIcon size={16} color={colors.inkFaint} weight="bold" />
-              </View>
-            </Pressable>
-          </InsetGroup>
-        ) : null}
-
-        <View style={{ gap: space.sm }}>
-          {hasPhoto ? (
-            <SectionHeader title={t('home.addOrReplace')} />
+              </Pressable>
+            </InsetGroup>
           ) : null}
-          <View
-            style={{
-              flexDirection: 'row',
-              gap: 12,
-              paddingHorizontal: space.lg,
-            }}
-          >
-            <ActionTile
-              label={t('home.camera')}
-              icon={<CameraIcon color={colors.accent} size={24} />}
-              disabled={busy}
-              onPress={takePhoto}
-            />
-            <ActionTile
-              label={t('home.gallery')}
-              icon={<LibraryIcon color={colors.accent} size={24} />}
+
+          <View style={{ gap: space.sm }}>
+            {hasPhoto ? (
+              <SectionHeader title={t('home.addOrReplace')} />
+            ) : null}
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={`${t('home.choosePhoto')}. ${t('home.choosePhotoHint')}`}
+              accessibilityState={{ disabled: busy }}
               disabled={busy}
               onPress={() => void importToActive()}
-            />
-          </View>
-        </View>
-
-        <View>
-          <SectionHeader title={t('home.printSize')} />
-          <InsetGroup>
-            <ListRow
-              title={sizeTitle}
-              subtitle={sizeDetail}
-              onPress={() => {
-                lightTap();
-                router.push('/size');
-              }}
-              accessory={
+              style={({ pressed }) => [
+                styles.heroCta,
+                {
+                  opacity: busy ? 0.55 : 1,
+                  transform: [{ scale: pressed && !busy ? 0.985 : 1 }],
+                  backgroundColor: pressed ? '#A88438' : colors.accent,
+                },
+              ]}
+            >
+              <SheetPreviewMark width={56} onAccent />
+              <View style={{ alignItems: 'center', gap: 4 }}>
                 <View
-                  style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: 8,
+                  }}
                 >
-                  <Text
-                    style={{
-                      fontSize: 15,
-                      color: colors.inkFaint,
-                    }}
-                  >
-                    {t('home.change')}
-                  </Text>
-                  <CaretRightIcon
-                    size={16}
-                    color={colors.inkFaint}
-                    weight="bold"
-                  />
+                  <PlusIcon size={22} color="#fff" weight="bold" />
+                  <Text style={styles.heroLabel}>{t('home.choosePhoto')}</Text>
                 </View>
-              }
-            />
-          </InsetGroup>
-        </View>
+                <Text style={styles.heroHint}>{t('home.choosePhotoHint')}</Text>
+              </View>
+            </Pressable>
 
-        {SAVED_SHEETS_AVAILABLE && recent.length > 0 ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={t('home.takeNewPhoto')}
+              disabled={busy}
+              onPress={takePhoto}
+              hitSlop={8}
+              style={({ pressed }) => ({
+                alignSelf: 'center',
+                paddingVertical: 10,
+                paddingHorizontal: 16,
+                opacity: busy ? 0.45 : pressed ? 0.55 : 1,
+              })}
+            >
+              <Text style={styles.secondaryLink}>{t('home.takeNewPhoto')}</Text>
+            </Pressable>
+          </View>
+
           <View>
             <SectionHeader
-              title={t('home.saved')}
+              title={t('home.quickSizes')}
               action={{
-                label: t('home.seeAll'),
-                onPress: () => router.push('/saved'),
+                label: t('home.allSizes'),
+                onPress: () => {
+                  lightTap();
+                  router.push('/size');
+                },
               }}
             />
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{ gap: 12, paddingRight: 8 }}
+              style={styles.hBleed}
+              contentContainerStyle={styles.hBleedContent}
             >
-              {recent.map((item) => (
-                <Pressable
-                  key={item.id}
-                  onPress={() => {
-                    lightTap();
-                    router.push('/saved');
-                  }}
-                  style={{ width: 108, gap: 6 }}
-                >
-                  <View
-                    style={{
-                      width: 108,
-                      height: 140,
-                      borderRadius: 12,
-                      borderCurve: 'continuous',
-                      backgroundColor: colors.bgElevated,
-                      overflow: 'hidden',
+              {QUICK_SIZE_IDS.map((id) => {
+                const preset = PHOTO_PRESETS.find((p) => p.id === id);
+                if (!preset) return null;
+                const selected = photoId === id;
+                const chipLabel = t(`home.quick.${QUICK_SIZE_LABEL_KEYS[id]}`);
+                const sizeHint = `${Math.round(preset.widthMm)}×${Math.round(preset.heightMm)} mm`;
+                return (
+                  <Pressable
+                    key={id}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected }}
+                    accessibilityLabel={`${chipLabel}. ${sizeHint}`}
+                    onPress={() => {
+                      lightTap();
+                      setPhotoPreset(id);
                     }}
+                    style={({ pressed }) => [
+                      styles.sizeChip,
+                      selected && styles.sizeChipSelected,
+                      pressed && { opacity: 0.85 },
+                    ]}
                   >
-                    <RecentThumb uri={item.uri} />
-                  </View>
-                  <Text
-                    numberOfLines={2}
-                    style={{
-                      fontSize: 12,
-                      color: colors.inkMuted,
-                      lineHeight: 16,
-                    }}
-                  >
-                    {item.cellCount} photos · {item.paperLabel}
-                  </Text>
-                </Pressable>
-              ))}
+                    <Text
+                      style={[
+                        styles.sizeChipText,
+                        selected && styles.sizeChipTextSelected,
+                      ]}
+                    >
+                      {chipLabel}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.sizeChipHint,
+                        selected && styles.sizeChipHintSelected,
+                      ]}
+                    >
+                      {sizeHint}
+                    </Text>
+                  </Pressable>
+                );
+              })}
             </ScrollView>
           </View>
-        ) : null}
 
-        {savedPresets.length > 0 ? (
-          <View>
-            <SectionHeader title={t('home.yourPresets')} />
-            <InsetGroup>
-              {savedPresets.map((cfg) => (
-                <PresetRow
-                  key={cfg.id}
-                  preset={cfg}
-                  onApply={() => usePreset(cfg)}
-                  onRename={(name) => renamePreset(cfg.id, name)}
-                  onDelete={() => deletePreset(cfg.id)}
-                />
-              ))}
-            </InsetGroup>
+          {SAVED_SHEETS_AVAILABLE && recent.length > 0 ? (
+            <View>
+              <SectionHeader
+                title={t('home.saved')}
+                action={{
+                  label: t('home.seeAll'),
+                  onPress: () => router.push('/saved'),
+                }}
+              />
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                style={styles.hBleed}
+                contentContainerStyle={[styles.hBleedContent, { gap: 12 }]}
+              >
+                {recent.map((item) => (
+                  <Pressable
+                    key={item.id}
+                    onPress={() => {
+                      lightTap();
+                      router.push('/saved');
+                    }}
+                    style={{ width: 108, gap: 6 }}
+                  >
+                    <View
+                      style={{
+                        width: 108,
+                        height: 140,
+                        borderRadius: 12,
+                        borderCurve: 'continuous',
+                        backgroundColor: colors.bgElevated,
+                        overflow: 'hidden',
+                      }}
+                    >
+                      <RecentThumb uri={item.uri} />
+                    </View>
+                    <Text
+                      numberOfLines={2}
+                      style={{
+                        fontSize: 12,
+                        color: colors.inkMuted,
+                        lineHeight: 16,
+                      }}
+                    >
+                      {item.cellCount} photos · {item.paperLabel}
+                    </Text>
+                  </Pressable>
+                ))}
+              </ScrollView>
+            </View>
+          ) : null}
+
+          {savedPresets.length > 0 ? (
+            <View>
+              <SectionHeader title={t('home.savedPresets')} />
+              <InsetGroup>
+                {savedPresets.map((cfg) => (
+                  <PresetRow
+                    key={cfg.id}
+                    preset={cfg}
+                    onApply={() => usePreset(cfg)}
+                    onRename={(name) => renamePreset(cfg.id, name)}
+                    onDelete={() => deletePreset(cfg.id)}
+                  />
+                ))}
+              </InsetGroup>
+            </View>
+          ) : null}
+
+          {busy ? (
+            <ActivityIndicator
+              color={colors.accent}
+              style={{ marginTop: space.sm }}
+            />
+          ) : null}
+        </ScrollView>
+
+        {showBanner ? (
+          <View style={styles.bannerDock}>
+            <AdBanner key={bannerKey} size="anchored" />
           </View>
         ) : null}
-
-        {busy ? (
-          <ActivityIndicator
-            color={colors.accent}
-            style={{ marginTop: space.sm }}
-          />
-        ) : null}
-      </ScrollView>
-
-      {showBanner ? (
-        <View style={styles.bannerDock}>
-          <AdBanner key={bannerKey} size="anchored" />
-        </View>
-      ) : null}
       </View>
     </>
   );
 }
 
 const styles = StyleSheet.create({
+  tagline: {
+    fontFamily: fonts.regular,
+    fontSize: 17,
+    lineHeight: 24,
+    letterSpacing: -0.2,
+    color: colors.inkMuted,
+    paddingHorizontal: 4,
+    marginBottom: -8,
+  },
+  heroCta: {
+    borderRadius: radii.lg,
+    borderCurve: 'continuous',
+    paddingVertical: 28,
+    paddingHorizontal: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 16,
+    minHeight: 168,
+  },
+  heroLabel: {
+    fontFamily: fonts.semibold,
+    fontSize: 20,
+    letterSpacing: -0.3,
+    color: '#fff',
+  },
+  heroHint: {
+    fontFamily: fonts.regular,
+    fontSize: 14,
+    color: 'rgba(255,255,255,0.78)',
+  },
+  secondaryLink: {
+    fontFamily: fonts.medium,
+    fontSize: 16,
+    color: colors.accent,
+    letterSpacing: -0.2,
+  },
+  /** Escape parent paddingHorizontal so chips scroll edge-to-edge. */
+  hBleed: {
+    marginHorizontal: -16,
+  },
+  hBleedContent: {
+    gap: 8,
+    paddingHorizontal: 16,
+  },
+  sizeChip: {
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 999,
+    borderCurve: 'continuous',
+    backgroundColor: colors.bgElevated,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: Platform.OS === 'ios' ? '#C6C6C8' : colors.line,
+    alignItems: 'center',
+    gap: 1,
+  },
+  sizeChipSelected: {
+    backgroundColor: colors.accentSoft,
+    borderColor: colors.accent,
+  },
+  sizeChipText: {
+    fontFamily: fonts.semibold,
+    fontSize: 14,
+    color: colors.ink,
+    letterSpacing: -0.1,
+  },
+  sizeChipTextSelected: {
+    color: colors.ink,
+  },
+  sizeChipHint: {
+    fontFamily: fonts.regular,
+    fontSize: 11,
+    color: colors.inkFaint,
+  },
+  sizeChipHintSelected: {
+    color: colors.inkMuted,
+  },
   bannerDock: {
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: '#C6C6C8',

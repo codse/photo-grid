@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import {
   ActivityIndicator,
   Platform,
@@ -7,16 +6,6 @@ import {
   Text,
   View,
 } from 'react-native';
-import Animated, {
-  cancelAnimation,
-  Easing,
-  useAnimatedStyle,
-  useSharedValue,
-  withDelay,
-  withRepeat,
-  withSequence,
-  withTiming,
-} from 'react-native-reanimated';
 import { colors, fonts } from '@/ui/tokens';
 import { useTranslation } from 'react-i18next';
 
@@ -27,58 +16,23 @@ type Props = {
   busy?: boolean;
 };
 
-/** Gold pill for nav chrome — shine only on the Get Pro CTA. */
+/** Quiet nav chrome — sell Pro after value, not on first paint. */
 export function ProBadge({ variant = 'pro', onPress, busy }: Props) {
   const { t } = useTranslation();
-  const shine = useSharedValue(-1);
-  const showShine = variant === 'get';
-
-  useEffect(() => {
-    if (!showShine) {
-      cancelAnimation(shine);
-      shine.value = -1;
-      return;
-    }
-    shine.value = withRepeat(
-      withSequence(
-        withTiming(1.4, {
-          duration: 950,
-          easing: Easing.inOut(Easing.quad),
-        }),
-        withTiming(-1, { duration: 0 }),
-        withDelay(2400, withTiming(-1, { duration: 0 })),
-      ),
-      -1,
-      false,
-    );
-    return () => cancelAnimation(shine);
-  }, [shine, showShine]);
-
-  const shineStyle = useAnimatedStyle(() => ({
-    transform: [
-      { translateX: shine.value * 72 },
-      { skewX: '-22deg' },
-    ],
-  }));
-
   const label = variant === 'get' ? t('pro.badgeGet') : t('pro.badge');
   const interactive = !!onPress && !busy;
+  const isGet = variant === 'get';
 
   const body = (
     <View
       accessibilityLabel={label}
       accessibilityRole={interactive ? 'button' : 'text'}
-      style={[styles.wrap, variant === 'get' && styles.wrapGet]}
+      style={[styles.wrap, isGet ? styles.wrapGet : styles.wrapPro]}
     >
-      {showShine ? (
-        <Animated.View pointerEvents="none" style={[styles.shine, shineStyle]} />
-      ) : null}
       {busy ? (
         <ActivityIndicator color={colors.ink} size="small" />
       ) : (
-        <Text style={[styles.label, variant === 'get' && styles.labelGet]}>
-          {label}
-        </Text>
+        <Text style={[styles.label, isGet && styles.labelGet]}>{label}</Text>
       )}
     </View>
   );
@@ -91,7 +45,7 @@ export function ProBadge({ variant = 'pro', onPress, busy }: Props) {
       accessibilityLabel={label}
       onPress={onPress}
       hitSlop={6}
-      style={({ pressed }) => ({ opacity: pressed ? 0.82 : 1 })}
+      style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
     >
       {body}
     </Pressable>
@@ -100,44 +54,36 @@ export function ProBadge({ variant = 'pro', onPress, busy }: Props) {
 
 const styles = StyleSheet.create({
   wrap: {
-    overflow: 'hidden',
-    paddingHorizontal: 9,
-    paddingVertical: 5,
-    minWidth: 44,
-    minHeight: 28,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    minWidth: 36,
+    minHeight: 26,
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 999,
     borderCurve: 'continuous',
-    backgroundColor: '#FFD166',
-    borderWidth: 1.5,
-    borderColor: colors.ink,
-    shadowColor: '#B45309',
-    shadowOpacity: Platform.OS === 'ios' ? 0.25 : 0,
-    shadowRadius: 3,
-    shadowOffset: { width: 0, height: 1 },
+  },
+  wrapPro: {
+    backgroundColor: 'rgba(184, 149, 63, 0.18)',
   },
   wrapGet: {
-    paddingHorizontal: 11,
-    backgroundColor: '#FFC107',
-  },
-  shine: {
-    position: 'absolute',
-    top: -6,
-    bottom: -6,
-    left: 0,
-    width: 18,
-    backgroundColor: 'rgba(255,255,255,0.55)',
+    backgroundColor: 'transparent',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.inkFaint,
   },
   label: {
     fontFamily: fonts.playful,
     fontSize: 11,
     lineHeight: 13,
     color: colors.ink,
-    letterSpacing: 1.15,
+    letterSpacing: 0.8,
   },
   labelGet: {
-    fontSize: 11,
-    letterSpacing: 0.9,
+    color: colors.inkMuted,
+    letterSpacing: 0.6,
+    ...Platform.select({
+      ios: { fontWeight: '600' as const },
+      default: null,
+    }),
   },
 });

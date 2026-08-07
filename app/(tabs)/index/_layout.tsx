@@ -24,7 +24,7 @@ export default function HomeStackLayout() {
       <Stack.Screen
         name="index"
         options={{
-          title: t('app.name'),
+          title: t('app.homeTitle'),
           headerBackTitle: t('common.home'),
         }}
       />
