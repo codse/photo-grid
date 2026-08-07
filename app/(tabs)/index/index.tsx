@@ -209,7 +209,7 @@ export default function HomeScreen() {
           }}
         >
           {!hasPhoto ? (
-            <Text style={styles.tagline}>{t('app.tagline')}</Text>
+            <Text style={styles.tagline}>{t('home.getStartedHint')}</Text>
           ) : null}
 
           {hasPhoto ? (
@@ -388,14 +388,6 @@ export default function HomeScreen() {
                     >
                       {chipLabel}
                     </Text>
-                    <Text
-                      style={[
-                        styles.sizeChipHint,
-                        selected && styles.sizeChipHintSelected,
-                      ]}
-                    >
-                      {sizeHint}
-                    </Text>
                   </Pressable>
                 );
               })}
@@ -535,7 +527,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   sizeChip: {
-    paddingVertical: 8,
+    paddingVertical: 10,
     paddingHorizontal: 14,
     borderRadius: 999,
     borderCurve: 'continuous',
@@ -543,28 +535,20 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: Platform.OS === 'ios' ? '#C6C6C8' : colors.line,
     alignItems: 'center',
-    gap: 1,
   },
   sizeChipSelected: {
     backgroundColor: colors.accentSoft,
     borderColor: colors.accent,
   },
   sizeChipText: {
-    fontFamily: fonts.semibold,
+    fontFamily: fonts.medium,
     fontSize: 14,
     color: colors.ink,
     letterSpacing: -0.1,
   },
   sizeChipTextSelected: {
+    fontFamily: fonts.semibold,
     color: colors.ink,
-  },
-  sizeChipHint: {
-    fontFamily: fonts.regular,
-    fontSize: 11,
-    color: colors.inkFaint,
-  },
-  sizeChipHintSelected: {
-    color: colors.inkMuted,
   },
   bannerDock: {
     borderTopWidth: StyleSheet.hairlineWidth,
