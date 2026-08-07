@@ -19,7 +19,7 @@ export const ABOUT: LegalDoc = {
     },
     {
       heading: 'Pro',
-      body: 'A one-time Lifetime purchase removes ads. Restores with your Apple ID via RevenueCat.',
+      body: 'A one-time Lifetime purchase removes ads and lifts free caps (5 exports/day, 2 people per sheet). Restores with your Apple ID via RevenueCat.',
     },
   ],
 };
@@ -131,7 +131,7 @@ export const HELP: LegalDoc = {
     },
     {
       heading: 'Pro',
-      body: 'Lifetime Pro removes ads. Tap GET PRO on Home (or open Pro from Share) to buy or restore. Purchases use your Apple ID.',
+      body: 'Lifetime Pro removes ads, lifts the free daily export cap (5/day), and lets you put more than 2 people on one sheet. Tap GET PRO on Home to buy or restore. Purchases use your Apple ID.',
     },
     {
       heading: 'Need more help?',
@@ -170,7 +170,7 @@ export const FAQ: LegalDoc = {
     },
     {
       heading: 'How do I restore Pro?',
-      body: 'Use Restore purchase on the Pro offer (same Apple ID that bought Lifetime).',
+      body: 'Open GET PRO → Restore purchase (same Apple ID that bought Lifetime).',
     },
     {
       heading: 'The sheet looks wrong at the lab',

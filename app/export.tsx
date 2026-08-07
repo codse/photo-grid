@@ -32,6 +32,10 @@ import { colors, fonts, radii, space, type } from '@/ui/tokens';
 import { RequirePhoto } from '@/features/session/require-photo';
 import { showInterstitialIfNeeded } from '@/monetization/ads';
 import { onExportSuccessEngagement } from '@/monetization/engagement';
+import {
+  FREE_EXPORTS_PER_DAY,
+  canExportNow,
+} from '@/monetization/free-limits';
 import { useIsPro } from '@/monetization/purchases';
 import { useTranslation } from 'react-i18next';
 
@@ -141,6 +145,23 @@ function ExportBody() {
   const empty = layout.cells.length === 0;
 
   const run = async (label: Busy, fn: () => Promise<unknown>) => {
+    if (Platform.OS !== 'web') {
+      const allowed = await canExportNow();
+      if (!allowed) {
+        Alert.alert(
+          t('pro.limitExportTitle'),
+          t('pro.limitExportBody', { limit: FREE_EXPORTS_PER_DAY }),
+          [
+            { text: t('common.cancel'), style: 'cancel' },
+            {
+              text: t('pro.limitCta'),
+              onPress: () => router.push('/pro'),
+            },
+          ],
+        );
+        return;
+      }
+    }
     setBusy(label);
     try {
       await fn();

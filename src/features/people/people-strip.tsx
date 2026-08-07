@@ -1,9 +1,18 @@
+import { useEffect, useState } from 'react';
 import { Image } from 'expo-image';
-import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
+import { Alert, Platform, Pressable, ScrollView, Text, View } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { useSession } from '@/state/session';
 import { pickFromLibrary, preparePersonImage } from '@/platform/media';
+import { loadForceFreeAds } from '@/monetization/ads-prefs';
+import {
+  FREE_MAX_PEOPLE,
+  canAddPersonCount,
+  hasEffectiveProSync,
+} from '@/monetization/free-limits';
+import { useIsPro } from '@/monetization/purchases';
 import { colors, radii, space, type } from '@/ui/tokens';
 
 export type PeopleStripCaptureMode = 'none' | 'library' | 'sheet';
@@ -31,14 +40,25 @@ export function PeopleStrip({
   thumbs = 'live',
   onPersonFocus,
 }: Props) {
+  const { t } = useTranslation();
   const mode: PeopleStripCaptureMode =
     captureMode ?? (enablePhotoPick ? 'library' : 'none');
+  const isPro = useIsPro();
+  const [forceFree, setForceFree] = useState(false);
   const subjects = useSession((s) => s.subjects);
   const activeId = useSession((s) => s.activePersonId ?? s.subjects[0]?.id);
   const setActivePerson = useSession((s) => s.setActivePerson);
   const addPerson = useSession((s) => s.addPerson);
   const removePerson = useSession((s) => s.removePerson);
   const setPersonUri = useSession((s) => s.setPersonUri);
+
+  useEffect(() => {
+    if (Platform.OS === 'web') return;
+    void loadForceFreeAds().then(setForceFree);
+  }, []);
+
+  const effectivePro =
+    Platform.OS === 'web' || hasEffectiveProSync(isPro, forceFree);
 
   const focus = (id: string) => {
     setActivePerson(id);
@@ -132,6 +152,20 @@ export function PeopleStrip({
   const onAdd = async () => {
     if (process.env.EXPO_OS === 'ios') {
       void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+    if (!canAddPersonCount(subjects.length, effectivePro)) {
+      Alert.alert(
+        t('pro.limitPeopleTitle'),
+        t('pro.limitPeopleBody', { limit: FREE_MAX_PEOPLE }),
+        [
+          { text: t('common.cancel'), style: 'cancel' },
+          {
+            text: t('pro.limitCta'),
+            onPress: () => router.push('/pro'),
+          },
+        ],
+      );
+      return;
     }
     const id = addPerson();
     if (mode === 'library') {

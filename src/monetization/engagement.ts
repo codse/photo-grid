@@ -46,6 +46,8 @@ export async function maybeRequestReview(): Promise<boolean> {
 /** Call after a successful share/save export. */
 export async function onExportSuccessEngagement(): Promise<void> {
   await bumpExportCount();
+  const { recordDailyExport } = await import('@/monetization/free-limits');
+  await recordDailyExport();
   // Slight delay so we don’t stack on interstitial.
   setTimeout(() => {
     void maybeRequestReview();

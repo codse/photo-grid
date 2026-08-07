@@ -25,6 +25,8 @@ import { colors, fonts, radii, space, type } from '@/ui/tokens';
 
 const FEATURE_KEYS = [
   'pro.featureAds',
+  'pro.featureExports',
+  'pro.featurePeople',
   'pro.featureLifetime',
   'pro.featureApple',
 ] as const;
