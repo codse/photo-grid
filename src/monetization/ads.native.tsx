@@ -5,8 +5,8 @@ import mobileAds, {
   BannerAd,
   BannerAdSize,
   InterstitialAd,
-  RewardedAd,
   RewardedAdEventType,
+  RewardedInterstitialAd,
   TestIds,
   useForeground,
 } from 'react-native-google-mobile-ads';
@@ -19,10 +19,12 @@ import {
   REWARDED_MUTE_MS,
 } from './ads-prefs';
 
-/** From edv-guide (Android). Override via env when real iOS units exist. */
+/** Production AdMob units (Passport / ID Photo Maker). */
 const EDV_BANNER = 'ca-app-pub-3859855802547804/8100990773';
 const EDV_INTERSTITIAL = 'ca-app-pub-3859855802547804/5372693571';
-const EDV_REWARDED = 'ca-app-pub-3859855802547804/5372693571'; // fallback until dedicated unit
+/** Rewarded interstitial — “ads off 1 hour” break. */
+const EDV_REWARDED_INTERSTITIAL =
+  'ca-app-pub-3859855802547804/2171649565';
 
 const FORCE_TEST_ADS =
   __DEV__ || process.env.EXPO_PUBLIC_ADMOB_USE_TEST_IDS !== '0';
@@ -37,7 +39,9 @@ const INTERSTITIAL_UNIT =
 
 const REWARDED_UNIT =
   process.env.EXPO_PUBLIC_ADMOB_REWARDED_UNIT_ID?.trim() ||
-  (FORCE_TEST_ADS ? TestIds.REWARDED : EDV_REWARDED);
+  (FORCE_TEST_ADS
+    ? TestIds.REWARDED_INTERSTITIAL
+    : EDV_REWARDED_INTERSTITIAL);
 
 /** Don’t stack full-screens — feels spammy. */
 const INTERSTITIAL_COOLDOWN_MS = 90_000;
@@ -47,7 +51,7 @@ let adsInitPromise: Promise<boolean> | null = null;
 let interstitial: InterstitialAd | null = null;
 let interstitialLoaded = false;
 let lastInterstitialAt = 0;
-let rewarded: RewardedAd | null = null;
+let rewarded: RewardedInterstitialAd | null = null;
 let rewardedLoaded = false;
 
 async function adsAreSuppressed(): Promise<boolean> {
@@ -89,15 +93,15 @@ function ensureInterstitial() {
 
 function ensureRewarded() {
   if (rewarded) return;
-  rewarded = RewardedAd.createForAdRequest(REWARDED_UNIT, {
+  rewarded = RewardedInterstitialAd.createForAdRequest(REWARDED_UNIT, {
     requestNonPersonalizedAdsOnly: true,
   });
   rewarded.addAdEventListener(RewardedAdEventType.LOADED, () => {
     rewardedLoaded = true;
-    if (__DEV__) console.log('[AdMob] rewarded loaded');
+    if (__DEV__) console.log('[AdMob] rewarded interstitial loaded');
   });
   rewarded.addAdEventListener(RewardedAdEventType.EARNED_REWARD, () => {
-    if (__DEV__) console.log('[AdMob] rewarded earned');
+    if (__DEV__) console.log('[AdMob] rewarded interstitial earned');
   });
   rewarded.addAdEventListener(AdEventType.CLOSED, () => {
     rewardedLoaded = false;
@@ -105,9 +109,49 @@ function ensureRewarded() {
   });
   rewarded.addAdEventListener(AdEventType.ERROR, (err) => {
     rewardedLoaded = false;
-    if (__DEV__) console.warn('[AdMob] rewarded error', err);
+    if (__DEV__) console.warn('[AdMob] rewarded interstitial error', err);
   });
   rewarded.load();
+}
+
+function withTimeout<T>(p: Promise<T>, ms: number, label: string): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const t = setTimeout(
+      () => reject(new Error(`[AdMob] ${label} timed out after ${ms}ms`)),
+      ms,
+    );
+    p.then(
+      (v) => {
+        clearTimeout(t);
+        resolve(v);
+      },
+      (e) => {
+        clearTimeout(t);
+        reject(e);
+      },
+    );
+  });
+}
+
+/** Wait until rewarded is loaded (or timeout / error). */
+function waitForRewardedLoaded(ms = 12_000): Promise<boolean> {
+  if (rewardedLoaded) return Promise.resolve(true);
+  ensureRewarded();
+  return new Promise((resolve) => {
+    const start = Date.now();
+    const tick = () => {
+      if (rewardedLoaded) {
+        resolve(true);
+        return;
+      }
+      if (Date.now() - start >= ms) {
+        resolve(false);
+        return;
+      }
+      setTimeout(tick, 200);
+    };
+    tick();
+  });
 }
 
 export async function initAds(): Promise<boolean> {
@@ -117,16 +161,30 @@ export async function initAds(): Promise<boolean> {
 
   adsInitPromise = (async () => {
     try {
-      await mobileAds().setRequestConfiguration({
-        testDeviceIdentifiers: ['EMULATOR'],
-      });
-      await mobileAds().initialize();
+      if (__DEV__) console.log('[AdMob] initializing…');
+      await withTimeout(
+        mobileAds().setRequestConfiguration({
+          // EMULATOR + common debug; real device IDs appear in Xcode console as
+          // "GADMobileAds … test device" — paste into EXPO_PUBLIC_ADMOB_TEST_DEVICE_IDS
+          testDeviceIdentifiers: [
+            'EMULATOR',
+            ...(process.env.EXPO_PUBLIC_ADMOB_TEST_DEVICE_IDS?.split(',')
+              .map((s) => s.trim())
+              .filter(Boolean) ?? []),
+          ],
+        }),
+        8_000,
+        'setRequestConfiguration',
+      );
+      await withTimeout(mobileAds().initialize(), 15_000, 'initialize');
       adsReady = true;
       if (__DEV__) {
         console.log('[AdMob] initialized', {
           BANNER_UNIT,
           INTERSTITIAL_UNIT,
           REWARDED_UNIT,
+          pro: getCachedIsPro(),
+          forceFree: getForceFreeAdsSync(),
         });
       }
     } catch (e) {
@@ -190,9 +248,6 @@ export type RewardedResult =
 
 /** Watch a rewarded ad → mute ads for {@link REWARDED_MUTE_MS}. */
 export async function showRewardedForAdBreak(): Promise<RewardedResult> {
-  if (Platform.OS === 'web') {
-    return { status: 'unavailable', message: 'Ads are not available on web.' };
-  }
   await loadForceFreeAds();
   // Still allow rewarded even when Pro? No — Pro already has no ads.
   if (!getForceFreeAdsSync()) {
@@ -208,15 +263,25 @@ export async function showRewardedForAdBreak(): Promise<RewardedResult> {
     }
   }
 
-  if (!adsReady) await initAds();
+  if (!adsReady) {
+    const ok = await initAds();
+    if (!ok) {
+      return {
+        status: 'unavailable',
+        message: 'Ads failed to initialize — check Metro for [AdMob] logs.',
+      };
+    }
+  }
   ensureRewarded();
 
-  if (!rewarded || !rewardedLoaded) {
-    rewarded?.load();
-    return {
-      status: 'unavailable',
-      message: 'Ad isn’t ready yet — try again in a moment.',
-    };
+  if (!rewardedLoaded) {
+    const loaded = await waitForRewardedLoaded(12_000);
+    if (!loaded || !rewarded) {
+      return {
+        status: 'unavailable',
+        message: 'Ad isn’t ready yet — try again in a moment.',
+      };
+    }
   }
 
   return new Promise((resolve) => {

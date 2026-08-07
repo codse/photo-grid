@@ -1,8 +1,4 @@
 {
-  "react-native-google-mobile-ads": {
-    "android_app_id": "ca-app-pub-3859855802547804~6624257573",
-    "ios_app_id": "ca-app-pub-3940256099942544~1458002511"
-  },
   "expo": {
     "name": "Passport Photo Print",
     "owner": "codse",
@@ -28,7 +24,7 @@
         "NSPhotoLibraryUsageDescription": "Passport Photo Print needs photo library access to import and save ID photos.",
         "NSPhotoLibraryAddUsageDescription": "Passport Photo Print saves printable photo sheets to your library.",
         "ITSAppUsesNonExemptEncryption": false,
-        "GADApplicationIdentifier": "ca-app-pub-3940256099942544~1458002511",
+        "GADApplicationIdentifier": "ca-app-pub-3859855802547804~5410835231",
         "UIApplicationSceneManifest": {
           "UIApplicationSupportsMultipleScenes": false,
           "UISceneConfigurations": {
@@ -97,7 +93,7 @@
         "react-native-google-mobile-ads",
         {
           "androidAppId": "ca-app-pub-3859855802547804~6624257573",
-          "iosAppId": "ca-app-pub-3940256099942544~1458002511"
+          "iosAppId": "ca-app-pub-3859855802547804~5410835231"
         }
       ],
       "expo-localization"
