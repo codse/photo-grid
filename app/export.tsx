@@ -13,6 +13,7 @@ import { BookmarkSimpleIcon } from 'phosphor-react-native/src/icons/BookmarkSimp
 import { ExportIcon } from 'phosphor-react-native/src/icons/Export';
 import { ShareNetworkIcon } from 'phosphor-react-native/src/icons/ShareNetwork';
 import { PeopleStrip } from '@/features/people/people-strip';
+import { usePersonPreviews } from '@/features/people/use-person-previews';
 import { packSubjects } from '@/core/layout';
 import type { ExportImageExt } from '@/core/export-name';
 import { formatSize } from '@/core/units';
@@ -49,6 +50,7 @@ function ExportBody() {
   const photoId = useSession((s) => s.photoId);
   const packMode = useSession((s) => s.packMode);
   const orientation = useSession((s) => s.orientation);
+  usePersonPreviews();
   const gapMm = useSession((s) => s.gapMm);
   const marginMm = useSession((s) => s.marginMm);
   const cutGuides = useSession((s) => s.cutGuides);
@@ -191,7 +193,7 @@ function ExportBody() {
 
   return (
     <View style={{ flex: 1 }}>
-      <PeopleStrip />
+      <PeopleStrip captureMode="sheet" />
       <ScrollView
         contentInsetAdjustmentBehavior="automatic"
         contentContainerStyle={{

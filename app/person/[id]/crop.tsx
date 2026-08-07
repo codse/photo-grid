@@ -17,8 +17,9 @@ import { ScissorsIcon } from 'phosphor-react-native/src/icons/Scissors';
 import { AdjustModal } from '@/features/sheet/adjust-modal';
 import { CropCanvas } from '@/features/sheet/crop-canvas';
 import { PeopleStrip } from '@/features/people/people-strip';
+import { usePersonPreviews } from '@/features/people/use-person-previews';
 import { useSession } from '@/state/session';
-import { pickFromLibrary } from '@/platform/media';
+import { pickFromLibrary, preparePersonImage } from '@/platform/media';
 import {
   BG_REMOVAL_AVAILABLE,
   removeBackground,
@@ -53,6 +54,7 @@ function PersonCropBody() {
   const [busy, setBusy] = useState(false);
   const [bgNote, setBgNote] = useState<string | null>(null);
   const [adjustOpen, setAdjustOpen] = useState(false);
+  usePersonPreviews();
 
   useEffect(() => {
     if (active?.id) setActivePerson(active.id);
@@ -88,8 +90,9 @@ function PersonCropBody() {
     try {
       const img = await pickFromLibrary();
       if (!img) return;
-      setPersonUri(active.id, img.uri, {
-        sourceName: img.fileName ?? img.uri,
+      const prepared = await preparePersonImage(img);
+      setPersonUri(active.id, prepared.uri, {
+        sourceName: prepared.fileName ?? prepared.uri,
       });
     } catch (e) {
       Alert.alert(
