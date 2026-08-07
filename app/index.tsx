@@ -26,6 +26,7 @@ import { InsetGroup, ListRow, SectionHeader } from '@/ui/list-row';
 import { CameraIcon, GridIcon, LibraryIcon } from '@/ui/icons';
 import { colors, space } from '@/ui/tokens';
 import { ProOffer } from '@/monetization/pro-offer';
+import { ProBadge } from '@/monetization/pro-badge';
 import { AdBanner } from '@/monetization/ads';
 import { useIsPro } from '@/monetization/purchases';
 import { useTranslation } from 'react-i18next';
@@ -199,9 +200,11 @@ export default function HomeScreen() {
 
       <Stack.Toolbar placement="right">
         {isPro ? (
-          <Stack.Toolbar.Button accessibilityLabel="Pro" tintColor={colors.ink}>
-            PRO
-          </Stack.Toolbar.Button>
+          <Stack.Toolbar.View hidesSharedBackground>
+            <View style={{ justifyContent: 'center', paddingRight: 4 }}>
+              <ProBadge />
+            </View>
+          </Stack.Toolbar.View>
         ) : null}
         <Stack.Toolbar.Button
           icon="gearshape"
