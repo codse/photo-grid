@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
-  LayoutChangeEvent,
   Pressable,
   StyleSheet,
   Text,
@@ -20,7 +19,7 @@ import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { runOnJS } from 'react-native-reanimated';
 import Slider from '@react-native-community/slider';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ArrowClockwiseIcon } from 'phosphor-react-native/src/icons/ArrowClockwise';
+import { CameraRotateIcon } from 'phosphor-react-native/src/icons/CameraRotate';
 import { SunIcon } from 'phosphor-react-native/src/icons/Sun';
 import { pickFromCamera } from '@/platform/media';
 import type { CameraCaptureProps } from '@/platform/camera-types';
@@ -83,7 +82,6 @@ export function CameraCapture({ onCaptured, onCancel }: CameraCaptureProps) {
   const [readyWait, setReadyWait] = useState(true);
   const [active, setActive] = useState(true);
   const [focusUI, setFocusUI] = useState<{ x: number; y: number } | null>(null);
-  const [previewSize, setPreviewSize] = useState({ w: 0, h: 0 });
 
   const hasFront = useMemo(
     () => devices.some((d) => d.position === 'front'),
@@ -220,11 +218,6 @@ export function CameraCapture({ onCaptured, onCancel }: CameraCaptureProps) {
     }
   }, [onCaptured]);
 
-  const onPreviewLayout = (e: LayoutChangeEvent) => {
-    const { width, height } = e.nativeEvent.layout;
-    setPreviewSize({ w: width, h: height });
-  };
-
   if (!hasPermission) {
     return (
       <View style={styles.center}>
@@ -293,7 +286,7 @@ export function CameraCapture({ onCaptured, onCancel }: CameraCaptureProps) {
   const showExposure = exposureRange > 0.01;
 
   return (
-    <View style={styles.fill} onLayout={onPreviewLayout}>
+    <View style={styles.fill}>
       <GestureDetector gesture={tapGesture}>
         <View style={StyleSheet.absoluteFill}>
           <Camera
@@ -327,37 +320,13 @@ export function CameraCapture({ onCaptured, onCancel }: CameraCaptureProps) {
         style={[
           styles.overlay,
           {
-            paddingTop: Math.max(insets.top, 12) + 8,
+            // Leave room for the transparent stack header (close X)
+            paddingTop: Math.max(insets.top, 12) + 52,
             paddingBottom: Math.max(insets.bottom, 16) + 8,
           },
         ]}
         pointerEvents="box-none"
       >
-        <View style={styles.topBar} pointerEvents="box-none">
-          <Pressable
-            onPress={onCancel}
-            style={styles.chipBtn}
-            accessibilityRole="button"
-            accessibilityLabel="Cancel"
-          >
-            <Text style={styles.chipLabel}>Cancel</Text>
-          </Pressable>
-          {canFlip ? (
-            <Pressable
-              onPress={flip}
-              style={styles.iconBtn}
-              accessibilityRole="button"
-              accessibilityLabel={
-                position === 'front' ? 'Switch to back camera' : 'Switch to front camera'
-              }
-            >
-              <ArrowClockwiseIcon size={22} color="#fff" weight="bold" />
-            </Pressable>
-          ) : (
-            <View style={{ width: 44 }} />
-          )}
-        </View>
-
         <View style={styles.mid} pointerEvents="box-none">
           <View style={styles.guide} pointerEvents="none" />
 
@@ -408,9 +377,7 @@ export function CameraCapture({ onCaptured, onCancel }: CameraCaptureProps) {
           ) : null}
 
           <View style={styles.bar}>
-            <Text style={styles.sideHint}>
-              {position === 'front' ? 'Front' : 'Back'}
-            </Text>
+            <View style={styles.barSide} />
             <Pressable
               accessibilityRole="button"
               accessibilityLabel="Take photo"
@@ -418,9 +385,22 @@ export function CameraCapture({ onCaptured, onCancel }: CameraCaptureProps) {
               disabled={busy}
               style={[styles.shutter, busy ? { opacity: 0.5 } : null]}
             />
-            <Text style={styles.sideHint}>
-              {previewSize.w > 0 && device.supportsFocus ? 'Tap focus' : ' '}
-            </Text>
+            <View style={styles.barSide}>
+              {canFlip ? (
+                <Pressable
+                  onPress={flip}
+                  style={styles.iconBtn}
+                  accessibilityRole="button"
+                  accessibilityLabel={
+                    position === 'front'
+                      ? 'Switch to back camera'
+                      : 'Switch to front camera'
+                  }
+                >
+                  <CameraRotateIcon size={22} color="#fff" weight="bold" />
+                </Pressable>
+              ) : null}
+            </View>
           </View>
         </View>
       </View>
@@ -446,24 +426,6 @@ const styles = StyleSheet.create({
     top: 0,
     bottom: 0,
     justifyContent: 'space-between',
-  },
-  topBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: space.lg,
-  },
-  chipBtn: {
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    borderRadius: 999,
-    backgroundColor: 'rgba(0,0,0,0.35)',
-  },
-  chipLabel: {
-    color: '#fff',
-    fontFamily: fonts.semibold,
-    fontWeight: '600',
-    fontSize: 15,
   },
   iconBtn: {
     width: 44,
@@ -553,12 +515,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  sideHint: {
+  barSide: {
     width: 72,
-    textAlign: 'center',
-    color: 'rgba(255,255,255,0.55)',
-    fontFamily: fonts.medium,
-    fontSize: 12,
+    alignItems: 'flex-end',
+    justifyContent: 'center',
   },
   shutter: {
     width: 72,
