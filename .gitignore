@@ -37,3 +37,6 @@ scripts/asc-env.sh
 audit/
 eas.submit.local.json
 .secrets/
+
+# Local Xcode / agent build dumps
+.build/
