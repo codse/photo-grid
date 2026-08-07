@@ -233,7 +233,7 @@ export async function lifetimePriceString(): Promise<string | null> {
 
 /**
  * Drop empty / absurd store prices (e.g. mistaken Test Store $99.99)
- * so the UI falls back to LIFETIME_PRICE_LABEL ($9.99).
+ * so the UI falls back to LIFETIME_PRICE_LABEL ($4.99).
  */
 function sanitizeLifetimePrice(priceString: string | null): string | null {
   if (!priceString) return null;

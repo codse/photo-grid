@@ -25,7 +25,7 @@ Shippable chunks. Checkmarks = done in product.
 
 **Use RevenueCat** (already integrated), not raw StoreKit-only.
 
-- One $9.99 lifetime is simple enough for native IAP alone.
+- One $4.99 lifetime is simple enough for native IAP alone.
 - RC still wins here: restore, entitlement cache for ads gate, live `priceString`, dashboard, less receipt glue.
 - Keep native product id `com.codse.passport.photo.print.lifetime` + entitlement `pro`.
 

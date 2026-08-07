@@ -26,7 +26,7 @@ Related always-on Cursor rules: `.cursor/rules/*.mdc`.
 | Expo slug | `passport-photo-print` |
 | Team | `53WLLK8L87` |
 | EAS project | `086260f6-73c5-4094-ae95-40b451b7946a` |
-| Lifetime IAP | `com.codse.passport.photo.print.lifetime` @ **$9.99** USD |
+| Lifetime IAP | `com.codse.passport.photo.print.lifetime` @ **$4.99** USD |
 | RC project | `projf0df0e39` |
 | RC iOS app | `app915c6d09d1` |
 | Entitlement | `pro` |
