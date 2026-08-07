@@ -42,10 +42,14 @@ export default function RootLayout() {
     Commissioner_800ExtraBold,
   });
   const [i18nReady, setI18nReady] = useState(false);
+  const [bootForced, setBootForced] = useState(false);
 
   const hydratePrefs = useSession((s) => s.hydratePrefs);
   const photoId = useSession((s) => s.photoId);
   const paperId = useSession((s) => s.paperId);
+  const exportDpi = useSession((s) => s.exportDpi);
+  const exportFormat = useSession((s) => s.exportFormat);
+  const cutGuides = useSession((s) => s.cutGuides);
   const savedPresets = useSession((s) => s.savedPresets);
   const prefsHydrated = useSession((s) => s.prefsHydrated);
 
@@ -73,14 +77,36 @@ export default function RootLayout() {
 
   useEffect(() => {
     if (!prefsHydrated) return;
-    void savePrefs({ photoId, paperId, savedPresets });
-  }, [photoId, paperId, savedPresets, prefsHydrated]);
+    void savePrefs({
+      photoId,
+      paperId,
+      exportDpi,
+      exportFormat,
+      cutGuides,
+      savedPresets,
+    });
+  }, [
+    photoId,
+    paperId,
+    exportDpi,
+    exportFormat,
+    cutGuides,
+    savedPresets,
+    prefsHydrated,
+  ]);
+
+  const bootReady = (fontsLoaded && i18nReady) || bootForced;
 
   useEffect(() => {
-    if (fontsLoaded && i18nReady) void SplashScreen.hideAsync();
-  }, [fontsLoaded, i18nReady]);
+    const t = setTimeout(() => setBootForced(true), 4000);
+    return () => clearTimeout(t);
+  }, []);
 
-  if (!fontsLoaded || !i18nReady) return null;
+  useEffect(() => {
+    if (bootReady) void SplashScreen.hideAsync();
+  }, [bootReady]);
+
+  if (!bootReady) return null;
 
   return (
     <GestureHandlerRootView style={{ flex: 1, backgroundColor: colors.bg }}>
@@ -97,10 +123,16 @@ export default function RootLayout() {
           },
         }}
       >
-        {/* Brand lives in the home hero — title still used for back button label */}
+        {/* Brand: collapsing title lives on the home screen */}
         <Stack.Screen
           name="index"
-          options={{ headerShown: false, title: 'Home', headerBackTitle: 'Home' }}
+          options={{
+            title: 'Passport Photo Print',
+            headerBackTitle: 'Home',
+            headerTransparent: false,
+            headerLargeTitleEnabled: false,
+            headerShadowVisible: false,
+          }}
         />
         <Stack.Screen
           name="size"
@@ -116,7 +148,15 @@ export default function RootLayout() {
         />
         <Stack.Screen
           name="camera"
-          options={{ title: 'Camera', presentation: 'fullScreenModal' }}
+          options={{
+            title: '',
+            presentation: 'fullScreenModal',
+            headerTransparent: true,
+            headerShadowVisible: false,
+            headerStyle: { backgroundColor: 'transparent' },
+            headerTintColor: '#fff',
+            contentStyle: { backgroundColor: '#000' },
+          }}
         />
         <Stack.Screen
           name="crop"
@@ -138,6 +178,8 @@ export default function RootLayout() {
           name="settings"
           options={{ title: 'Settings', headerBackTitle: 'Home' }}
         />
+        <Stack.Screen name="help" options={{ title: 'Help' }} />
+        <Stack.Screen name="faq" options={{ title: 'FAQ' }} />
         <Stack.Screen name="about" options={{ title: 'About' }} />
         <Stack.Screen name="privacy" options={{ title: 'Privacy Policy' }} />
         <Stack.Screen name="terms" options={{ title: 'Terms of Use' }} />
