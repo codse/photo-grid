@@ -57,6 +57,7 @@ export default function TabsLayout() {
     <NativeTabs
       tintColor={colors.accent}
       iconColor={colors.inkFaint}
+      backgroundColor={colors.bgElevated}
       minimizeBehavior="never"
     >
       <NativeTabs.Trigger name="index">
