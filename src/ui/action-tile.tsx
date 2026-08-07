@@ -54,7 +54,7 @@ export function ActionTile({
           justifyContent: row ? 'flex-start' : 'center',
           gap: row ? space.md : 6,
           opacity: disabled ? 0.45 : 1,
-          transform: pressed && !disabled ? [{ scale: 0.985 }] : undefined,
+          ...(pressed && !disabled ? { transform: [{ scale: 0.985 }] } : null),
         },
         style,
       ]}
