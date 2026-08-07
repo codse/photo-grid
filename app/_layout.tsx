@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Stack, useRouter } from 'expo-router';
-import { Appearance, Platform, View } from 'react-native';
+import { Appearance, Platform, View, useWindowDimensions } from 'react-native';
 import * as Linking from 'expo-linking';
 import { useTranslation } from 'react-i18next';
 import { colors, fonts } from '@/ui/tokens';
@@ -100,6 +100,7 @@ async function peekLaunchLocale(): Promise<AppLocale | null> {
 export default function RootLayout() {
   const router = useRouter();
   const { t } = useTranslation();
+  const { width: winW } = useWindowDimensions();
   const [fontsLoaded] = useFonts({
     Figtree_400Regular,
     Figtree_500Medium,
@@ -231,6 +232,8 @@ export default function RootLayout() {
   if (!bootReady) return null;
 
   const isWeb = Platform.OS === 'web';
+  // Phone chrome by default; widen for sheet sidebar / desktop layouts.
+  const webMaxW = winW >= 900 ? 1080 : 540;
   const homeBack = t('common.home');
 
   return (
@@ -245,7 +248,7 @@ export default function RootLayout() {
         style={{
           flex: 1,
           width: '100%',
-          maxWidth: isWeb ? 540 : undefined,
+          maxWidth: isWeb ? webMaxW : undefined,
           backgroundColor: colors.bg,
         }}
       >

@@ -262,39 +262,46 @@ export function CustomizeSheet({
   );
 }
 
-/** Always-visible sidebar for tablet / wide web. */
-export function SheetOptionsSidebar() {
+/** Full-height docked sidebar for tablet / wide web — not a floating card. */
+export function SheetOptionsSidebar({ width = 320 }: { width?: number }) {
   const { line } = useSheetOptionsSummary();
+  const insets = useSafeAreaInsets();
+
   return (
     <View
       style={{
-        width: 320,
+        width,
         flexShrink: 0,
-        padding: space.lg,
-        gap: space.lg,
+        alignSelf: 'stretch',
+        borderLeftWidth: 1,
+        borderLeftColor: colors.line,
         backgroundColor: colors.bgElevated,
-        borderRadius: radii.lg,
-        borderCurve: 'continuous',
-        borderWidth: 1,
-        borderColor: colors.line,
-        alignSelf: 'flex-start',
       }}
     >
-      <View style={{ gap: 4 }}>
-        <Text
-          style={{
-            ...type.caption,
-            color: colors.inkFaint,
-            textTransform: 'uppercase',
-            letterSpacing: 0.8,
-          }}
-        >
-          Customize
-        </Text>
-        <Text style={{ ...type.caption, color: colors.inkMuted }}>{line}</Text>
-      </View>
-      <SheetOptionsBody />
-      <SavePresetButton />
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{
+          padding: space.lg,
+          paddingBottom: Math.max(insets.bottom, space.xl) + space.lg,
+          gap: space.lg,
+        }}
+      >
+        <View style={{ gap: 4 }}>
+          <Text
+            style={{
+              ...type.caption,
+              color: colors.inkFaint,
+              textTransform: 'uppercase',
+              letterSpacing: 0.8,
+            }}
+          >
+            Customize
+          </Text>
+          <Text style={{ ...type.caption, color: colors.inkMuted }}>{line}</Text>
+        </View>
+        <SheetOptionsBody />
+        <SavePresetButton />
+      </ScrollView>
     </View>
   );
 }

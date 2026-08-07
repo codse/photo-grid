@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
+  Platform,
   ScrollView,
   Text,
   View,
@@ -112,103 +113,106 @@ function SheetBody() {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- keyed by fallbackKey
   }, [fallbackKey]);
 
+  const sidebarW = 320;
   const mainMax = wide
-    ? Math.min(winW - 320 - 48 - 24, 480)
+    ? Math.min(winW - sidebarW - 48, 520)
     : Math.min(winW - 48, 420);
-  const previewW = Math.min(mainMax, 480);
+  const previewW = Math.min(mainMax, 520);
   const previewH =
     previewW * (layout.paperHeightMm / Math.max(layout.paperWidthMm, 1));
 
   const openCustomize = () => setCustomizeOpen(true);
 
-  const primary = (
-    <View style={{ gap: space.lg, flex: 1, minWidth: 0 }}>
-      <View
-        style={{
-          alignSelf: wide ? 'flex-start' : 'center',
-          width: previewW,
-          height: previewH,
-          backgroundColor: colors.paper,
-          borderRadius: radii.sm,
-          borderCurve: 'continuous',
-          borderWidth: 1,
-          borderColor: colors.line,
-          overflow: 'hidden',
-          boxShadow: '0 8px 24px rgba(28,27,25,0.08)',
-        }}
-      >
-        {layout.cells.map((cell) => {
-          const img = images.get(cell.subjectId);
-          const subject = subjects.find((s) => s.id === cell.subjectId);
-          const left = (cell.xMm / layout.paperWidthMm) * previewW;
-          const top = (cell.yMm / layout.paperHeightMm) * previewH;
-          const w = (cell.widthMm / layout.paperWidthMm) * previewW;
-          const h = (cell.heightMm / layout.paperHeightMm) * previewH;
-          const previewUri = subject?.previewUri;
-          return (
-            <View
-              key={cell.id}
-              style={{
-                position: 'absolute',
-                left,
-                top,
-                width: w,
-                height: h,
-                borderWidth: cutGuides ? 1 : 0,
-                borderColor: 'rgba(0,0,0,0.2)',
-                overflow: 'hidden',
-                backgroundColor: colors.line,
-              }}
-            >
-              {previewUri ? (
-                <Image
-                  source={{ uri: previewUri }}
-                  style={{ width: w, height: h }}
-                  contentFit="cover"
-                  recyclingKey={previewUri}
-                />
-              ) : img ? (
-                <CroppedImagePreview
-                  uri={img.uri}
-                  imgW={img.width}
-                  imgH={img.height}
-                  width={w}
-                  height={h}
-                  crop={cell.crop}
-                  adjust={subject?.adjust}
-                />
-              ) : null}
-            </View>
-          );
-        })}
-      </View>
-
-      <Text
-        selectable
-        style={{
-          ...type.caption,
-          color: colors.inkMuted,
-          textAlign: wide ? 'left' : 'center',
-        }}
-      >
-        {t('sheet.meta', {
-          count: layout.cells.length,
-          size: formatSize(layout.paperWidthMm, layout.paperHeightMm),
-        })}
-        {layout.rotated ? ` · ${t('sheet.rotated')}` : ''}
-        {packMode === 'fill'
-          ? ` · ${t('sheet.autoFill')}`
-          : ` · ${t('sheet.customCount')}`}
-      </Text>
-
-      {!wide ? <CustomizeSummaryBar onPress={openCustomize} /> : null}
-
-      <Button
-        label={t('sheet.shareExport')}
-        disabled={layout.cells.length === 0}
-        onPress={() => router.push('/export')}
-      />
+  const preview = (
+    <View
+      style={{
+        alignSelf: wide ? 'flex-start' : 'center',
+        width: previewW,
+        height: previewH,
+        backgroundColor: colors.paper,
+        borderRadius: radii.sm,
+        borderCurve: 'continuous',
+        borderWidth: 1,
+        borderColor: colors.line,
+        overflow: 'hidden',
+        ...(Platform.OS === 'web'
+          ? { boxShadow: '0 8px 24px rgba(28,27,25,0.08)' }
+          : null),
+      }}
+    >
+      {layout.cells.map((cell) => {
+        const img = images.get(cell.subjectId);
+        const subject = subjects.find((s) => s.id === cell.subjectId);
+        const left = (cell.xMm / layout.paperWidthMm) * previewW;
+        const top = (cell.yMm / layout.paperHeightMm) * previewH;
+        const w = (cell.widthMm / layout.paperWidthMm) * previewW;
+        const h = (cell.heightMm / layout.paperHeightMm) * previewH;
+        const previewUri = subject?.previewUri;
+        return (
+          <View
+            key={cell.id}
+            style={{
+              position: 'absolute',
+              left,
+              top,
+              width: w,
+              height: h,
+              borderWidth: cutGuides ? 1 : 0,
+              borderColor: 'rgba(0,0,0,0.2)',
+              overflow: 'hidden',
+              backgroundColor: colors.line,
+            }}
+          >
+            {previewUri ? (
+              <Image
+                source={{ uri: previewUri }}
+                style={{ width: w, height: h }}
+                contentFit="cover"
+                recyclingKey={previewUri}
+              />
+            ) : img ? (
+              <CroppedImagePreview
+                uri={img.uri}
+                imgW={img.width}
+                imgH={img.height}
+                width={w}
+                height={h}
+                crop={cell.crop}
+                adjust={subject?.adjust}
+              />
+            ) : null}
+          </View>
+        );
+      })}
     </View>
+  );
+
+  const meta = (
+    <Text
+      selectable
+      style={{
+        ...type.caption,
+        color: colors.inkMuted,
+        textAlign: wide ? 'left' : 'center',
+      }}
+    >
+      {t('sheet.meta', {
+        count: layout.cells.length,
+        size: formatSize(layout.paperWidthMm, layout.paperHeightMm),
+      })}
+      {layout.rotated ? ` · ${t('sheet.rotated')}` : ''}
+      {packMode === 'fill'
+        ? ` · ${t('sheet.autoFill')}`
+        : ` · ${t('sheet.customCount')}`}
+    </Text>
+  );
+
+  const exportBtn = (
+    <Button
+      label={t('sheet.shareExport')}
+      disabled={layout.cells.length === 0}
+      onPress={() => router.push('/export')}
+    />
   );
 
   return (
@@ -221,32 +225,48 @@ function SheetBody() {
         }}
       />
       <PeopleStrip captureMode="sheet" />
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        contentContainerStyle={{
-          padding: space.xl,
-          paddingBottom: 56,
-          gap: space.lg,
-          ...(wide
-            ? {
-                flexDirection: 'row',
-                alignItems: 'flex-start',
-                gap: space.xl,
-              }
-            : null),
-        }}
-      >
-        {primary}
-        {wide ? <SheetOptionsSidebar /> : null}
-        <AdBanner size="anchored" style={{ marginTop: space.sm }} />
-      </ScrollView>
 
-      {!wide ? (
-        <CustomizeSheet
-          visible={customizeOpen}
-          onClose={() => setCustomizeOpen(false)}
-        />
-      ) : null}
+      {wide ? (
+        <View style={{ flex: 1, flexDirection: 'row', minHeight: 0 }}>
+          <ScrollView
+            style={{ flex: 1, minWidth: 0 }}
+            contentInsetAdjustmentBehavior="automatic"
+            contentContainerStyle={{
+              padding: space.xl,
+              paddingBottom: 56,
+              gap: space.lg,
+              flexGrow: 1,
+            }}
+          >
+            {preview}
+            {meta}
+            {exportBtn}
+            <AdBanner size="anchored" style={{ marginTop: space.sm }} />
+          </ScrollView>
+          <SheetOptionsSidebar width={sidebarW} />
+        </View>
+      ) : (
+        <>
+          <ScrollView
+            contentInsetAdjustmentBehavior="automatic"
+            contentContainerStyle={{
+              padding: space.xl,
+              paddingBottom: 56,
+              gap: space.lg,
+            }}
+          >
+            {preview}
+            {meta}
+            <CustomizeSummaryBar onPress={openCustomize} />
+            {exportBtn}
+            <AdBanner size="anchored" style={{ marginTop: space.sm }} />
+          </ScrollView>
+          <CustomizeSheet
+            visible={customizeOpen}
+            onClose={() => setCustomizeOpen(false)}
+          />
+        </>
+      )}
     </View>
   );
 }
