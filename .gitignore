@@ -36,3 +36,4 @@ yarn-error.*
 scripts/asc-env.sh
 audit/
 eas.submit.local.json
+.env.rc.local
