@@ -1,9 +1,16 @@
 import { useEffect, useState } from 'react';
 import { Stack, useRouter } from 'expo-router';
-import { Appearance, Platform, View, useWindowDimensions } from 'react-native';
+import {
+  Appearance,
+  InteractionManager,
+  Platform,
+  View,
+  useWindowDimensions,
+} from 'react-native';
 import * as Linking from 'expo-linking';
 import { useTranslation } from 'react-i18next';
 import { colors, fonts } from '@/ui/tokens';
+import { ensureDisplayFonts } from '@/ui/ensure-display-fonts';
 import { useSession } from '@/state/session';
 import { loadPrefs, savePrefs } from '@/platform/prefs';
 import { initAds } from '@/monetization/ads';
@@ -27,19 +34,15 @@ import {
   Figtree_600SemiBold,
   Figtree_700Bold,
 } from '@expo-google-fonts/figtree';
-import {
-  Fredoka_600SemiBold,
-  Fredoka_700Bold,
-} from '@expo-google-fonts/fredoka';
-import {
-  Commissioner_600SemiBold,
-  Commissioner_700Bold,
-  Commissioner_800ExtraBold,
-} from '@expo-google-fonts/commissioner';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { StatusBar } from 'expo-status-bar';
 
 void SplashScreen.preventAutoHideAsync().catch(() => undefined);
+try {
+  SplashScreen.setOptions({ duration: 280, fade: true });
+} catch {
+  // older native binaries may lack setOptions
+}
 
 /** Keep tabs under transparent camera modal (esp. web deep links). */
 export const unstable_settings = {
@@ -48,7 +51,8 @@ export const unstable_settings = {
 
 /** Headless sim capture: plant Documents/shot-route.txt then relaunch. */
 const SHOT_ROUTE_FILE = 'shot-route.txt';
-const BOOT_FORCE_MS = 2500;
+/** Fail-open if fonts/i18n stall — never leave users on a blank splash. */
+const BOOT_FORCE_MS = 2000;
 
 const ALLOWED_SHOT_ROUTES = new Set([
   '/(tabs)/index',
@@ -101,22 +105,30 @@ async function peekLaunchLocale(): Promise<AppLocale | null> {
   }
 }
 
+function deferAfterFirstFrame(task: () => void): () => void {
+  let timeout: ReturnType<typeof setTimeout> | undefined;
+  const handle = InteractionManager.runAfterInteractions(() => {
+    // Yield one more macrotask so the first commit paints before AdMob/RC.
+    timeout = setTimeout(task, 0);
+  });
+  return () => {
+    handle.cancel?.();
+    if (timeout) clearTimeout(timeout);
+  };
+}
+
 /**
  * Boot gate must NOT call useTranslation — react-i18next defaults to
  * useSuspense:true, which suspends before initI18n's useEffect can run →
  * permanent blank screen in release builds.
  */
 export default function RootLayout() {
+  // Critical path only: UI body type. Promo faces load after first paint.
   const [fontsLoaded, fontError] = useFonts({
     Figtree_400Regular,
     Figtree_500Medium,
     Figtree_600SemiBold,
     Figtree_700Bold,
-    Fredoka_600SemiBold,
-    Fredoka_700Bold,
-    Commissioner_600SemiBold,
-    Commissioner_700Bold,
-    Commissioner_800ExtraBold,
   });
   const [i18nReady, setI18nReady] = useState(false);
   const [bootForced, setBootForced] = useState(false);
@@ -158,16 +170,6 @@ export default function RootLayout() {
   }, []);
 
   useEffect(() => {
-    if (Platform.OS === 'web') return;
-    void configurePurchases().catch((e) => {
-      if (__DEV__) console.warn('[RevenueCat] init failed', e);
-    });
-    void initAds().catch((e) => {
-      if (__DEV__) console.warn('[AdMob] init failed', e);
-    });
-  }, []);
-
-  useEffect(() => {
     if (!prefsHydrated) return;
     void savePrefs({
       photoId,
@@ -197,6 +199,21 @@ export default function RootLayout() {
 
   useEffect(() => {
     if (bootReady) void SplashScreen.hideAsync();
+  }, [bootReady]);
+
+  // Monetization + display fonts: after first interactions / paint.
+  useEffect(() => {
+    if (!bootReady) return;
+    return deferAfterFirstFrame(() => {
+      void ensureDisplayFonts();
+      if (Platform.OS === 'web') return;
+      void configurePurchases().catch((e) => {
+        if (__DEV__) console.warn('[RevenueCat] init failed', e);
+      });
+      void initAds().catch((e) => {
+        if (__DEV__) console.warn('[AdMob] init failed', e);
+      });
+    });
   }, [bootReady]);
 
   if (!bootReady) {

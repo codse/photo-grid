@@ -75,7 +75,7 @@ const styles = StyleSheet.create({
     borderWidth: 0,
   },
   label: {
-    fontFamily: fonts.playful,
+    fontFamily: fonts.bold,
     fontSize: 11,
     lineHeight: 13,
     color: colors.ink,

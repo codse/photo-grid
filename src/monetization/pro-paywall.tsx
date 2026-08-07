@@ -27,6 +27,7 @@ import {
 } from './purchases';
 import type { ProReason } from './pro-route';
 import { Button } from '@/ui/primitives';
+import { ensureDisplayFonts } from '@/ui/ensure-display-fonts';
 import { colors, fonts, radii, space, type } from '@/ui/tokens';
 
 type Feature = {
@@ -71,6 +72,7 @@ export function ProPaywall({ reason }: Props) {
   }, [reason]);
 
   useEffect(() => {
+    void ensureDisplayFonts();
     void refresh();
   }, [refresh]);
 

@@ -24,6 +24,7 @@ import {
   restorePurchases,
 } from './purchases';
 import { openProPaywall } from './pro-route';
+import { ensureDisplayFonts } from '@/ui/ensure-display-fonts';
 import { colors, fonts, space } from '@/ui/tokens';
 
 const R = 18;
@@ -146,6 +147,7 @@ export function ProOffer() {
   }, []);
 
   useEffect(() => {
+    void ensureDisplayFonts();
     void refresh();
   }, [refresh]);
 
