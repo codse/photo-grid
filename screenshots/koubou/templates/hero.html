@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    font-family: "Figtree", -apple-system, BlinkMacSystemFont, sans-serif;
+    background:
+      radial-gradient(ellipse 85% 50% at 50% -5%, rgba(255, 107, 53, 0.28) 0%, transparent 55%),
+      linear-gradient(168deg, #FFF7F2 0%, #FFE8DC 42%, #FF6B35 100%);
+    position: relative;
+  }
+  .text-area {
+    position: absolute;
+    top: 5%;
+    left: 0;
+    right: 0;
+    text-align: center;
+    padding: 0 7%;
+    z-index: 2;
+  }
+  h1 {
+    font-size: 12.5vw;
+    font-weight: 800;
+    color: #2A211C;
+    line-height: 1.02;
+    margin-bottom: 2vh;
+    letter-spacing: -0.03em;
+  }
+  p {
+    font-size: 5vw;
+    font-weight: 600;
+    color: rgba(42, 33, 28, 0.72);
+    line-height: 1.25;
+    max-width: 88%;
+    margin: 0 auto;
+  }
+  .device-area {
+    position: absolute;
+    bottom: -10%;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: center;
+    z-index: 1;
+  }
+  .device-area img {
+    width: 82vw;
+    height: auto;
+    object-fit: contain;
+    filter: drop-shadow(0 2.8vw 4.5vw rgba(42, 33, 28, 0.28));
+  }
+</style>
+</head>
+<body>
+  <div class="text-area">
+    <h1 data-kou-id="headline" data-kou-role="headline">{{headline}}</h1>
+    <p data-kou-id="subtitle" data-kou-role="supporting">{{subtitle}}</p>
+  </div>
+  <div class="device-area">
+    <img data-kou-id="device" data-kou-role="device" src="{{app_screenshot}}" alt="">
+  </div>
+</body>
+</html>

@@ -1,0 +1,43 @@
+project:
+  name: Passport Photo Print
+  device: iPhone 17 Pro - Cosmic Orange - Portrait
+  output_dir: ../fancy/iphone65
+  output_size: iPhone6_5
+
+localization:
+  base_language: en
+  languages: [en, en-GB, es, fr, pt, hi]
+  xcstrings_path: koubou-strings.xcstrings
+
+screenshots:
+  01-home:
+    template: templates/hero.html
+    variables:
+      headline: Crop to size. Print at home.
+      subtitle: Exact passport & ID frames — offline on your iPhone
+    assets:
+      app_screenshot: ../raw/en-US/home.png
+
+  02-crop:
+    template: templates/crop.html
+    variables:
+      headline: Frame it exactly
+      subtitle: Official sizes with guides you can trust
+    assets:
+      app_screenshot: ../raw/en-US/crop.png
+
+  03-sheet:
+    template: templates/sheet.html
+    variables:
+      headline: Fill a pharmacy sheet
+      subtitle: Tile copies with cut guides for clean trimming
+    assets:
+      app_screenshot: ../raw/en-US/sheet.png
+
+  04-size:
+    template: templates/size.html
+    variables:
+      headline: Pick country & paper
+      subtitle: Nepal, US, UK, and more — on 4×6 or A4
+    assets:
+      app_screenshot: ../raw/en-US/size.png
