@@ -5,6 +5,14 @@ export const MM_TO_IN = 1 / 25.4;
 /** Print DPI for raster export */
 export const PRINT_DPI = 300;
 
+/** User-selectable export DPIs (passport labs expect 300; 600 is optional sharpness). */
+export const EXPORT_DPI_OPTIONS = [300, 600] as const;
+export type ExportDpi = (typeof EXPORT_DPI_OPTIONS)[number];
+
+export function isExportDpi(v: unknown): v is ExportDpi {
+  return v === 300 || v === 600;
+}
+
 export function inToMm(inches: number): number {
   return inches * IN_TO_MM;
 }

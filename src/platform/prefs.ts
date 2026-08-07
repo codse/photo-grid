@@ -1,4 +1,6 @@
 import AsyncStorage from '@/platform/storage';
+import type { ExportImageExt } from '@/core/export-name';
+import { isExportDpi, type ExportDpi } from '@/core/units';
 
 const KEY = 'passport-photo-print.prefs.v1';
 export const SAVED_PRESET_MAX = 12;
@@ -23,6 +25,12 @@ export type ConfigSnapshot = {
 export type StoredPrefs = {
   photoId: string;
   paperId: string;
+  /** Default raster DPI for share / save. */
+  exportDpi?: ExportDpi;
+  /** Default image format on the Share screen. */
+  exportFormat?: ExportImageExt;
+  /** Default cut guides for new sheets. */
+  cutGuides?: boolean;
   /** @deprecated migrated into savedPresets */
   recentConfigs?: unknown[];
   savedPresets?: ConfigSnapshot[];
@@ -63,6 +71,10 @@ function isPackMode(v: unknown): v is PackMode {
 
 function isOrientation(v: unknown): v is Orientation {
   return v === 'auto' || v === 'portrait' || v === 'landscape';
+}
+
+function isExportFormat(v: unknown): v is ExportImageExt {
+  return v === 'png' || v === 'jpg';
 }
 
 function migrateOne(raw: unknown, index: number): ConfigSnapshot | null {
@@ -113,6 +125,12 @@ export async function loadPrefs(): Promise<StoredPrefs | null> {
     return {
       photoId: parsed.photoId,
       paperId: parsed.paperId,
+      exportDpi: isExportDpi(parsed.exportDpi) ? parsed.exportDpi : 300,
+      exportFormat: isExportFormat(parsed.exportFormat)
+        ? parsed.exportFormat
+        : 'jpg',
+      cutGuides:
+        typeof parsed.cutGuides === 'boolean' ? parsed.cutGuides : true,
       savedPresets: fromNew.length > 0 ? fromNew : fromLegacy,
     };
   } catch {
@@ -123,6 +141,9 @@ export async function loadPrefs(): Promise<StoredPrefs | null> {
 export async function savePrefs(prefs: {
   photoId: string;
   paperId: string;
+  exportDpi?: ExportDpi;
+  exportFormat?: ExportImageExt;
+  cutGuides?: boolean;
   savedPresets?: ConfigSnapshot[];
 }): Promise<void> {
   try {
@@ -131,6 +152,9 @@ export async function savePrefs(prefs: {
       JSON.stringify({
         photoId: prefs.photoId,
         paperId: prefs.paperId,
+        exportDpi: prefs.exportDpi ?? 300,
+        exportFormat: prefs.exportFormat ?? 'jpg',
+        cutGuides: prefs.cutGuides ?? true,
         savedPresets: (prefs.savedPresets ?? []).slice(0, SAVED_PRESET_MAX),
       } satisfies StoredPrefs),
     );

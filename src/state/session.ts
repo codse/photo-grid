@@ -18,6 +18,8 @@ import {
 import type { ConfigSnapshot } from '@/platform/prefs';
 import { newPresetId, upsertPreset } from '@/platform/prefs';
 import { defaultPresetName } from '@/features/sheet/config-label';
+import type { ExportImageExt } from '@/core/export-name';
+import type { ExportDpi } from '@/core/units';
 
 export type PackMode = 'exact' | 'fill';
 export type Orientation = 'auto' | 'portrait' | 'landscape';
@@ -25,6 +27,9 @@ export type Orientation = 'auto' | 'portrait' | 'landscape';
 type Prefs = {
   photoId: string;
   paperId: string;
+  exportDpi?: ExportDpi;
+  exportFormat?: ExportImageExt;
+  cutGuides?: boolean;
   savedPresets?: ConfigSnapshot[];
 };
 
@@ -38,12 +43,16 @@ type SessionState = {
   gapMm: number;
   marginMm: number;
   cutGuides: boolean;
+  exportDpi: ExportDpi;
+  exportFormat: ExportImageExt;
   prefsHydrated: boolean;
   savedPresets: ConfigSnapshot[];
 
   hydratePrefs: (prefs: Prefs) => void;
   setPhotoPreset: (photoId: string) => void;
   setPaperPreset: (paperId: string) => void;
+  setExportDpi: (dpi: ExportDpi) => void;
+  setExportFormat: (format: ExportImageExt) => void;
   applyConfig: (config: ConfigSnapshot) => void;
   /** Persist current sheet options as a named preset. */
   saveNamedPreset: (name: string) => ConfigSnapshot;
@@ -110,6 +119,8 @@ export const useSession = create<SessionState>((set, get) => ({
   gapMm: 2,
   marginMm: 3,
   cutGuides: true,
+  exportDpi: 300,
+  exportFormat: 'jpg',
   prefsHydrated: false,
   savedPresets: [],
 
@@ -120,6 +131,10 @@ export const useSession = create<SessionState>((set, get) => ({
       prefsHydrated: true,
       photoId: prefs.photoId,
       paperId: prefs.paperId,
+      exportDpi: prefs.exportDpi ?? 300,
+      exportFormat: prefs.exportFormat ?? 'jpg',
+      cutGuides:
+        typeof prefs.cutGuides === 'boolean' ? prefs.cutGuides : s.cutGuides,
       savedPresets: presets,
       subjects: s.subjects.map((sub, i) =>
         i === 0 && !sub.url
@@ -142,6 +157,9 @@ export const useSession = create<SessionState>((set, get) => ({
   },
 
   setPaperPreset: (paperId) => set({ paperId }),
+
+  setExportDpi: (exportDpi) => set({ exportDpi }),
+  setExportFormat: (exportFormat) => set({ exportFormat }),
 
   applyConfig: (config) => {
     const size = sizeFromPhotoId(config.photoId);
