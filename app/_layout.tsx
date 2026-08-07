@@ -55,6 +55,16 @@ const ALLOWED_SHOT_ROUTES = new Set([
   '/photo',
 ]);
 
+/** Host-side: shot bootstrap appearance → RN color scheme. */
+function applyShotAppearance(appearance: ShotAppearance | null): void {
+  if (!appearance) return;
+  try {
+    Appearance.setColorScheme(appearance === 'system' ? null : appearance);
+  } catch {
+    // ignore on unsupported platforms
+  }
+}
+
 async function peekLaunchLocale(): Promise<AppLocale | null> {
   try {
     const url = await Linking.getInitialURL();
@@ -274,15 +284,25 @@ export default function RootLayout() {
           />
           <Stack.Screen
             name="camera"
-            options={{
-              title: '',
-              presentation: 'fullScreenModal',
-              headerTransparent: true,
-              headerShadowVisible: false,
-              headerStyle: { backgroundColor: 'transparent' },
-              headerTintColor: '#fff',
-              contentStyle: { backgroundColor: '#000' },
-            }}
+            options={
+              isWeb
+                ? {
+                    title: '',
+                    presentation: 'transparentModal',
+                    animation: 'fade',
+                    headerShown: false,
+                    contentStyle: { backgroundColor: 'transparent' },
+                  }
+                : {
+                    title: '',
+                    presentation: 'fullScreenModal',
+                    headerTransparent: true,
+                    headerShadowVisible: false,
+                    headerStyle: { backgroundColor: 'transparent' },
+                    headerTintColor: '#fff',
+                    contentStyle: { backgroundColor: '#000' },
+                  }
+            }
           />
           <Stack.Screen
             name="crop"
