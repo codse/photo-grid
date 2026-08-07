@@ -123,7 +123,10 @@ export default function RootLayout() {
           },
         }}
       >
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen
+          name="(tabs)"
+          options={{ headerShown: false, title: 'Home' }}
+        />
         <Stack.Screen
           name="size"
           options={{ title: 'Size & paper', headerBackTitle: 'Home' }}
@@ -161,12 +164,6 @@ export default function RootLayout() {
           name="export"
           options={{ title: 'Share', headerBackTitle: 'Sheet' }}
         />
-        <Stack.Screen name="help" options={{ title: 'Help' }} />
-        <Stack.Screen name="faq" options={{ title: 'FAQ' }} />
-        <Stack.Screen name="about" options={{ title: 'About' }} />
-        <Stack.Screen name="privacy" options={{ title: 'Privacy Policy' }} />
-        <Stack.Screen name="terms" options={{ title: 'Terms of Use' }} />
-        <Stack.Screen name="disclaimer" options={{ title: 'Disclaimer' }} />
       </Stack>
     </GestureHandlerRootView>
   );

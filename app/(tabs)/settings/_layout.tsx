@@ -13,9 +13,16 @@ export default function SettingsStackLayout() {
         headerStyle: { backgroundColor: GROUPED_BG },
         contentStyle: { backgroundColor: GROUPED_BG },
         headerTitleStyle: { fontWeight: '600', color: colors.ink },
+        headerBackTitle: 'Settings',
       }}
     >
       <Stack.Screen name="index" options={{ title: 'Settings' }} />
+      <Stack.Screen name="help" options={{ title: 'Help' }} />
+      <Stack.Screen name="faq" options={{ title: 'FAQ' }} />
+      <Stack.Screen name="about" options={{ title: 'About' }} />
+      <Stack.Screen name="privacy" options={{ title: 'Privacy Policy' }} />
+      <Stack.Screen name="terms" options={{ title: 'Terms of Use' }} />
+      <Stack.Screen name="disclaimer" options={{ title: 'Disclaimer' }} />
     </Stack>
   );
 }

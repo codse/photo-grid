@@ -8,6 +8,7 @@ import {
   View,
 } from 'react-native';
 import Animated, {
+  cancelAnimation,
   Easing,
   useAnimatedStyle,
   useSharedValue,
@@ -32,6 +33,7 @@ export function ProBadge({ variant = 'pro', onPress, busy }: Props) {
 
   useEffect(() => {
     if (!showShine) {
+      cancelAnimation(shine);
       shine.value = -1;
       return;
     }
@@ -47,10 +49,10 @@ export function ProBadge({ variant = 'pro', onPress, busy }: Props) {
       -1,
       false,
     );
+    return () => cancelAnimation(shine);
   }, [shine, showShine]);
 
   const shineStyle = useAnimatedStyle(() => ({
-    opacity: showShine ? 1 : 0,
     transform: [
       { translateX: shine.value * 72 },
       { skewX: '-22deg' },

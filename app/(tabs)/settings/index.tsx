@@ -178,7 +178,7 @@ export default function SettingsScreen() {
                   weight="duotone"
                 />
               }
-              onPress={() => router.push('/help')}
+              onPress={() => router.push('/settings/help')}
             />
             <ListRow
               title={t('settings.faq')}
@@ -189,14 +189,14 @@ export default function SettingsScreen() {
                   weight="duotone"
                 />
               }
-              onPress={() => router.push('/faq')}
+              onPress={() => router.push('/settings/faq')}
             />
             <ListRow
               title={t('settings.about')}
               icon={
                 <InfoIcon size={18} color={colors.accent} weight="duotone" />
               }
-              onPress={() => router.push('/about')}
+              onPress={() => router.push('/settings/about')}
             />
           </InsetGroup>
         </View>
@@ -213,7 +213,7 @@ export default function SettingsScreen() {
                   weight="duotone"
                 />
               }
-              onPress={() => router.push('/privacy')}
+              onPress={() => router.push('/settings/privacy')}
             />
             <ListRow
               title={t('settings.terms')}
@@ -224,7 +224,7 @@ export default function SettingsScreen() {
                   weight="duotone"
                 />
               }
-              onPress={() => router.push('/terms')}
+              onPress={() => router.push('/settings/terms')}
             />
             <ListRow
               title={t('settings.disclaimer')}
@@ -235,7 +235,7 @@ export default function SettingsScreen() {
                   weight="duotone"
                 />
               }
-              onPress={() => router.push('/disclaimer')}
+              onPress={() => router.push('/settings/disclaimer')}
             />
           </InsetGroup>
         </View>
