@@ -1,7 +1,7 @@
 ---
 description: i18n, App Store metadata, screenshots / koubou / store preview — read AGENTS §4–6
 alwaysApply: false
-globs: metadata/**/*,screenshots/**/*,.asc/**/*,src/i18n/**/*,**/AGENTS.md
+globs: metadata/**/*,screenshots/**/*,.asc/**/*,src/i18n/**/*,src/platform/shot-bootstrap.ts,**/AGENTS.md
 ---
 
 # Release / ASO memory
@@ -17,7 +17,7 @@ Full playbook: **`AGENTS.md` §4 (i18n) and §6 (screenshots & store preview)**.
 - Headless shots: `Documents/shot-route.txt` allowlist in `app/_layout.tsx`; Xcode-beta may need `DEVELOPER_DIR` + simctl (no Simulator.app).
 - IPHONE_65 = 1242×2688; framed output under `screenshots/fancy/iphone65/{lang}/`.
 - Brand: cream `#FFFCF9`, ochre `#B8953F` — not generic purple/AI cream themes.
-- Multi-lang shots: set in-app locale via `?lang=` deep link or `scripts/plant-shot-route.sh` — not frame copy alone.
+- **Shot bootstrap** (copy to every new CODSE app): `src/platform/shot-bootstrap.ts` — deep link / plant file sets `lang`/`locale` **and** `theme`/`appearance` (`light`|`dark`|`system`) before navigate. Not frame copy alone.
 
 ## When changing strings
 

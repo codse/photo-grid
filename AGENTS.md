@@ -190,37 +190,50 @@ export DEVELOPER_DIR=/Applications/Xcode-beta.app/Contents/Developer
 - **axe** (UI automation): if `axe` is a broken recursive shell wrapper, reinstall the real binary (e.g. under `~/.local/share/axe/`). Don’t debug the app until axe actually runs.
 - **Route planting:** write an allowed route into the app container `Documents/shot-route.txt`, then relaunch. Reader lives in `app/_layout.tsx` (`SHOT_ROUTE_FILE`) — **allowlist only** (never arbitrary deep links from disk).
 
-### Localized UI captures (required for multi-language screenshots)
+### Shot bootstrap — **reuse in every CODSE app** (locale + theme)
 
-Do **not** only localize koubou frame copy — switch the **in-app** language too.
+Canonical module: [`src/platform/shot-bootstrap.ts`](src/platform/shot-bootstrap.ts)  
+(Host wiring: `app/_layout.tsx` allowlist + `scripts/plant-shot-route.sh`.)
 
-**Deep link** (scheme `passportphotoprint` from `app.json`):
+Copy the module + plant script when spinning a new app. Extend the host allowlist and locale list; keep the **query contract** stable:
+
+| Param | Aliases | Values | Effect |
+|-------|---------|--------|--------|
+| `lang` | `locale` | in-app or ASC tags (`es`, `es-ES`, …) | `setAppLocale` |
+| `theme` | `appearance` | `light` \| `dark` \| `system` | `Appearance.setColorScheme` |
+| path | — | allowlisted route | `router.replace` |
+
+**Deep link**
 
 ```text
-passportphotoprint://sheet?lang=es
-passportphotoprint:///(tabs)/settings?lang=fr
-passportphotoprint://export?locale=en-GB
+{scheme}://sheet?lang=es&theme=dark
+{scheme}://export?locale=en-GB&appearance=light
 ```
 
-`lang` / `locale` accept in-app codes (`es`, `en-GB`, …) or ASC tags (`es-ES`, `en-US`, …).
-
-**Headless plant** (`Documents/shot-route.txt`):
+**Headless plant** (`Documents/shot-route.txt`)
 
 ```bash
-./scripts/plant-shot-route.sh <sim-udid> /sheet es
-# or: echo -e 'lang=es\n/sheet' > …/Documents/shot-route.txt
-xcrun simctl terminate <udid> com.codse.passport.photo.print
-xcrun simctl launch <udid> com.codse.passport.photo.print
+./scripts/plant-shot-route.sh <sim-udid> /sheet es dark
+# multiline file also ok:
+#   lang=fr
+#   theme=light
+#   /export
 ```
 
-Also valid: single line `/sheet?lang=es`. Parser + allowlist live in `app/_layout.tsx` + `src/i18n/shot-locale.ts`.
+Apply **appearance + locale before navigate**, ideally also peek at cold start so the first paint is correct. Do not rely on koubou frame copy alone for localized or dark/light store previews.
+
+When an app gains a real theme preference store, still honor shot bootstrap overrides for captures (don’t fight Settings during ASO runs).
+
+### Localized UI captures
+
+Do **not** only localize koubou frame copy — switch the **in-app** language (and theme when needed) via shot bootstrap above.
 
 ### Pipeline order (SISU / Affirmation-style)
 
 1. Release or Debug build on the shot simulator.
-2. For each storefront lang: **plant route + lang**, relaunch, wait for UI, capture **raw**.
+2. For each storefront lang (and theme variant if needed): **plant route + lang [+ theme]**, relaunch, wait for UI, capture **raw**.
 3. `kou setup-html` then koubou generate → `screenshots/fancy/iphone65/{lang}/`.
-4. Localize marketing frame copy to match; in-phone UI should already be that language.
+4. Localize marketing frame copy to match; in-phone UI should already match lang/theme.
 5. Map koubou langs → ASC upload folders: `en`→`en-US`, `es`→`es-ES`, `fr`→`fr-FR`, `pt`→`pt-PT`, plus `en-GB`, `hi`. Skip `ne`.
 6. Upload **only** when human asks (`upload_enabled` stays `false` by default).
 
@@ -291,12 +304,13 @@ Also valid: single line `/sheet?lang=es`. Parser + allowlist live in `app/_layou
 2. New bundle id + ASC app + Paid Apps + Small Business.
 3. Expo `app.json` / EAS project / icons / splash.
 4. i18n scaffold (`src/i18n`) + `en.json`.
-5. RC project + entitlement + offering.
-6. AdMob iOS/Android apps + units in `app.json` + `ads.native.tsx`.
-7. `.secrets/` + `.env.example` (no Metro-poisoning secret filenames).
-8. Screenshot dirs + `.asc/shots.settings.json`.
-9. First EAS build → TestFlight → smoke (launch, IAP, ads with force-free).
-10. Keep committing granularly from day one.
+5. Copy **shot bootstrap** (`src/platform/shot-bootstrap.ts` + plant script + root allowlist) for locale/theme captures.
+6. RC project + entitlement + offering.
+7. AdMob iOS/Android apps + units in `app.json` + `ads.native.tsx`.
+8. `.secrets/` + `.env.example` (no Metro-poisoning secret filenames).
+9. Screenshot dirs + `.asc/shots.settings.json`.
+10. First EAS build → TestFlight → smoke (launch, IAP, ads with force-free).
+11. Keep committing granularly from day one.
 
 ---
 

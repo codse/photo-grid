@@ -28,5 +28,6 @@ Read and follow **`AGENTS.md`** at the repo root for full playbooks (ASC CLI, i1
 | i18n / ASC locales | `src/i18n/` + AGENTS §4 + `.cursor/rules/release-aso.mdc` |
 | ASC / IAP | `scripts/setup-asc-lifetime.sh` + AGENTS §5 |
 | Screenshots / koubou | `.asc/shots.settings.json`, `screenshots/` + AGENTS §6 |
+| Shot bootstrap (lang + theme) | `src/platform/shot-bootstrap.ts` + AGENTS §6 — reuse on new apps |
 | Ads / Pro | `src/monetization/` + AGENTS §7 |
 | Metro platform files | AGENTS §0.5 — never `foo.ts` + `foo.native.tsx` mismatch |
