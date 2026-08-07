@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { Platform } from 'react-native';
 import Purchases, {
   LOG_LEVEL,
@@ -11,11 +12,17 @@ const SHARED_KEY = process.env.EXPO_PUBLIC_REVENUECAT_API_KEY?.trim() || undefin
 const IOS_KEY = process.env.EXPO_PUBLIC_REVENUECAT_IOS_API_KEY?.trim() || undefined;
 const ANDROID_KEY =
   process.env.EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY?.trim() || undefined;
+/** RevenueCat Test Store key — used in __DEV__ so offerings work without ASC sandbox. */
+const TEST_STORE_KEY =
+  process.env.EXPO_PUBLIC_REVENUECAT_TEST_API_KEY?.trim() || undefined;
 
 let initPromise: Promise<void> | null = null;
 let lastCustomerInfo: CustomerInfo | null = null;
 
 function getApiKey(): string | null {
+  // Local/dev: prefer Test Store so we aren't blocked on App Store Connect sandbox.
+  // Release / TestFlight must use the platform store key (appl_ / goog_).
+  if (__DEV__ && TEST_STORE_KEY) return TEST_STORE_KEY;
   if (Platform.OS === 'ios') return IOS_KEY ?? SHARED_KEY ?? null;
   if (Platform.OS === 'android') return ANDROID_KEY ?? SHARED_KEY ?? null;
   return SHARED_KEY ?? null;
@@ -55,7 +62,12 @@ function hasEntitlement(info: CustomerInfo): boolean {
 export function isProFromInfo(info: CustomerInfo | null | undefined): boolean {
   if (!info) return false;
   if (hasEntitlement(info)) return true;
-  return info.allPurchasedProductIdentifiers.includes(LIFETIME_PRODUCT_ID);
+  const ids = info.allPurchasedProductIdentifiers;
+  return (
+    ids.includes(LIFETIME_PRODUCT_ID) ||
+    // Test Store product id used in __DEV__
+    ids.includes('lifetime')
+  );
 }
 
 export async function refreshCustomerInfo(): Promise<CustomerInfo | null> {
@@ -79,6 +91,24 @@ export function getCachedIsPro(): boolean {
   return isProFromInfo(lastCustomerInfo);
 }
 
+/** Live Pro flag for UI (header badge, ads, etc.). */
+export function useIsPro(): boolean {
+  const [pro, setPro] = useState(getCachedIsPro());
+
+  useEffect(() => {
+    let alive = true;
+    void (async () => {
+      const next = await isPro();
+      if (alive) setPro(next);
+    })();
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  return pro;
+}
+
 function isUserCancelled(error: unknown): boolean {
   const e = error as { userCancelled?: boolean; code?: string | number };
   return (
@@ -93,13 +123,14 @@ async function findLifetimePackage(): Promise<PurchasesPackage | null> {
   const current = offerings.current;
   if (!current) return null;
 
-  const fromLifetime = current.lifetime;
-  if (fromLifetime?.product.identifier === LIFETIME_PRODUCT_ID) {
-    return fromLifetime;
-  }
+  // Prefer RC's $rc_lifetime slot (works for both ASC id and Test Store "lifetime")
+  if (current.lifetime) return current.lifetime;
 
   const match = current.availablePackages.find(
-    (p) => p.product.identifier === LIFETIME_PRODUCT_ID,
+    (p) =>
+      p.product.identifier === LIFETIME_PRODUCT_ID ||
+      p.identifier === '$rc_lifetime' ||
+      p.packageType === 'LIFETIME',
   );
   return match ?? null;
 }
