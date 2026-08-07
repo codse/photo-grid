@@ -32,7 +32,8 @@ import { colors, fonts, radii, space, type } from '@/ui/tokens';
 import { RequirePhoto } from '@/features/session/require-photo';
 import { showInterstitialIfNeeded } from '@/monetization/ads';
 import { onExportSuccessEngagement } from '@/monetization/engagement';
-import { ProOffer } from '@/monetization/pro-offer';
+import { useIsPro } from '@/monetization/purchases';
+import { useTranslation } from 'react-i18next';
 
 type Busy = 'save' | 'share' | 'bookmark' | null;
 
@@ -45,6 +46,8 @@ export default function ExportScreen() {
 }
 
 function ExportBody() {
+  const { t } = useTranslation();
+  const isPro = useIsPro();
   const subjects = useSession((s) => s.subjects);
   const paperId = useSession((s) => s.paperId);
   const photoId = useSession((s) => s.photoId);
@@ -208,7 +211,37 @@ function ExportBody() {
           DPI
         </Text>
 
-        {Platform.OS !== 'web' ? <ProOffer variant="card" /> : null}
+        {Platform.OS !== 'web' && !isPro ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={t('pro.openPaywall')}
+            onPress={() => router.push('/pro')}
+            style={({ pressed }) => ({
+              backgroundColor: pressed ? colors.accentSoft : colors.bgElevated,
+              borderWidth: 1.5,
+              borderColor: colors.ink,
+              borderRadius: radii.md,
+              borderCurve: 'continuous',
+              paddingVertical: 14,
+              paddingHorizontal: 16,
+              gap: 4,
+            })}
+          >
+            <Text
+              style={{
+                fontFamily: fonts.playful,
+                fontSize: 18,
+                color: colors.ink,
+                letterSpacing: -0.3,
+              }}
+            >
+              {t('pro.headline')}
+            </Text>
+            <Text style={{ ...type.caption, color: colors.inkMuted }}>
+              {t('pro.openPaywallHint')}
+            </Text>
+          </Pressable>
+        ) : null}
 
         <View style={{ gap: space.md }}>
           <FormatSegment

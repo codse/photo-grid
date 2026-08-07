@@ -131,7 +131,7 @@ export const HELP: LegalDoc = {
     },
     {
       heading: 'Pro',
-      body: 'Lifetime Pro removes ads. Buy or restore from the offer on Home / Share. Purchases use your Apple ID.',
+      body: 'Lifetime Pro removes ads. Tap GET PRO on Home (or open Pro from Share) to buy or restore. Purchases use your Apple ID.',
     },
     {
       heading: 'Need more help?',

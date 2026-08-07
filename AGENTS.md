@@ -271,7 +271,7 @@ Do **not** only localize koubou frame copy — switch the **in-app** language (a
 
 - Code: `src/monetization/ads.native.tsx` — test IDs in `__DEV__` unless `EXPO_PUBLIC_ADMOB_USE_TEST_IDS=0`.
 - Changing `GADApplicationIdentifier` / plugin app ids → **new native build**.
-- Placements: home/sheet banners; interstitial after export (cooldown); optional rewarded “ads off 1h”.
+- Placements: home/sheet banners; interstitial after export (cooldown).
 
 ### Engagement
 
