@@ -7,14 +7,16 @@ alwaysApply: true
 
 Commit after each **single logical unit** of work. Never batch unrelated changes into one commit.
 
+**Do this proactively** — do not wait for the user to ask “commit”. If a feature/fix/docs unit is finished and the working tree has intentional changes, commit before moving on or ending the turn.
+
 ## Rules
 
 - One concern per commit: one feature slice, one fix, one refactor, one config/docs change
 - Prefer many small commits over one large dump before ship
 - Stage **specific files** only — never `git add -A` / `git add .`
 - Do **not** commit secrets (`.env`, `.secrets/`, keys, p8, `eas.submit.local.json`)
-- Do **not** push unless the user asks
-- Do **not** amend unless the user asks and amend rules are satisfied
+- Do **not** push unless the human asks
+- Do **not** amend unless the human asks and amend rules are satisfied
 
 ## Message format
 
@@ -41,3 +43,5 @@ docs: record RevenueCat Passport project and TestFlight status
 If the working tree mixes concerns (e.g. camera UI + RevenueCat + FAQ), split into separate commits in dependency order (shared types/prefs → feature wiring → UI → i18n/docs).
 
 If a single file mixes concerns and interactive patching is unavailable, put it with its **primary** concern and keep neighboring commits tight.
+
+Full CODSE ship process: see root **`AGENTS.md`**.
