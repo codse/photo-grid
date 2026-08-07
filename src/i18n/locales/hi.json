@@ -36,7 +36,18 @@
     "restoredBody": "लाइफटाइम अनलॉक फिर सक्रिय है।",
     "removeAdsPrice": "विज्ञापन हटाएँ · {{price}}",
     "lifetimeApple": "Apple के ज़रिए लाइफटाइम अनलॉक",
-    "buy": "खरीदें"
+    "buy": "खरीदें",
+    "title": "प्रो",
+    "buying": "खरीद हो रही…",
+    "purchaseFailedTitle": "खरीद",
+    "restoreFailedTitle": "पुनर्स्थापित",
+    "restoreNoneBody": "इस Apple ID पर कोई पिछली Lifetime खरीद नहीं मिली।",
+    "ctaPrice": "प्रो अनलॉक · {{price}}",
+    "featureAds": "कोई बैनर या फुल-स्क्रीन विज्ञापन नहीं",
+    "featureLifetime": "एक बार की खरीद — हमेशा के लिए",
+    "featureApple": "आपके Apple ID वाले हर डिवाइस पर पुनर्स्थापित",
+    "openPaywall": "प्रो लें",
+    "openPaywallHint": "Lifetime अनलॉक से विज्ञापन हटाएँ"
   },
   "export": {
     "title": "शेयर",
@@ -102,7 +113,8 @@
   "common": {
     "cancel": "रद्द करें",
     "home": "होम",
-    "back": "वापस"
+    "back": "वापस",
+    "done": "हो गया"
   },
   "locales": {
     "en": "English (US)",

@@ -36,7 +36,18 @@
     "restoredBody": "Le déblocage à vie est actif.",
     "removeAdsPrice": "Retirer les pubs · {{price}}",
     "lifetimeApple": "Déblocage à vie via Apple",
-    "buy": "Acheter"
+    "buy": "Acheter",
+    "title": "Pro",
+    "buying": "Achat…",
+    "purchaseFailedTitle": "Achat",
+    "restoreFailedTitle": "Restaurer",
+    "restoreNoneBody": "Aucun achat Lifetime trouvé pour cet identifiant Apple.",
+    "ctaPrice": "Débloquer Pro · {{price}}",
+    "featureAds": "Sans bannières ni pubs plein écran",
+    "featureLifetime": "Achat unique — à vie",
+    "featureApple": "Se restaure sur tous vos appareils avec votre Apple ID",
+    "openPaywall": "Passer Pro",
+    "openPaywallHint": "Retirez les pubs avec un déblocage Lifetime"
   },
   "export": {
     "title": "Partager",
@@ -102,7 +113,8 @@
   "common": {
     "cancel": "Annuler",
     "home": "Accueil",
-    "back": "Retour"
+    "back": "Retour",
+    "done": "OK"
   },
   "locales": {
     "en": "English (US)",

@@ -36,7 +36,18 @@
     "restoredBody": "आजीवन अनलक फेरि सक्रिय छ।",
     "removeAdsPrice": "विज्ञापन हटाउनुहोस् · {{price}}",
     "lifetimeApple": "Apple मार्फत आजीवन अनलक",
-    "buy": "किन्नुहोस्"
+    "buy": "किन्नुहोस्",
+    "title": "प्रो",
+    "buying": "किन्दै…",
+    "purchaseFailedTitle": "खरिद",
+    "restoreFailedTitle": "पुनर्स्थापना",
+    "restoreNoneBody": "यो Apple ID मा अघिल्लो Lifetime खरिद भेटिएन।",
+    "ctaPrice": "प्रो अनलक · {{price}}",
+    "featureAds": "ब्यानर वा फुल-स्क्रिन विज्ञापन छैन",
+    "featureLifetime": "एक पटकको खरिद — सधैंका लागि",
+    "featureApple": "तपाईंको Apple ID भएका सबै यन्त्रमा पुनर्स्थापित",
+    "openPaywall": "प्रो लिनुहोस्",
+    "openPaywallHint": "Lifetime अनलकबाट विज्ञापन हटाउनुहोस्"
   },
   "export": {
     "title": "सेयर",
@@ -102,7 +113,8 @@
   "common": {
     "cancel": "रद्द",
     "home": "होम",
-    "back": "पछाडि"
+    "back": "पछाडि",
+    "done": "भयो"
   },
   "locales": {
     "en": "English (US)",

@@ -58,6 +58,7 @@ const ALLOWED_SHOT_ROUTES = new Set([
   '/export',
   '/camera',
   '/photo',
+  '/pro',
 ]);
 
 /** Host-side: shot bootstrap appearance → RN color scheme. */
@@ -335,6 +336,13 @@ export default function RootLayout() {
             options={{
               title: t('export.title'),
               headerBackTitle: t('sheet.title'),
+            }}
+          />
+          <Stack.Screen
+            name="pro"
+            options={{
+              title: t('pro.title'),
+              presentation: Platform.OS === 'ios' ? 'modal' : 'card',
             }}
           />
         </Stack>
