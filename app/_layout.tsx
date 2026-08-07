@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Stack } from 'expo-router';
-import { Platform } from 'react-native';
+import { Stack, useRouter } from 'expo-router';
+import { Platform, View } from 'react-native';
 import { colors, fonts } from '@/ui/tokens';
 import { useSession } from '@/state/session';
 import { loadPrefs, savePrefs } from '@/platform/prefs';
@@ -8,6 +8,7 @@ import { initAds } from '@/monetization/ads';
 import { configurePurchases } from '@/monetization/purchases';
 import { initI18n } from '@/i18n';
 import * as SplashScreen from 'expo-splash-screen';
+import * as FileSystem from 'expo-file-system/legacy';
 import {
   useFonts,
   Figtree_400Regular,
@@ -29,7 +30,11 @@ import { StatusBar } from 'expo-status-bar';
 
 void SplashScreen.preventAutoHideAsync().catch(() => undefined);
 
+/** Headless sim capture: plant Documents/shot-route.txt then relaunch. */
+const SHOT_ROUTE_FILE = 'shot-route.txt';
+
 export default function RootLayout() {
+  const router = useRouter();
   const [fontsLoaded] = useFonts({
     Figtree_400Regular,
     Figtree_500Medium,
@@ -68,11 +73,13 @@ export default function RootLayout() {
 
   useEffect(() => {
     if (Platform.OS === 'web') return;
-    void configurePurchases()
-      .then(() => initAds())
-      .catch((e) => {
-        if (__DEV__) console.warn('[monetization] init failed', e);
-      });
+    // Don't serialize ads behind RC — Pro gate reads cache later either way.
+    void configurePurchases().catch((e) => {
+      if (__DEV__) console.warn('[RevenueCat] init failed', e);
+    });
+    void initAds().catch((e) => {
+      if (__DEV__) console.warn('[AdMob] init failed', e);
+    });
   }, []);
 
   useEffect(() => {
@@ -106,65 +113,115 @@ export default function RootLayout() {
     if (bootReady) void SplashScreen.hideAsync();
   }, [bootReady]);
 
+  useEffect(() => {
+    if (!bootReady || Platform.OS === 'web') return;
+    const dir = FileSystem.documentDirectory;
+    if (!dir) return;
+    const path = `${dir}${SHOT_ROUTE_FILE}`;
+    void (async () => {
+      try {
+        const info = await FileSystem.getInfoAsync(path);
+        if (!info.exists) return;
+        const raw = (await FileSystem.readAsStringAsync(path)).trim();
+        await FileSystem.deleteAsync(path, { idempotent: true });
+        if (!raw.startsWith('/')) return;
+        // Allow only known in-app paths.
+        const allowed = new Set([
+          '/(tabs)/index',
+          '/size',
+          '/saved',
+          '/settings',
+          '/(tabs)/settings',
+          '/crop',
+          '/sheet',
+          '/export',
+          '/camera',
+          '/photo',
+        ]);
+        if (!allowed.has(raw)) return;
+        router.replace(raw as '/(tabs)/index');
+      } catch {
+        // ignore — screenshot helper only
+      }
+    })();
+  }, [bootReady, router]);
+
   if (!bootReady) return null;
 
+  const isWeb = Platform.OS === 'web';
+
   return (
-    <GestureHandlerRootView style={{ flex: 1, backgroundColor: colors.bg }}>
-      <StatusBar style="dark" />
-      <Stack
-        screenOptions={{
-          headerShadowVisible: false,
-          headerTintColor: colors.ink,
-          headerStyle: { backgroundColor: colors.bg },
-          contentStyle: { backgroundColor: colors.bg },
-          headerTitleStyle: {
-            fontFamily: fonts.semibold,
-            fontWeight: '600',
-          },
+    <View
+      style={{
+        flex: 1,
+        backgroundColor: isWeb ? colors.line : colors.bg,
+        ...(isWeb ? { alignItems: 'center' as const } : null),
+      }}
+    >
+      <GestureHandlerRootView
+        style={{
+          flex: 1,
+          width: '100%',
+          maxWidth: isWeb ? 540 : undefined,
+          backgroundColor: colors.bg,
         }}
       >
-        <Stack.Screen
-          name="(tabs)"
-          options={{ headerShown: false, title: 'Home' }}
-        />
-        <Stack.Screen
-          name="size"
-          options={{ title: 'Size & paper', headerBackTitle: 'Home' }}
-        />
-        <Stack.Screen
-          name="saved"
-          options={{ title: 'Saved', headerBackTitle: 'Home' }}
-        />
-        <Stack.Screen
-          name="photo"
-          options={{ title: 'Photo', headerBackTitle: 'Home' }}
-        />
-        <Stack.Screen
-          name="camera"
-          options={{
-            title: '',
-            presentation: 'fullScreenModal',
-            headerTransparent: true,
+        <StatusBar style="dark" />
+        <Stack
+          screenOptions={{
             headerShadowVisible: false,
-            headerStyle: { backgroundColor: 'transparent' },
-            headerTintColor: '#fff',
-            contentStyle: { backgroundColor: '#000' },
+            headerTintColor: colors.ink,
+            headerStyle: { backgroundColor: colors.bg },
+            contentStyle: { backgroundColor: colors.bg },
+            headerTitleStyle: {
+              fontFamily: fonts.semibold,
+              fontWeight: '600',
+            },
           }}
-        />
-        <Stack.Screen
-          name="crop"
-          options={{ title: 'Crop', headerBackTitle: 'Home' }}
-        />
-        <Stack.Screen
-          name="person/[id]/crop"
-          options={{ title: 'Crop', headerBackTitle: 'Home' }}
-        />
-        <Stack.Screen name="sheet" options={{ title: 'Print sheet' }} />
-        <Stack.Screen
-          name="export"
-          options={{ title: 'Share', headerBackTitle: 'Sheet' }}
-        />
-      </Stack>
-    </GestureHandlerRootView>
+        >
+          <Stack.Screen
+            name="(tabs)"
+            options={{ headerShown: false, title: 'Home' }}
+          />
+          <Stack.Screen
+            name="size"
+            options={{ title: 'Size & paper', headerBackTitle: 'Home' }}
+          />
+          <Stack.Screen
+            name="saved"
+            options={{ title: 'Saved', headerBackTitle: 'Home' }}
+          />
+          <Stack.Screen
+            name="photo"
+            options={{ title: 'Photo', headerBackTitle: 'Home' }}
+          />
+          <Stack.Screen
+            name="camera"
+            options={{
+              title: '',
+              presentation: 'fullScreenModal',
+              headerTransparent: true,
+              headerShadowVisible: false,
+              headerStyle: { backgroundColor: 'transparent' },
+              headerTintColor: '#fff',
+              contentStyle: { backgroundColor: '#000' },
+            }}
+          />
+          <Stack.Screen
+            name="crop"
+            options={{ title: 'Crop', headerBackTitle: 'Home' }}
+          />
+          <Stack.Screen
+            name="person/[id]/crop"
+            options={{ title: 'Crop', headerBackTitle: 'Home' }}
+          />
+          <Stack.Screen name="sheet" options={{ title: 'Print sheet' }} />
+          <Stack.Screen
+            name="export"
+            options={{ title: 'Share', headerBackTitle: 'Sheet' }}
+          />
+        </Stack>
+      </GestureHandlerRootView>
+    </View>
   );
 }
