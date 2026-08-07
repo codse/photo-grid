@@ -8,6 +8,7 @@ import {
 } from 'react';
 import {
   ActivityIndicator,
+  Platform,
   Pressable,
   StyleSheet,
   Text,
@@ -324,9 +325,10 @@ const styles = StyleSheet.create({
     color: colors.inkMuted,
   },
   overlay: {
-    ...StyleSheet.absoluteFill,
+    ...StyleSheet.absoluteFillObject,
     justifyContent: 'space-between',
-    paddingTop: 64,
+    // Web camera is a 4:5 overlay card with an in-frame close control.
+    paddingTop: Platform.OS === 'web' ? 52 : 64,
     paddingBottom: 28,
   },
   mid: {

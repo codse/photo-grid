@@ -39,6 +39,11 @@ import { StatusBar } from 'expo-status-bar';
 
 void SplashScreen.preventAutoHideAsync().catch(() => undefined);
 
+/** Keep tabs under transparent camera modal (esp. web deep links). */
+export const unstable_settings = {
+  anchor: '(tabs)',
+};
+
 /** Headless sim capture: plant Documents/shot-route.txt then relaunch. */
 const SHOT_ROUTE_FILE = 'shot-route.txt';
 
