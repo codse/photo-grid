@@ -41,14 +41,3 @@ export function LibraryIcon({ size = 28, color = colors.ink }: IconProps) {
     </Svg>
   );
 }
-
-export function GridIcon({ size = 28, color = colors.ink }: IconProps) {
-  return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <Rect x={4} y={4} width={7} height={7} rx={1.5} stroke={color} strokeWidth={1.75} />
-      <Rect x={13} y={4} width={7} height={7} rx={1.5} stroke={color} strokeWidth={1.75} />
-      <Rect x={4} y={13} width={7} height={7} rx={1.5} stroke={color} strokeWidth={1.75} />
-      <Rect x={13} y={13} width={7} height={7} rx={1.5} stroke={color} strokeWidth={1.75} />
-    </Svg>
-  );
-}

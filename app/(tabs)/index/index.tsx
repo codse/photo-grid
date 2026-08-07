@@ -9,21 +9,20 @@ import {
   View,
 } from 'react-native';
 import { Image as ExpoImage } from 'expo-image';
-import { CameraType } from 'expo-image-picker';
 import * as Haptics from 'expo-haptics';
 import { router, Stack, useFocusEffect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CaretRightIcon } from 'phosphor-react-native/src/icons/CaretRight';
 import { PHOTO_PRESETS, PAPER_PRESETS } from '@/core/presets';
 import { useSession } from '@/state/session';
-import { pickFromCamera, pickFromLibrary } from '@/platform/media';
+import { pickFromLibrary, preparePersonImage } from '@/platform/media';
 import { listSavedSheets, SAVED_SHEETS_AVAILABLE } from '@/platform/saved-sheets';
 import type { SavedSheet } from '@/features/library/types';
 import { regionForPhotoId, REGIONS } from '@/features/sheet/size-catalog';
 import { PresetRow } from '@/features/sheet/preset-row';
-import { Button } from '@/ui/primitives';
+import { ActionTile } from '@/ui/action-tile';
 import { InsetGroup, ListRow, SectionHeader } from '@/ui/list-row';
-import { CameraIcon, GridIcon, LibraryIcon } from '@/ui/icons';
+import { CameraIcon, LibraryIcon } from '@/ui/icons';
 import { colors, space } from '@/ui/tokens';
 import { ProOffer } from '@/monetization/pro-offer';
 import { ProBadge } from '@/monetization/pro-badge';
@@ -113,18 +112,18 @@ export default function HomeScreen() {
     void refreshRecent();
   }, [refreshRecent]);
 
-  const importToActive = async (opts: { go: 'crop' | 'sheet' }) => {
+  const importToActive = async () => {
     if (!activeId) return;
     lightTap();
     setBusy(true);
     try {
       const img = await pickFromLibrary();
       if (!img) return;
-      setPersonUri(activeId, img.uri, {
-        sourceName: img.fileName ?? img.uri,
+      const prepared = await preparePersonImage(img);
+      setPersonUri(activeId, prepared.uri, {
+        sourceName: prepared.fileName ?? prepared.uri,
       });
-      if (opts.go === 'sheet') router.push('/sheet');
-      else router.push(`/person/${activeId}/crop`);
+      router.push(`/person/${activeId}/crop`);
     } catch (e) {
       Alert.alert(
         'Could not open library',
@@ -135,36 +134,9 @@ export default function HomeScreen() {
     }
   };
 
-  const takePhoto = async () => {
+  const takePhoto = () => {
     lightTap();
-    if (Platform.OS !== 'web') {
-      router.push('/camera');
-      return;
-    }
-    if (!activeId) return;
-    setBusy(true);
-    try {
-      const img =
-        (await pickFromCamera(CameraType.front)) ?? (await pickFromLibrary());
-      if (!img) {
-        Alert.alert(
-          'No photo',
-          'Camera was canceled or unavailable. On desktop, pick a file — or use your phone.',
-        );
-        return;
-      }
-      setPersonUri(activeId, img.uri, {
-        sourceName: img.fileName ?? img.uri,
-      });
-      router.push(`/person/${activeId}/crop`);
-    } catch (e) {
-      Alert.alert(
-        'Could not open camera',
-        e instanceof Error ? e.message : 'Unknown error',
-      );
-    } finally {
-      setBusy(false);
-    }
+    router.push('/camera');
   };
 
   const usePreset = (cfg: (typeof savedPresets)[number]) => {
@@ -177,14 +149,12 @@ export default function HomeScreen() {
     Alert.alert(t('home.addPhotoTitle'), t('home.addPhotoBody'), [
       {
         text: t('home.takePhoto'),
-        onPress: () => {
-          void takePhoto();
-        },
+        onPress: takePhoto,
       },
       {
         text: t('home.photoLibraryAction'),
         onPress: () => {
-          void importToActive({ go: 'crop' });
+          void importToActive();
         },
       },
       { text: t('home.cancel'), style: 'cancel' },
@@ -333,45 +303,30 @@ export default function HomeScreen() {
               </View>
             </Pressable>
           </InsetGroup>
-        ) : (
-          <Button
-            label={busy ? 'Opening…' : t('home.takePhoto')}
-            disabled={busy}
-            icon={<CameraIcon color="#fff" size={20} />}
-            onPress={() => void takePhoto()}
-            style={{ borderRadius: 14 }}
-          />
-        )}
+        ) : null}
 
-        <View>
-          <SectionHeader
-            title={hasPhoto ? 'Add or replace' : t('home.orStartFrom')}
-          />
-          <InsetGroup>
-            {hasPhoto ? (
-              <ListRow
-                title={t('home.takePhoto')}
-                subtitle="Camera"
-                disabled={busy}
-                icon={<CameraIcon color={colors.accent} size={18} />}
-                onPress={() => void takePhoto()}
-              />
-            ) : null}
-            <ListRow
-              title={t('home.photoLibrary')}
-              subtitle={t('home.photoLibraryHint')}
+        <View style={{ gap: space.sm }}>
+          {hasPhoto ? <SectionHeader title="Add or replace" /> : null}
+          <View
+            style={{
+              flexDirection: 'row',
+              gap: 12,
+              paddingHorizontal: space.lg,
+            }}
+          >
+            <ActionTile
+              label={t('home.camera')}
+              icon={<CameraIcon color={colors.accent} size={24} />}
               disabled={busy}
-              icon={<LibraryIcon color={colors.accent} size={18} />}
-              onPress={() => void importToActive({ go: 'crop' })}
+              onPress={takePhoto}
             />
-            <ListRow
-              title={t('home.tileReady')}
-              subtitle={t('home.tileReadyHint')}
+            <ActionTile
+              label={t('home.gallery')}
+              icon={<LibraryIcon color={colors.accent} size={24} />}
               disabled={busy}
-              icon={<GridIcon color={colors.accent} size={18} />}
-              onPress={() => void importToActive({ go: 'sheet' })}
+              onPress={() => void importToActive()}
             />
-          </InsetGroup>
+          </View>
         </View>
 
         <View>

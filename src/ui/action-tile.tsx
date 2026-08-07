@@ -8,6 +8,7 @@ type ActionTileProps = {
   icon: ReactNode;
   onPress: () => void;
   disabled?: boolean;
+  /** Filled accent vs quiet elevated (default). */
   emphasis?: 'primary' | 'secondary';
   layout?: 'card' | 'row';
   style?: ViewStyle;
@@ -23,7 +24,7 @@ export function ActionTile({
   layout = 'card',
   style,
 }: ActionTileProps) {
-  const primary = emphasis === 'primary';
+  const filled = emphasis === 'primary';
   const row = layout === 'row';
 
   return (
@@ -36,43 +37,46 @@ export function ActionTile({
       style={({ pressed }) => [
         {
           flex: row ? undefined : 1,
-          minHeight: row ? 72 : 120,
-          padding: space.lg,
+          minHeight: row ? 64 : 96,
+          paddingVertical: row ? space.md : space.lg,
+          paddingHorizontal: space.md,
           borderRadius: radii.lg,
           borderCurve: 'continuous',
-          backgroundColor: primary ? colors.accent : colors.bgElevated,
-          borderWidth: primary ? 0 : 1,
-          borderColor: colors.line,
+          backgroundColor: filled
+            ? pressed
+              ? '#E85F2E'
+              : colors.accent
+            : pressed
+              ? colors.accentSoft
+              : colors.bgElevated,
           flexDirection: row ? 'row' : 'column',
-          alignItems: row ? 'center' : 'stretch',
-          justifyContent: row ? 'flex-start' : 'space-between',
-          gap: space.md,
-          opacity: disabled ? 0.45 : pressed ? 0.88 : 1,
+          alignItems: 'center',
+          justifyContent: row ? 'flex-start' : 'center',
+          gap: row ? space.md : 6,
+          opacity: disabled ? 0.45 : 1,
+          transform: pressed && !disabled ? [{ scale: 0.985 }] : undefined,
         },
         style,
       ]}
     >
-      <View
-        style={{
-          width: row ? 40 : 44,
-          height: row ? 40 : 44,
-          borderRadius: radii.sm,
-          borderCurve: 'continuous',
-          alignItems: 'center',
-          justifyContent: 'center',
-          backgroundColor: primary
-            ? 'rgba(255,255,255,0.12)'
-            : colors.accentSoft,
-        }}
-      >
+      <View style={{ alignItems: 'center', justifyContent: 'center' }}>
         {icon}
       </View>
-      <View style={{ gap: 2, flex: row ? 1 : undefined }}>
+      <View
+        style={{
+          gap: 2,
+          flex: row ? 1 : undefined,
+          alignItems: row ? 'flex-start' : 'center',
+        }}
+      >
         <Text
           style={{
             ...type.body,
             fontFamily: fonts.semibold,
-            color: primary ? '#fff' : colors.ink,
+            fontSize: 15,
+            letterSpacing: -0.2,
+            color: filled ? '#fff' : colors.ink,
+            textAlign: row ? 'left' : 'center',
           }}
         >
           {label}
@@ -81,7 +85,8 @@ export function ActionTile({
           <Text
             style={{
               ...type.caption,
-              color: primary ? 'rgba(255,255,255,0.65)' : colors.inkFaint,
+              color: filled ? 'rgba(255,255,255,0.7)' : colors.inkMuted,
+              textAlign: row ? 'left' : 'center',
             }}
           >
             {caption}
