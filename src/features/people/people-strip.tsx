@@ -1,20 +1,32 @@
 import { Image } from 'expo-image';
 import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
 import * as Haptics from 'expo-haptics';
+import { router } from 'expo-router';
 import { useSession } from '@/state/session';
-import { pickFromLibrary } from '@/platform/media';
+import { pickFromLibrary, preparePersonImage } from '@/platform/media';
 import { colors, radii, space, type } from '@/ui/tokens';
+
+export type PeopleStripCaptureMode = 'none' | 'library' | 'sheet';
 
 type Props = {
   /**
-   * Crop / photo step: tap empty or re-tap selected person to pick/replace a photo.
-   * Tap another person with a photo to switch.
+   * `library` — crop/photo: empty/re-tap opens library.
+   * `sheet` — take photo | library | cancel → crop (cancel drops new empty shells).
+   * `none` — focus only.
    */
+  captureMode?: PeopleStripCaptureMode;
+  /** @deprecated Prefer `captureMode="library"`. */
   enablePhotoPick?: boolean;
   onPersonFocus?: (id: string) => void;
 };
 
-export function PeopleStrip({ enablePhotoPick, onPersonFocus }: Props) {
+export function PeopleStrip({
+  captureMode,
+  enablePhotoPick,
+  onPersonFocus,
+}: Props) {
+  const mode: PeopleStripCaptureMode =
+    captureMode ?? (enablePhotoPick ? 'library' : 'none');
   const subjects = useSession((s) => s.subjects);
   const activeId = useSession((s) => s.activePersonId ?? s.subjects[0]?.id);
   const setActivePerson = useSession((s) => s.setActivePerson);
@@ -27,18 +39,58 @@ export function PeopleStrip({ enablePhotoPick, onPersonFocus }: Props) {
     onPersonFocus?.(id);
   };
 
-  const pickFor = async (id: string) => {
+  const pickLibraryFor = async (id: string, opts?: { goCrop?: boolean }) => {
     try {
-      const img = await pickFromLibrary();
-      if (!img) return;
+      const raw = await pickFromLibrary();
+      if (!raw) return false;
+      const img = await preparePersonImage(raw);
       setPersonUri(id, img.uri, { sourceName: img.fileName ?? img.uri });
       focus(id);
+      if (opts?.goCrop) {
+        router.push(`/person/${id}/crop`);
+      }
+      return true;
     } catch (e) {
       Alert.alert(
         'Could not open library',
         e instanceof Error ? e.message : 'Unknown error',
       );
+      return false;
     }
+  };
+
+  const offerSheetCapture = (id: string, opts: { removeOnCancel: boolean }) => {
+    focus(id);
+    const setPending = useSession.getState().setPendingCapturePersonId;
+    const dropIfNew = () => {
+      setPending(null);
+      if (opts.removeOnCancel) removePerson(id);
+    };
+    Alert.alert('Add photo', undefined, [
+      {
+        text: 'Take photo',
+        onPress: () => {
+          if (opts.removeOnCancel) setPending(id);
+          router.push('/camera');
+        },
+      },
+      {
+        text: 'Photo library',
+        onPress: () => {
+          if (opts.removeOnCancel) setPending(id);
+          void (async () => {
+            const ok = await pickLibraryFor(id, { goCrop: true });
+            if (!ok) dropIfNew();
+            else setPending(null);
+          })();
+        },
+      },
+      {
+        text: 'Cancel',
+        style: 'cancel',
+        onPress: dropIfNew,
+      },
+    ]);
   };
 
   const onPersonPress = async (id: string) => {
@@ -48,14 +100,22 @@ export function PeopleStrip({ enablePhotoPick, onPersonFocus }: Props) {
     const person = subjects.find((s) => s.id === id);
     if (!person) return;
 
-    if (enablePhotoPick) {
+    if (mode === 'sheet') {
       if (!person.url) {
-        await pickFor(id);
+        offerSheetCapture(id, { removeOnCancel: false });
+        return;
+      }
+      focus(id);
+      return;
+    }
+
+    if (mode === 'library') {
+      if (!person.url) {
+        await pickLibraryFor(id);
         return;
       }
       if (person.id === activeId) {
-        // Re-tap selected → replace photo
-        await pickFor(id);
+        await pickLibraryFor(id);
         return;
       }
     }
@@ -68,8 +128,13 @@ export function PeopleStrip({ enablePhotoPick, onPersonFocus }: Props) {
       void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
     const id = addPerson();
-    if (enablePhotoPick) {
-      await pickFor(id);
+    if (mode === 'library') {
+      const ok = await pickLibraryFor(id);
+      if (!ok) removePerson(id);
+      return;
+    }
+    if (mode === 'sheet') {
+      offerSheetCapture(id, { removeOnCancel: true });
       return;
     }
     focus(id);
@@ -95,19 +160,22 @@ export function PeopleStrip({ enablePhotoPick, onPersonFocus }: Props) {
       >
         {subjects.map((p) => {
           const selected = p.id === activeId;
+          const thumbUri = p.previewUri ?? p.url;
           return (
             <Pressable
               key={p.id}
               accessibilityRole="button"
               accessibilityState={{ selected }}
               accessibilityHint={
-                enablePhotoPick
+                mode === 'library'
                   ? selected
                     ? 'Opens library to change this photo'
                     : p.url
                       ? 'Shows this person’s crop'
                       : 'Choose a photo for this person'
-                  : undefined
+                  : mode === 'sheet' && !p.url
+                    ? 'Take a photo or choose from library'
+                    : undefined
               }
               onPress={() => void onPersonPress(p.id)}
               onLongPress={() => {
@@ -131,9 +199,9 @@ export function PeopleStrip({ enablePhotoPick, onPersonFocus }: Props) {
                   backgroundColor: colors.line,
                 }}
               >
-                {p.url ? (
+                {thumbUri ? (
                   <Image
-                    source={{ uri: p.url }}
+                    source={{ uri: thumbUri }}
                     style={{ width: '100%', height: '100%' }}
                     contentFit="cover"
                   />

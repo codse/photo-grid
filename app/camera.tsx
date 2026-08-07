@@ -3,7 +3,25 @@ import { router, Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { XIcon } from 'phosphor-react-native/src/icons/X';
 import { CameraCapture } from '@/platform/camera';
+import { preparePersonImage } from '@/platform/media';
 import { useActivePerson, useSession } from '@/state/session';
+
+function leaveCamera() {
+  const {
+    pendingCapturePersonId,
+    subjects,
+    removePerson,
+    setPendingCapturePersonId,
+  } = useSession.getState();
+  if (pendingCapturePersonId) {
+    const person = subjects.find((s) => s.id === pendingCapturePersonId);
+    setPendingCapturePersonId(null);
+    if (person && !person.url && subjects.length > 1) {
+      removePerson(pendingCapturePersonId);
+    }
+  }
+  router.back();
+}
 
 export default function CameraScreen() {
   const active = useActivePerson();
@@ -23,7 +41,7 @@ export default function CameraScreen() {
           contentStyle: { backgroundColor: '#000' },
           headerLeft: () => (
             <Pressable
-              onPress={() => router.back()}
+              onPress={leaveCamera}
               hitSlop={12}
               accessibilityRole="button"
               accessibilityLabel="Close"
@@ -42,12 +60,29 @@ export default function CameraScreen() {
         }}
       />
       <CameraCapture
-        onCancel={() => router.back()}
+        onCancel={leaveCamera}
         onCaptured={({ uri, sourceName }) => {
-          if (active) {
-            setPersonUri(active.id, uri, { sourceName });
-          }
-          router.replace(active ? `/person/${active.id}/crop` : '/photo');
+          void (async () => {
+            try {
+              if (active) {
+                const prepared = await preparePersonImage({
+                  uri,
+                  width: 0,
+                  height: 0,
+                  fileName: sourceName,
+                });
+                setPersonUri(active.id, prepared.uri, {
+                  sourceName: prepared.fileName ?? sourceName,
+                });
+              }
+            } catch {
+              if (active) {
+                setPersonUri(active.id, uri, { sourceName });
+              }
+            }
+            useSession.getState().setPendingCapturePersonId(null);
+            router.replace(active ? `/person/${active.id}/crop` : '/photo');
+          })();
         }}
       />
     </View>
