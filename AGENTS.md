@@ -253,12 +253,22 @@ Do **not** only localize koubou frame copy — switch the **in-app** language (a
 
 ## 7. Monetization
 
+### Free vs Pro
+
+| | Free | Pro (Lifetime) |
+|--|------|----------------|
+| Ads | Banner + post-export interstitial | None |
+| Exports | **5 / calendar day** | Unlimited |
+| People per sheet | **2 max** | Unlimited |
+
+Caps live in `src/monetization/free-limits.ts`. Paywall: `app/pro.tsx`. `__DEV__` Force free applies the free caps even when entitlement is active.
+
 ### RevenueCat
 
 - `__DEV__`: Test Store key `EXPO_PUBLIC_REVENUECAT_TEST_API_KEY` when set.
 - Release / TestFlight: platform `appl_` / `goog_` keys only.
 - Prefer `$rc_lifetime` package lookup.
-- **Settings → Developer → Force free** (`__DEV__`) to test ads while Pro is unlocked.
+- **Settings → Developer → Force free** (`__DEV__`) to test ads / free caps while Pro is unlocked.
 
 ### AdMob
 
