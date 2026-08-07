@@ -1,0 +1,43 @@
+---
+description: Always commit work in small, logical, conventional commits
+alwaysApply: true
+---
+
+# Granular commits
+
+Commit after each **single logical unit** of work. Never batch unrelated changes into one commit.
+
+## Rules
+
+- One concern per commit: one feature slice, one fix, one refactor, one config/docs change
+- Prefer many small commits over one large dump before ship
+- Stage **specific files** only — never `git add -A` / `git add .`
+- Do **not** commit secrets (`.env`, `.secrets/`, keys, p8, `eas.submit.local.json`)
+- Do **not** push unless the user asks
+- Do **not** amend unless the user asks and amend rules are satisfied
+
+## Message format
+
+Match this repo: Conventional Commits, imperative, scoped when useful:
+
+```
+feat(scope): imperative summary
+fix(scope): imperative summary
+chore: imperative summary
+docs: imperative summary
+```
+
+Examples from this project:
+
+```
+feat(settings): compact language picker and polish layout
+feat(i18n): localize Saved and sheet
+fix(export): restore crop previews and reliable sheet render
+docs: record RevenueCat Passport project and TestFlight status
+```
+
+## Splitting
+
+If the working tree mixes concerns (e.g. camera UI + RevenueCat + FAQ), split into separate commits in dependency order (shared types/prefs → feature wiring → UI → i18n/docs).
+
+If a single file mixes concerns and interactive patching is unavailable, put it with its **primary** concern and keep neighboring commits tight.
