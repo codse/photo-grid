@@ -16,6 +16,7 @@ import { LIFETIME_PRICE_LABEL } from './catalog';
 import {
   FREE_EXPORTS_PER_DAY,
   FREE_MAX_PEOPLE,
+  getDailyExportCount,
 } from './free-limits';
 import {
   getCachedIsPro,
@@ -58,12 +59,16 @@ export function ProPaywall({ reason }: Props) {
   const [pro, setPro] = useState(getCachedIsPro());
   const [price, setPrice] = useState(LIFETIME_PRICE_LABEL);
   const [busy, setBusy] = useState<'buy' | 'restore' | null>(null);
+  const [exportsUsed, setExportsUsed] = useState<number | null>(null);
 
   const refresh = useCallback(async () => {
     setPro(await isPro());
     const live = await lifetimePriceString();
     if (live) setPrice(live);
-  }, []);
+    if (reason === 'exports') {
+      setExportsUsed(await getDailyExportCount());
+    }
+  }, [reason]);
 
   useEffect(() => {
     void refresh();
@@ -171,6 +176,19 @@ export function ProPaywall({ reason }: Props) {
           </View>
           <Text style={styles.headline}>{hero.headline}</Text>
           <Text style={styles.sub}>{hero.sub}</Text>
+          {reason === 'exports' ? (
+            <View style={styles.limitChip}>
+              <Text style={styles.limitChipText}>
+                {t('pro.exportsUsedToday', {
+                  used: exportsUsed ?? FREE_EXPORTS_PER_DAY,
+                  limit: FREE_EXPORTS_PER_DAY,
+                })}
+              </Text>
+              <Text style={styles.limitChipHint}>
+                {t('pro.exportsResetsHint')}
+              </Text>
+            </View>
+          ) : null}
         </View>
 
         <View style={styles.priceBlock}>
@@ -292,6 +310,28 @@ const styles = StyleSheet.create({
     ...type.body,
     color: colors.inkMuted,
     maxWidth: 320,
+  },
+  limitChip: {
+    alignSelf: 'stretch',
+    marginTop: space.sm,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderRadius: radii.md,
+    borderCurve: 'continuous',
+    borderWidth: 2,
+    borderColor: colors.ink,
+    backgroundColor: '#FFD166',
+    gap: 2,
+  },
+  limitChipText: {
+    fontFamily: fonts.playful,
+    fontSize: 16,
+    color: colors.ink,
+    letterSpacing: -0.3,
+  },
+  limitChipHint: {
+    ...type.caption,
+    color: colors.inkMuted,
   },
   priceBlock: {
     alignItems: 'center',

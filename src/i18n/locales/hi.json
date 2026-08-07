@@ -59,15 +59,17 @@
     "openPaywall": "प्रो लें",
     "openPaywallHint": "असीमित एक्सपोर्ट, ज़्यादा लोग, और बिना विज्ञापन",
     "limitExportTitle": "दैनिक एक्सपोर्ट सीमा",
-    "limitExportBody": "मुफ़्त में दिन में {{limit}} एक्सपोर्ट मिलते हैं। आज की सीमा खत्म हो गई। असीमित एक्सपोर्ट के लिए प्रो अनलॉक करें।",
+    "limitExportBody": "मुफ़्त में स्थानीय दिन में {{limit}} एक्सपोर्ट। असीमित के लिए प्रो अनलॉक करें।",
     "limitPeopleTitle": "लोगों की सीमा",
     "limitPeopleBody": "मुफ़्त में एक शीट पर अधिकतम {{limit}} लोग। और जोड़ने के लिए प्रो अनलॉक करें।",
     "limitCta": "प्रो लें",
     "reasonPeopleHeadline": "इस शीट पर और एक व्यक्ति चाहिए?",
-    "reasonExportsHeadline": "आज की एक्सपोर्ट सीमा पूरी",
+    "reasonExportsHeadline": "आज की मुफ़्त सीमा खत्म",
     "reasonAdsHeadline": "बिना विज्ञापन प्रिंट करें",
     "reasonAdsSub": "लाइफटाइम प्रो बैनर और फुल-स्क्रीन विज्ञापन हमेशा के लिए हटाता है।",
-    "reasonHighlight": "ज़रूरी"
+    "reasonHighlight": "ज़रूरी",
+    "exportsUsedToday": "आज {{used}} / {{limit}}",
+    "exportsResetsHint": "इस डिवाइस पर आधी रात को रीसेट"
   },
   "export": {
     "title": "शेयर",

@@ -59,15 +59,17 @@
     "openPaywall": "प्रो लिनुहोस्",
     "openPaywallHint": "असीमित एक्सपोर्ट, थप मानिस, र विज्ञापनबिना",
     "limitExportTitle": "दैनिक एक्सपोर्ट सीमा",
-    "limitExportBody": "निःशुल्कमा दिनमा {{limit}} एक्सपोर्ट। आजको कोटा सकियो। असीमितका लागि प्रो अनलक गर्नुहोस्।",
+    "limitExportBody": "निःशुल्कमा स्थानीय दिनमा {{limit}} एक्सपोर्ट। असीमितका लागि प्रो अनलक गर्नुहोस्।",
     "limitPeopleTitle": "मानिस सीमा",
     "limitPeopleBody": "निःशुल्कमा एउटा पानामा अधिकतम {{limit}} जना। थपका लागि प्रो अनलक गर्नुहोस्।",
     "limitCta": "प्रो लिनुहोस्",
     "reasonPeopleHeadline": "यो पानामा अर्को व्यक्ति चाहियो?",
-    "reasonExportsHeadline": "आजको एक्सपोर्ट सीमा सकियो",
+    "reasonExportsHeadline": "आजको निःशुल्क सीमा सकियो",
     "reasonAdsHeadline": "विज्ञापनबिना प्रिन्ट गर्नुहोस्",
     "reasonAdsSub": "लाइफटाइम प्रोले ब्यानर र फुल-स्क्रिन विज्ञापन सधैंका लागि हटाउँछ।",
-    "reasonHighlight": "आवश्यक"
+    "reasonHighlight": "आवश्यक",
+    "exportsUsedToday": "आज {{used}} / {{limit}}",
+    "exportsResetsHint": "यो यन्त्रमा मध्यरातमा रिसेट"
   },
   "export": {
     "title": "सेयर",

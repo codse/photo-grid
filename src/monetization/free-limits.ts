@@ -12,11 +12,16 @@ export const FREE_MAX_PEOPLE = 2;
 const DAILY_EXPORT_KEY = 'passport-photo-print.limits.dailyExports';
 
 type DailyExportBlob = {
-  /** Local calendar day `YYYY-MM-DD`. */
+  /**
+   * Local calendar day `YYYY-MM-DD` (device timezone).
+   * Resets when the local date rolls — midnight, travel TZ change, or clock edit.
+   * Soft freemium gate only; we don’t fight clock-back abuse for a lifetime IAP.
+   */
   day: string;
   count: number;
 };
 
+/** Device-local calendar day — not UTC. */
 function todayKey(): string {
   const d = new Date();
   const y = d.getFullYear();

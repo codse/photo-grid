@@ -14,8 +14,10 @@ import {
   localeFromUrl,
   parseShotBootstrap,
   pathFromUrl,
+  queryParamFromUrl,
   type ShotAppearance,
 } from '@/platform/shot-bootstrap';
+import { coerceProReason } from '@/monetization/pro-route';
 import * as SplashScreen from 'expo-splash-screen';
 import * as FileSystem from 'expo-file-system/legacy';
 import {
@@ -219,6 +221,14 @@ export default function RootLayout() {
       if (appearance) applyShotAppearance(appearance);
       if (locale) await setAppLocale(locale as AppLocale);
       if (route && ALLOWED_SHOT_ROUTES.has(route)) {
+        // Keep paywall reason (and any future query) — bare replace drops ?reason=.
+        if (route === '/pro') {
+          const reason = coerceProReason(queryParamFromUrl(url, 'reason'));
+          if (reason) {
+            router.replace({ pathname: '/pro', params: { reason } });
+            return;
+          }
+        }
         router.replace(route as '/(tabs)/index');
       }
     };

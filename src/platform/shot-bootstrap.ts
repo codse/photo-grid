@@ -227,3 +227,21 @@ export function pathFromUrl(url: string | null | undefined): string | null {
     return m?.[1] && m[1] !== '/' ? m[1] : null;
   }
 }
+
+/** Query string value from a deep link (handles host-as-path URLs). */
+export function queryParamFromUrl(
+  url: string | null | undefined,
+  key: string,
+): string | null {
+  if (!url) return null;
+  try {
+    const parsed = new URL(url);
+    const direct = parsed.searchParams.get(key);
+    if (direct) return direct;
+  } catch {
+    // fall through
+  }
+  const re = new RegExp(`[?&]${key}=([^&#]+)`, 'i');
+  const m = re.exec(url);
+  return m ? decodeURIComponent(m[1]!) : null;
+}
