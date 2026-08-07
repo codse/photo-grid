@@ -1,5 +1,4 @@
 import { Platform, Share } from 'react-native';
-import * as StoreReview from 'expo-store-review';
 import {
   bumpExportCount,
   markReviewPrompted,
@@ -12,6 +11,17 @@ export const APP_STORE_URL = `https://apps.apple.com/app/id${APP_STORE_ID}`;
 export const PLAY_STORE_URL =
   'https://play.google.com/store/apps/details?id=com.codse.passport.photo.print';
 
+type StoreReviewModule = typeof import('expo-store-review');
+
+async function loadStoreReview(): Promise<StoreReviewModule | null> {
+  if (Platform.OS === 'web') return null;
+  try {
+    return await import('expo-store-review');
+  } catch {
+    return null;
+  }
+}
+
 export function storeListingUrl(): string {
   return Platform.OS === 'android' ? PLAY_STORE_URL : APP_STORE_URL;
 }
@@ -21,6 +31,8 @@ export async function maybeRequestReview(): Promise<boolean> {
   if (Platform.OS === 'web') return false;
   try {
     if (!(await shouldAskForReview())) return false;
+    const StoreReview = await loadStoreReview();
+    if (!StoreReview) return false;
     const available = await StoreReview.isAvailableAsync();
     if (!available) return false;
     await StoreReview.requestReview();
@@ -55,12 +67,16 @@ export async function shareApp(): Promise<void> {
 
 export async function requestReviewNow(): Promise<void> {
   if (Platform.OS === 'web') return;
-  if (await StoreReview.isAvailableAsync()) {
-    await StoreReview.requestReview();
-    await markReviewPrompted();
-    return;
+  try {
+    const StoreReview = await loadStoreReview();
+    if (StoreReview && (await StoreReview.isAvailableAsync())) {
+      await StoreReview.requestReview();
+      await markReviewPrompted();
+      return;
+    }
+  } catch {
+    // fall through to listing
   }
-  // Fallback: open listing.
   const { Linking } = await import('react-native');
   await Linking.openURL(storeListingUrl());
 }
