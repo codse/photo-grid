@@ -23,6 +23,7 @@
         "NSCameraUsageDescription": "Passport Photo Print needs the camera to take passport and ID photos.",
         "NSPhotoLibraryUsageDescription": "Passport Photo Print needs photo library access to import and save ID photos.",
         "NSPhotoLibraryAddUsageDescription": "Passport Photo Print saves printable photo sheets to your library.",
+        "NSLocationWhenInUseUsageDescription": "Location may be used by advertising partners to show more relevant ads. Passport Photo Print does not use your location for passport or ID photo features.",
         "ITSAppUsesNonExemptEncryption": false,
         "GADApplicationIdentifier": "ca-app-pub-3859855802547804~5410835231",
         "UIApplicationSceneManifest": {
