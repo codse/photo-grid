@@ -1,9 +1,10 @@
 import { Platform } from 'react-native';
 import { manipulateAsync, SaveFormat } from 'expo-image-manipulator';
 import { removeBgImage } from 'rn-remove-image-bg';
+import { bakeOrientation } from '@/platform/media';
 
 export type BgRemovalResult =
-  | { ok: true; uri: string }
+  | { ok: true; uri: string; width: number; height: number }
   | { ok: false; reason: string };
 
 export const BG_REMOVAL_AVAILABLE =
@@ -11,12 +12,21 @@ export const BG_REMOVAL_AVAILABLE =
 
 /**
  * On-device background removal via Apple Vision (iOS) / ML Kit (Android).
+ * Bakes EXIF orientation first so cutout pixels match on-screen upright photos.
  */
 export async function removeBackground(uri: string): Promise<BgRemovalResult> {
   try {
-    const cutout = await removeBgImage(uri);
+    const upright = await bakeOrientation(uri);
+    const cutout = await removeBgImage(upright.uri);
     const withWhite = await compositeOnWhite(cutout);
-    return { ok: true, uri: withWhite };
+    // Re-measure after flatten — PNG→JPEG can keep upright dims from Vision.
+    const flat = await bakeOrientation(withWhite);
+    return {
+      ok: true,
+      uri: flat.uri,
+      width: flat.width,
+      height: flat.height,
+    };
   } catch (e) {
     const message =
       e instanceof Error ? e.message : 'Background removal unavailable';

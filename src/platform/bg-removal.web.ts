@@ -1,5 +1,5 @@
 export type BgRemovalResult =
-  | { ok: true; uri: string }
+  | { ok: true; uri: string; width?: number; height?: number }
   | { ok: false; reason: string };
 
 export const BG_REMOVAL_AVAILABLE = false;

@@ -17,12 +17,18 @@ type Props = {
   captureMode?: PeopleStripCaptureMode;
   /** @deprecated Prefer `captureMode="library"`. */
   enablePhotoPick?: boolean;
+  /**
+   * `live` — baked preview when available (sheet).
+   * `source` — raw photo URI only; ignores crop/adjust (editor — no live strip thrash).
+   */
+  thumbs?: 'live' | 'source';
   onPersonFocus?: (id: string) => void;
 };
 
 export function PeopleStrip({
   captureMode,
   enablePhotoPick,
+  thumbs = 'live',
   onPersonFocus,
 }: Props) {
   const mode: PeopleStripCaptureMode =
@@ -160,7 +166,8 @@ export function PeopleStrip({
       >
         {subjects.map((p) => {
           const selected = p.id === activeId;
-          const thumbUri = p.previewUri ?? p.url;
+          const thumbUri =
+            thumbs === 'source' ? p.url : (p.previewUri ?? p.url);
           return (
             <Pressable
               key={p.id}

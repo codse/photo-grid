@@ -190,29 +190,53 @@ function getImageSize(uri: string): Promise<{ width: number; height: number }> {
 }
 
 /**
- * Downscale huge camera/library picks before session storage.
+ * Re-encode so EXIF orientation is baked into pixels.
+ * Crop math, Skia export, and BG removal all see the same upright bitmap.
+ */
+export async function bakeOrientation(uri: string): Promise<PickedImage> {
+  const result = await manipulateAsync(uri, [], {
+    compress: 0.95,
+    format: SaveFormat.JPEG,
+  });
+  const size = await getImageSize(result.uri);
+  return {
+    uri: result.uri,
+    width: size.width,
+    height: size.height,
+  };
+}
+
+/**
+ * Normalize orientation + downscale huge camera/library picks before session storage.
  * Keeps crop math on the (possibly resized) URI; export uses the same file.
  */
 export async function preparePersonImage(
   img: PickedImage,
   maxEdge = 4096,
 ): Promise<PickedImage> {
-  let { uri, width, height } = img;
-  if (!width || !height) {
-    try {
-      const size = await getImageSize(uri);
-      width = size.width;
-      height = size.height;
-    } catch {
-      return img;
+  let prepared: PickedImage;
+  try {
+    prepared = await bakeOrientation(img.uri);
+    if (img.fileName) prepared = { ...prepared, fileName: img.fileName };
+  } catch {
+    prepared = { ...img };
+    if (!prepared.width || !prepared.height) {
+      try {
+        const size = await getImageSize(prepared.uri);
+        prepared = { ...prepared, width: size.width, height: size.height };
+      } catch {
+        return img;
+      }
     }
   }
+
+  const { uri, width, height } = prepared;
   const nextUri = await maybeDownscale(uri, width, height, maxEdge);
-  if (nextUri === uri) return { ...img, width, height };
+  if (nextUri === uri) return prepared;
   const long = Math.max(width, height);
   const scale = maxEdge / long;
   return {
-    ...img,
+    ...prepared,
     uri: nextUri,
     width: Math.round(width * scale),
     height: Math.round(height * scale),

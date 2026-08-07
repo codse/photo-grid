@@ -17,7 +17,6 @@ import { ScissorsIcon } from 'phosphor-react-native/src/icons/Scissors';
 import { AdjustModal } from '@/features/sheet/adjust-modal';
 import { CropCanvas } from '@/features/sheet/crop-canvas';
 import { PeopleStrip } from '@/features/people/people-strip';
-import { usePersonPreviews } from '@/features/people/use-person-previews';
 import { useSession } from '@/state/session';
 import { pickFromLibrary, preparePersonImage } from '@/platform/media';
 import {
@@ -26,6 +25,7 @@ import {
 } from '@/platform/bg-removal';
 import { flipCropHorizontal, rotateCropCW } from '@/core/crop-math';
 import { hasAdjustments } from '@/core/adjust-filter';
+import { DEFAULT_CROP } from '@/core/types';
 import { Button } from '@/ui/primitives';
 import { colors, radii, space, type } from '@/ui/tokens';
 import { RequirePhoto } from '@/features/session/require-photo';
@@ -54,7 +54,6 @@ function PersonCropBody() {
   const [busy, setBusy] = useState(false);
   const [bgNote, setBgNote] = useState<string | null>(null);
   const [adjustOpen, setAdjustOpen] = useState(false);
-  usePersonPreviews();
 
   useEffect(() => {
     if (active?.id) setActivePerson(active.id);
@@ -113,7 +112,11 @@ function PersonCropBody() {
   return (
     <View style={{ flex: 1 }}>
       <Stack.Screen options={{ title: active.label }} />
-      <PeopleStrip enablePhotoPick onPersonFocus={goPerson} />
+      <PeopleStrip
+        enablePhotoPick
+        thumbs="source"
+        onPersonFocus={goPerson}
+      />
       <ScrollView
         contentInsetAdjustmentBehavior="automatic"
         keyboardShouldPersistTaps="handled"
@@ -182,9 +185,24 @@ function PersonCropBody() {
                     setBusy(true);
                     setBgNote(null);
                     try {
+                      const beforeW = dims?.w ?? 0;
+                      const beforeH = dims?.h ?? 0;
                       const result = await removeBackground(active.url);
                       if (result.ok) {
                         replacePersonUri(active.id, result.uri);
+                        const afterW = result.width ?? 0;
+                        const afterH = result.height ?? 0;
+                        // EXIF bake swaps pixel dims — old crop space no longer matches.
+                        const orientationBaked =
+                          beforeW > 0 &&
+                          beforeH > 0 &&
+                          afterW > 0 &&
+                          afterH > 0 &&
+                          beforeW === afterH &&
+                          beforeH === afterW;
+                        if (orientationBaked) {
+                          setPersonCrop(active.id, { ...DEFAULT_CROP });
+                        }
                         setBgNote(
                           'Some agencies reject digitally altered photos. Undo if unsure.',
                         );
