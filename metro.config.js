@@ -8,4 +8,15 @@ config.resolver.alias = {
   '@': path.resolve(__dirname, 'src'),
 };
 
+// Faster cold start: require modules only when first used (Expo disables by default).
+config.transformer = {
+  ...config.transformer,
+  getTransformOptions: async () => ({
+    transform: {
+      experimentalImportSupport: false,
+      inlineRequires: true,
+    },
+  }),
+};
+
 module.exports = config;
