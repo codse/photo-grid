@@ -301,6 +301,12 @@ Caps live in `src/monetization/free-limits.ts`. Paywall: `app/pro.tsx`. `__DEV__
 - After big native/env changes (AdMob app id, RC keys, new native modules): **new EAS production build + submit**, don’t rely on stale TF binaries.
 - Boot: splash can force-ready after timeout so hung font/i18n doesn’t black-screen forever (`app/_layout.tsx`).
 - **Release blank screen (CODSE gotcha):** `react-i18next` defaults `useSuspense: true`. Calling `useTranslation()` in the same root component that runs `initI18n()` in `useEffect` suspends before that effect runs → permanent blank in TestFlight/App Store (DEV often “works” via HMR-warmed i18n). Fix: `react: { useSuspense: false }` in `initI18n`, and keep boot gate free of `useTranslation` (split navigator). Also honor `fontError` from `useFonts` + splash force timeout.
+- **Startup (Expo/RN practices):**
+  - Critical fonts only on boot (Figtree). Commissioner (paywall display) via `ensureDisplayFonts()` after first paint / on Pro mount.
+  - Defer AdMob + RevenueCat with `InteractionManager.runAfterInteractions` after splash hide — never on the critical path.
+  - `Purchases.configure` must not `await getCustomerInfo()` (network); warm cache in background.
+  - Splash: `setOptions({ fade: true })` then `hideAsync` when boot-ready.
+  - Metro: `inlineRequires: true` in `metro.config.js` for faster cold start.
 
 ---
 
