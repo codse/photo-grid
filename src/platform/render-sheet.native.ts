@@ -219,7 +219,7 @@ export async function renderSheetToFile(
         stroke.setColor(
           Skia.Color(
             cell.id === options.selectedCellId
-              ? 'rgba(196,92,50,0.95)'
+              ? 'rgba(184,149,63,0.95)'
               : 'rgba(0,0,0,0.22)',
           ),
         );

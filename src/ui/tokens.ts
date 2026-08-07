@@ -1,6 +1,6 @@
 /**
- * Passport Photo Print — warm clay + white.
- * Primary actions use muted ember (not neon orange). Ground stays near-white.
+ * Passport Photo Print — soft ochre + white.
+ * Primary actions use muted gold-ochre (ties to PRO chrome). Ground stays near-white.
  * Type: Figtree — soft humanist sans (less tech than Space Grotesk).
  */
 export const fonts = {
@@ -21,8 +21,8 @@ export const colors = {
   inkMuted: '#7A6F68',
   inkFaint: '#A89F98',
   line: '#EDE4DC',
-  accent: '#C45C32',
-  accentSoft: 'rgba(196, 92, 50, 0.12)',
+  accent: '#B8953F',
+  accentSoft: 'rgba(184, 149, 63, 0.14)',
   paper: '#FFFFFF',
   danger: '#DC2626',
   success: '#16A34A',

@@ -100,7 +100,7 @@ export function paintSheet(
     if (options.showGuides || options.cutGuides) {
       const selected = cell.id === options.selectedCellId;
       ctx.strokeStyle = selected
-        ? 'rgba(196, 92, 50, 0.95)'
+        ? 'rgba(184, 149, 63, 0.95)'
         : 'rgba(0,0,0,0.22)';
       ctx.lineWidth = selected ? Math.max(2, dpi / 96) : Math.max(1, dpi / 150);
       ctx.strokeRect(dx + 0.5, dy + 0.5, dw - 1, dh - 1);
