@@ -25,7 +25,7 @@ export async function showRewardedForAdBreak(): Promise<RewardedResult> {
 
 export type BannerProps = {
   style?: object;
-  size?: 'large' | 'anchored';
+  size?: 'banner' | 'large' | 'anchored';
 };
 
 export function AdBanner(_props: BannerProps): null {

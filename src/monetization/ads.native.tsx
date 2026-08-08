@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Platform, View, type ViewStyle } from 'react-native';
+import { Platform, Text, View, type ViewStyle } from 'react-native';
 import mobileAds, {
   AdEventType,
   BannerAd,
@@ -40,19 +40,19 @@ export function usingTestAdUnits(): boolean {
   return FORCE_TEST_ADS;
 }
 
-const BANNER_UNIT =
-  process.env.EXPO_PUBLIC_ADMOB_BANNER_UNIT_ID?.trim() ||
-  (FORCE_TEST_ADS ? TestIds.ADAPTIVE_BANNER : EDV_BANNER);
+const BANNER_UNIT = FORCE_TEST_ADS
+  ? TestIds.ADAPTIVE_BANNER
+  : process.env.EXPO_PUBLIC_ADMOB_BANNER_UNIT_ID?.trim() || EDV_BANNER;
 
-const INTERSTITIAL_UNIT =
-  process.env.EXPO_PUBLIC_ADMOB_INTERSTITIAL_UNIT_ID?.trim() ||
-  (FORCE_TEST_ADS ? TestIds.INTERSTITIAL : EDV_INTERSTITIAL);
+const INTERSTITIAL_UNIT = FORCE_TEST_ADS
+  ? TestIds.INTERSTITIAL
+  : process.env.EXPO_PUBLIC_ADMOB_INTERSTITIAL_UNIT_ID?.trim() ||
+    EDV_INTERSTITIAL;
 
-const REWARDED_UNIT =
-  process.env.EXPO_PUBLIC_ADMOB_REWARDED_UNIT_ID?.trim() ||
-  (FORCE_TEST_ADS
-    ? TestIds.REWARDED_INTERSTITIAL
-    : EDV_REWARDED_INTERSTITIAL);
+const REWARDED_UNIT = FORCE_TEST_ADS
+  ? TestIds.REWARDED_INTERSTITIAL
+  : process.env.EXPO_PUBLIC_ADMOB_REWARDED_UNIT_ID?.trim() ||
+    EDV_REWARDED_INTERSTITIAL;
 
 /** Don’t stack full-screens — feels spammy. */
 const INTERSTITIAL_COOLDOWN_MS = 90_000;
@@ -344,20 +344,44 @@ export async function showRewardedForAdBreak(): Promise<RewardedResult> {
 
 export type BannerProps = {
   style?: ViewStyle;
-  /** Compact banner for denser screens (sheet). */
-  size?: 'large' | 'anchored';
+  /** `banner` = fixed 320×50 (tab accessory). `anchored` / `large` = adaptive. */
+  size?: 'banner' | 'large' | 'anchored';
 };
 
 export function AdBanner({ style, size = 'large' }: BannerProps) {
   const [show, setShow] = useState(false);
   const [ready, setReady] = useState(adsReady);
   const [failed, setFailed] = useState(false);
+  const [failMsg, setFailMsg] = useState<string | null>(null);
+  const [suppressReason, setSuppressReason] = useState<string | null>(null);
   const bannerRef = useRef<BannerAd>(null);
+  const debug = usingTestAdUnits() || getForceFreeAdsSync() || __DEV__;
 
   const refreshGate = useCallback(async () => {
     const ok = await initAds();
     setReady(ok);
-    setShow(await shouldShowAds());
+    await loadForceFreeAds();
+    if (getForceFreeAdsSync()) {
+      setSuppressReason(null);
+      setShow(true);
+      return;
+    }
+    if (await isAdsMutedNow()) {
+      setSuppressReason('muted');
+      setShow(false);
+      return;
+    }
+    try {
+      if (getCachedIsPro() || (await isPro())) {
+        setSuppressReason('pro');
+        setShow(false);
+        return;
+      }
+    } catch {
+      // show ads if RC fails
+    }
+    setSuppressReason(null);
+    setShow(true);
   }, []);
 
   useEffect(() => {
@@ -376,12 +400,39 @@ export function AdBanner({ style, size = 'large' }: BannerProps) {
     void refreshGate();
   });
 
-  if (!show || !ready || failed) return null;
+  if (!show || !ready) {
+    // Pro / mute: stay invisible even in test-id builds (no debug chrome).
+    if (!debug || suppressReason === 'pro' || suppressReason === 'muted') {
+      return null;
+    }
+    return (
+      <View style={[{ alignItems: 'center', width: '100%', padding: 8 }, style]}>
+        <Text style={{ fontSize: 11, color: '#7A6F68' }}>
+          {!ready
+            ? '[AdMob] init…'
+            : `[AdMob] hidden (${suppressReason ?? 'gate'})`}
+        </Text>
+      </View>
+    );
+  }
+
+  if (failed) {
+    if (!debug) return null;
+    return (
+      <View style={[{ alignItems: 'center', width: '100%', padding: 8 }, style]}>
+        <Text style={{ fontSize: 11, color: '#DC2626' }} numberOfLines={3}>
+          [AdMob] fail: {failMsg ?? 'unknown'}
+        </Text>
+      </View>
+    );
+  }
 
   const adSize =
-    size === 'anchored'
-      ? BannerAdSize.ANCHORED_ADAPTIVE_BANNER
-      : BannerAdSize.LARGE_ANCHORED_ADAPTIVE_BANNER;
+    size === 'banner'
+      ? BannerAdSize.BANNER
+      : size === 'anchored'
+        ? BannerAdSize.ANCHORED_ADAPTIVE_BANNER
+        : BannerAdSize.LARGE_ANCHORED_ADAPTIVE_BANNER;
 
   return (
     <View style={[{ alignItems: 'center', width: '100%' }, style]}>
@@ -391,13 +442,22 @@ export function AdBanner({ style, size = 'large' }: BannerProps) {
         size={adSize}
         requestOptions={{ requestNonPersonalizedAdsOnly: true }}
         onAdLoaded={() => {
-          if (__DEV__) console.log('[AdMob] banner loaded');
+          console.warn('[AdMob] banner loaded', BANNER_UNIT);
+          setFailed(false);
+          setFailMsg(null);
         }}
         onAdFailedToLoad={(error) => {
-          console.warn('[AdMob] banner failed', error);
-          // Retry once after a beat — cold init / no-fill is often transient.
+          const msg =
+            typeof error === 'object' && error && 'message' in error
+              ? String((error as { message?: string }).message)
+              : String(error);
+          console.warn('[AdMob] banner failed', BANNER_UNIT, error);
+          setFailMsg(msg);
           setFailed(true);
-          setTimeout(() => setFailed(false), 8_000);
+          setTimeout(() => {
+            setFailed(false);
+            setFailMsg(null);
+          }, 8_000);
         }}
       />
     </View>
