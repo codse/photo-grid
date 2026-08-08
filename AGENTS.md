@@ -12,7 +12,7 @@ Related always-on Cursor rules: `.cursor/rules/*.mdc`.
 2. **Do not wait** for the human to say “commit”. If a unit is done and the tree is dirty with intentional work, commit it.
 3. **Never commit secrets** — `.env`, `.secrets/`, `*.p8`, `eas.submit.local.json`, AuthKeys, absolute machine paths to keys.
 4. **Do not push** unless the human asks.
-5. Prefer **`.native.ts(x)` / `.web.ts(x)`** with matching extensions. A bare `foo.ts` next to `foo.native.tsx` (mismatched ext) can make Metro ship the **web stub on iOS** (seen with ads → “Ads are not available on web” on device). Prefer `foo.web.ts` + `foo.native.tsx`, or same-ext pairs like `render-sheet.ts` / `render-sheet.native.ts`.
+5. Prefer **`.native.ts(x)` / `.web.ts(x)`** with matching extensions. A bare `foo.ts` next to `foo.native.tsx` (mismatched ext) can make Metro ship the **web stub on iOS** (seen with ads → “Ads are not available on web” on device / TF). Prefer `foo.web.ts` + `foo.native.tsx` only — **never** add a third bare `ads.ts` “for types”; Metro may resolve that stub on iOS and drop `ads.native.tsx` from the bundle. Same-ext pairs like `render-sheet.ts` / `render-sheet.native.ts` are also fine.
 6. When inventing process (ASC, RC, screenshots, i18n), **write it back into this file** so the next session inherits it.
 
 ---
@@ -284,6 +284,7 @@ Caps live in `src/monetization/free-limits.ts`. Paywall: `app/pro.tsx`. `__DEV__
 | Android app id | `ca-app-pub-3859855802547804~6624257573` |
 
 - Code: `src/monetization/ads.native.tsx` — Google `TestIds` when `__DEV__` or `EXPO_PUBLIC_ADMOB_USE_TEST_IDS=1`. **iOS live ads will not fill until the app is listed on the App Store** (Google policy) — keep `USE_TEST_IDS=1` + `ALLOW_FORCE_FREE=1` on TF builds; flip both off/0 for the App Store binary. Pro suppresses ads; Settings → Force free works when `ALLOW_FORCE_FREE=1`.
+- **AdMob app id in two places:** Expo plugin (`plugins` → `iosAppId`) **and** root `app.json` → `react-native-google-mobile-ads.ios_app_id`. The RNGoogleMobileAds Xcode script only reads the root key — if missing it injects Google’s **sample** app id (`3940256099942544~…`) and production units won’t match.
 - Changing `GADApplicationIdentifier` / plugin app ids → **new native build**.
 - AdMob (and similar SDKs) may link Core Location → Apple **ITMS-90683** if `NSLocationWhenInUseUsageDescription` is missing. Keep a purpose string in `app.json` → `ios.infoPlist` even though photo features never request location.
 - Placements: home/sheet banners; interstitial after export (cooldown).
