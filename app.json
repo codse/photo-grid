@@ -39,6 +39,7 @@
         }
       }
     },
+    },
     "android": {
       "package": "com.codse.passport.photo.print",
       "adaptiveIcon": {
@@ -64,6 +65,7 @@
     },
     "plugins": [
       "expo-router",
+      "./plugins/with-ios-scene-delegate.js",
       "expo-dev-client",
       [
         "expo-image-picker",
