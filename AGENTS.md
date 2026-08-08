@@ -327,7 +327,7 @@ Caps live in `src/monetization/free-limits.ts`. Paywall: `app/pro.tsx`. `__DEV__
 
 1. Fork/copy this playbook into the new repo’s `AGENTS.md`.
 2. New bundle id + ASC app + Paid Apps + Small Business.
-3. Expo `app.json` / EAS project / icons / splash.
+3. Expo `app.json` / EAS project / icons / splash (`./scripts/gen-icons.sh path/to/logo.png`).
 4. i18n scaffold (`src/i18n`) + `en.json`.
 5. Copy **shot bootstrap** (`src/platform/shot-bootstrap.ts` + plant script + root allowlist) for locale/theme captures.
 6. RC project + entitlement + offering.
