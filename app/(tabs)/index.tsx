@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { Image as ExpoImage } from 'expo-image';
 import * as Haptics from 'expo-haptics';
-import { router, useFocusEffect } from 'expo-router';
+import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CaretRightIcon } from 'phosphor-react-native/src/icons/CaretRight';
 import { PlusIcon } from 'phosphor-react-native/src/icons/Plus';
@@ -27,9 +27,7 @@ import { SheetPreviewMark } from '@/ui/sheet-preview-mark';
 import { colors, fonts, radii, space } from '@/ui/tokens';
 import { ProBadge } from '@/monetization/pro-badge';
 import { openProPaywall } from '@/monetization/pro-route';
-import { AdBanner } from '@/monetization/ads';
 import { useIsPro } from '@/monetization/purchases';
-import { loadForceFreeAds, allowForceFreeAds } from '@/monetization/ads-prefs';
 import { useTranslation } from 'react-i18next';
 
 /** iOS Settings-style grouped canvas. */
@@ -65,25 +63,6 @@ export default function HomeScreen() {
 
   const [busy, setBusy] = useState(false);
   const [recent, setRecent] = useState<SavedSheet[]>([]);
-  const [bannerKey, setBannerKey] = useState(0);
-  const [forceFree, setForceFree] = useState(false);
-
-  useEffect(() => {
-    if (!allowForceFreeAds()) return;
-    void loadForceFreeAds().then((v) => setForceFree(v));
-  }, []);
-
-  useFocusEffect(
-    useCallback(() => {
-      if (!allowForceFreeAds()) return;
-      void loadForceFreeAds().then((v) => {
-        setForceFree(v);
-        setBannerKey((k) => k + 1);
-      });
-    }, []),
-  );
-
-  const showBanner = Platform.OS !== 'web' && (!isPro || forceFree);
 
   const activePhoto = PHOTO_PRESETS.find((p) => p.id === photoId);
   const paper = PAPER_PRESETS.find((p) => p.id === paperId);
@@ -476,12 +455,6 @@ export default function HomeScreen() {
             />
           ) : null}
         </ScrollView>
-
-      {showBanner ? (
-        <View style={styles.bannerDock}>
-          <AdBanner key={bannerKey} size="anchored" />
-        </View>
-      ) : null}
     </View>
   );
 }
@@ -554,14 +527,6 @@ const styles = StyleSheet.create({
   sizeChipTextSelected: {
     fontFamily: fonts.semibold,
     color: colors.ink,
-  },
-  bannerDock: {
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: '#C6C6C8',
-    backgroundColor: GROUPED_BG,
-    alignItems: 'center',
-    paddingTop: 4,
-    paddingBottom: 2,
   },
 });
 

@@ -4,6 +4,7 @@ import { NativeTabs } from 'expo-router/unstable-native-tabs';
 import { useTranslation } from 'react-i18next';
 import { HouseIcon } from 'phosphor-react-native/src/icons/House';
 import { GearSixIcon } from 'phosphor-react-native/src/icons/GearSix';
+import { TabAdAccessory } from '@/monetization/tab-ad-accessory';
 import { colors, fonts } from '@/ui/tokens';
 
 export default function TabsLayout() {
@@ -60,6 +61,9 @@ export default function TabsLayout() {
       backgroundColor={colors.bgElevated}
       minimizeBehavior="never"
     >
+      <NativeTabs.BottomAccessory>
+        <TabAdAccessory />
+      </NativeTabs.BottomAccessory>
       <NativeTabs.Trigger name="index">
         <NativeTabs.Trigger.Label>{home}</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon
