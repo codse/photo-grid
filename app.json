@@ -39,7 +39,6 @@
         }
       }
     },
-    },
     "android": {
       "package": "com.codse.passport.photo.print",
       "adaptiveIcon": {
