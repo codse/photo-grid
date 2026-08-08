@@ -21,8 +21,7 @@
       "autoIncrement": true,
       "env": {
         "EXPO_PUBLIC_REVENUECAT_ENTITLEMENT_ID": "pro",
-        "EXPO_PUBLIC_ADMOB_USE_TEST_IDS": "1",
-        "EXPO_PUBLIC_ALLOW_FORCE_FREE": "1"
+        "EXPO_PUBLIC_ADMOB_USE_TEST_IDS": "0"
       }
     }
   },
