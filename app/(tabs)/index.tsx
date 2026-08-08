@@ -27,6 +27,7 @@ import { SheetPreviewMark } from '@/ui/sheet-preview-mark';
 import { colors, fonts, radii, space } from '@/ui/tokens';
 import { ProBadge } from '@/monetization/pro-badge';
 import { openProPaywall } from '@/monetization/pro-route';
+import { AdBanner, usingTestAdUnits } from '@/monetization/ads';
 import { useIsPro } from '@/monetization/purchases';
 import { useTranslation } from 'react-i18next';
 
@@ -455,6 +456,19 @@ export default function HomeScreen() {
             />
           ) : null}
         </ScrollView>
+
+      {/* In-screen dock — BottomAccessory is unreliable across iOS versions.
+          Clear floating NativeTabs with bottom padding. */}
+      {Platform.OS !== 'web' ? (
+        <View
+          style={[
+            styles.bannerDock,
+            { paddingBottom: Math.max(insets.bottom, 8) + 64 },
+          ]}
+        >
+          <AdBanner size="banner" />
+        </View>
+      ) : null}
     </View>
   );
 }
@@ -527,6 +541,13 @@ const styles = StyleSheet.create({
   sizeChipTextSelected: {
     fontFamily: fonts.semibold,
     color: colors.ink,
+  },
+  bannerDock: {
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: '#C6C6C8',
+    backgroundColor: GROUPED_BG,
+    alignItems: 'center',
+    paddingTop: 6,
   },
 });
 

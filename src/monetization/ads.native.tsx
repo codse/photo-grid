@@ -41,6 +41,10 @@ export function usingTestAdUnits(): boolean {
 }
 
 const BANNER_UNIT = FORCE_TEST_ADS
+  ? TestIds.BANNER
+  : process.env.EXPO_PUBLIC_ADMOB_BANNER_UNIT_ID?.trim() || EDV_BANNER;
+
+const BANNER_UNIT_ADAPTIVE = FORCE_TEST_ADS
   ? TestIds.ADAPTIVE_BANNER
   : process.env.EXPO_PUBLIC_ADMOB_BANNER_UNIT_ID?.trim() || EDV_BANNER;
 
@@ -68,6 +72,9 @@ let rewardedLoaded = false;
 async function adsAreSuppressed(): Promise<boolean> {
   await loadForceFreeAds();
   if (getForceFreeAdsSync()) return false;
+  // Pre-store TF builds use TestIds — always request creatives so we can verify
+  // AdMob plumbing even when the tester already owns Pro.
+  if (FORCE_TEST_ADS) return await isAdsMutedNow();
   if (await isAdsMutedNow()) return true;
   try {
     if (getCachedIsPro() || (await isPro())) return true;
@@ -189,17 +196,16 @@ export async function initAds(): Promise<boolean> {
       );
       await withTimeout(mobileAds().initialize(), 15_000, 'initialize');
       adsReady = true;
-      if (__DEV__) {
-        console.log('[AdMob] initialized', {
-          BANNER_UNIT,
-          INTERSTITIAL_UNIT,
-          REWARDED_UNIT,
-          pro: getCachedIsPro(),
-          forceFree: getForceFreeAdsSync(),
-        });
-      }
+      console.warn('[AdMob] initialized', {
+        BANNER_UNIT,
+        INTERSTITIAL_UNIT,
+        REWARDED_UNIT,
+        FORCE_TEST_ADS,
+        pro: getCachedIsPro(),
+        forceFree: getForceFreeAdsSync(),
+      });
     } catch (e) {
-      if (__DEV__) console.warn('[AdMob] initialize failed', e);
+      console.warn('[AdMob] initialize failed', e);
       adsInitPromise = null;
       return false;
     }
@@ -344,24 +350,42 @@ export async function showRewardedForAdBreak(): Promise<RewardedResult> {
 
 export type BannerProps = {
   style?: ViewStyle;
-  /** `banner` = fixed 320×50 (tab accessory). `anchored` / `large` = adaptive. */
+  /** `banner` = fixed 320×50. `anchored` / `large` = adaptive. */
   size?: 'banner' | 'large' | 'anchored';
 };
 
-export function AdBanner({ style, size = 'large' }: BannerProps) {
+function unitForBannerSize(size: BannerProps['size']): string {
+  if (size === 'banner') return BANNER_UNIT;
+  return BANNER_UNIT_ADAPTIVE;
+}
+
+export function AdBanner({ style, size = 'banner' }: BannerProps) {
   const [show, setShow] = useState(false);
   const [ready, setReady] = useState(adsReady);
   const [failed, setFailed] = useState(false);
   const [failMsg, setFailMsg] = useState<string | null>(null);
   const [suppressReason, setSuppressReason] = useState<string | null>(null);
+  const [loaded, setLoaded] = useState(false);
   const bannerRef = useRef<BannerAd>(null);
-  const debug = usingTestAdUnits() || getForceFreeAdsSync() || __DEV__;
+  const unitId = unitForBannerSize(size);
+  /** Always visible chrome while shipping TestIds (TF / pre-store). */
+  const debug = FORCE_TEST_ADS || __DEV__;
 
   const refreshGate = useCallback(async () => {
     const ok = await initAds();
     setReady(ok);
+    if (!ok) {
+      setSuppressReason('init-failed');
+      setShow(false);
+      return;
+    }
     await loadForceFreeAds();
-    if (getForceFreeAdsSync()) {
+    if (getForceFreeAdsSync() || FORCE_TEST_ADS) {
+      if (await isAdsMutedNow()) {
+        setSuppressReason('muted');
+        setShow(false);
+        return;
+      }
       setSuppressReason(null);
       setShow(true);
       return;
@@ -401,27 +425,52 @@ export function AdBanner({ style, size = 'large' }: BannerProps) {
   });
 
   if (!show || !ready) {
-    // Pro / mute: stay invisible even in test-id builds (no debug chrome).
-    if (!debug || suppressReason === 'pro' || suppressReason === 'muted') {
-      return null;
-    }
+    if (!debug) return null;
     return (
-      <View style={[{ alignItems: 'center', width: '100%', padding: 8 }, style]}>
-        <Text style={{ fontSize: 11, color: '#7A6F68' }}>
+      <View
+        style={[
+          {
+            alignItems: 'center',
+            width: '100%',
+            paddingVertical: 10,
+            paddingHorizontal: 12,
+            backgroundColor: '#FFF3CD',
+          },
+          style,
+        ]}
+      >
+        <Text style={{ fontSize: 12, color: '#7A5A00', textAlign: 'center' }}>
           {!ready
-            ? '[AdMob] init…'
-            : `[AdMob] hidden (${suppressReason ?? 'gate'})`}
+            ? `[AdMob] init failed/pending (${suppressReason ?? '…'})`
+            : suppressReason === 'pro'
+              ? '[AdMob] hidden — Pro. Settings → Force free'
+              : suppressReason === 'muted'
+                ? '[AdMob] muted (rewarded break)'
+                : `[AdMob] hidden (${suppressReason ?? 'gate'})`}
         </Text>
       </View>
     );
   }
 
   if (failed) {
-    if (!debug) return null;
     return (
-      <View style={[{ alignItems: 'center', width: '100%', padding: 8 }, style]}>
-        <Text style={{ fontSize: 11, color: '#DC2626' }} numberOfLines={3}>
+      <View
+        style={[
+          {
+            alignItems: 'center',
+            width: '100%',
+            paddingVertical: 10,
+            paddingHorizontal: 12,
+            backgroundColor: '#FEE2E2',
+          },
+          style,
+        ]}
+      >
+        <Text style={{ fontSize: 12, color: '#991B1B', textAlign: 'center' }}>
           [AdMob] fail: {failMsg ?? 'unknown'}
+        </Text>
+        <Text style={{ fontSize: 10, color: '#7F1D1D', marginTop: 4 }}>
+          {unitId}
         </Text>
       </View>
     );
@@ -436,28 +485,31 @@ export function AdBanner({ style, size = 'large' }: BannerProps) {
 
   return (
     <View style={[{ alignItems: 'center', width: '100%' }, style]}>
+      {debug && !loaded ? (
+        <Text style={{ fontSize: 10, color: '#A89F98', marginBottom: 4 }}>
+          [AdMob] loading {unitId.slice(-10)}…
+        </Text>
+      ) : null}
       <BannerAd
         ref={bannerRef}
-        unitId={BANNER_UNIT}
+        unitId={unitId}
         size={adSize}
         requestOptions={{ requestNonPersonalizedAdsOnly: true }}
         onAdLoaded={() => {
-          console.warn('[AdMob] banner loaded', BANNER_UNIT);
+          console.warn('[AdMob] banner loaded', unitId);
           setFailed(false);
           setFailMsg(null);
+          setLoaded(true);
         }}
         onAdFailedToLoad={(error) => {
           const msg =
             typeof error === 'object' && error && 'message' in error
               ? String((error as { message?: string }).message)
               : String(error);
-          console.warn('[AdMob] banner failed', BANNER_UNIT, error);
+          console.warn('[AdMob] banner failed', unitId, error);
           setFailMsg(msg);
           setFailed(true);
-          setTimeout(() => {
-            setFailed(false);
-            setFailMsg(null);
-          }, 8_000);
+          setLoaded(false);
         }}
       />
     </View>

@@ -186,7 +186,7 @@ function SheetBody() {
             {preview}
             {meta}
             {exportBtn}
-            <AdBanner size="anchored" style={{ marginTop: space.sm }} />
+            <AdBanner size="banner" style={{ marginTop: space.sm }} />
           </ScrollView>
           <SheetOptionsSidebar width={sidebarW} />
         </View>
@@ -204,7 +204,7 @@ function SheetBody() {
             {meta}
             <CustomizeSummaryBar onPress={openCustomize} />
             {exportBtn}
-            <AdBanner size="anchored" style={{ marginTop: space.sm }} />
+            <AdBanner size="banner" style={{ marginTop: space.sm }} />
           </ScrollView>
           <CustomizeSheet
             visible={customizeOpen}
