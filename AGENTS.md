@@ -283,7 +283,7 @@ Caps live in `src/monetization/free-limits.ts`. Paywall: `app/pro.tsx`. `__DEV__
 | Rewarded interstitial | `…/2171649565` |
 | Android app id | `ca-app-pub-3859855802547804~6624257573` |
 
-- Code: `src/monetization/ads.native.tsx` — test IDs in `__DEV__` unless `EXPO_PUBLIC_ADMOB_USE_TEST_IDS=0`.
+- Code: `src/monetization/ads.native.tsx` — Google `TestIds` only in `__DEV__` or when `EXPO_PUBLIC_ADMOB_USE_TEST_IDS=1`. Release/TF must use real units (default). Gotcha: old `!== '0'` default made **unset** env force test units in production → no fill on device.
 - Changing `GADApplicationIdentifier` / plugin app ids → **new native build**.
 - AdMob (and similar SDKs) may link Core Location → Apple **ITMS-90683** if `NSLocationWhenInUseUsageDescription` is missing. Keep a purpose string in `app.json` → `ios.infoPlist` even though photo features never request location.
 - Placements: home/sheet banners; interstitial after export (cooldown).

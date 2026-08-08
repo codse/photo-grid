@@ -26,8 +26,13 @@ const EDV_INTERSTITIAL = 'ca-app-pub-3859855802547804/5372693571';
 const EDV_REWARDED_INTERSTITIAL =
   'ca-app-pub-3859855802547804/2171649565';
 
+/**
+ * Test units only in DEV, or when explicitly opted in.
+ * IMPORTANT: `!== '0'` is wrong — unset env is also !== '0', so Release/TF
+ * was shipping Google TestIds and often no-filling on device.
+ */
 const FORCE_TEST_ADS =
-  __DEV__ || process.env.EXPO_PUBLIC_ADMOB_USE_TEST_IDS !== '0';
+  __DEV__ || process.env.EXPO_PUBLIC_ADMOB_USE_TEST_IDS === '1';
 
 const BANNER_UNIT =
   process.env.EXPO_PUBLIC_ADMOB_BANNER_UNIT_ID?.trim() ||
@@ -383,7 +388,8 @@ export function AdBanner({ style, size = 'large' }: BannerProps) {
           if (__DEV__) console.log('[AdMob] banner loaded');
         }}
         onAdFailedToLoad={(error) => {
-          if (__DEV__) console.warn('[AdMob] banner failed', error);
+          // Keep a breadcrumb in release — no-fill / misconfig is otherwise silent.
+          console.warn('[AdMob] banner failed', error);
           setFailed(true);
         }}
       />
