@@ -285,6 +285,7 @@ function RootNavigator() {
   // Phone chrome by default; widen for sheet sidebar / desktop layouts.
   const webMaxW = winW >= 900 ? 1080 : 540;
   const homeBack = t('common.home');
+  const settingsBack = t('settings.title');
 
   return (
     <View
@@ -404,6 +405,32 @@ function RootNavigator() {
               title: t('pro.title'),
               presentation: Platform.OS === 'ios' ? 'modal' : 'card',
             }}
+          />
+          {/* Settings legal/help — root Stack only. Nested Stack under
+              NativeTabs hangs Release on RN 0.86 / SDK 57 (expo#47687). */}
+          <Stack.Screen
+            name="help"
+            options={{ headerBackTitle: settingsBack }}
+          />
+          <Stack.Screen
+            name="faq"
+            options={{ headerBackTitle: settingsBack }}
+          />
+          <Stack.Screen
+            name="about"
+            options={{ headerBackTitle: settingsBack }}
+          />
+          <Stack.Screen
+            name="privacy"
+            options={{ headerBackTitle: settingsBack }}
+          />
+          <Stack.Screen
+            name="terms"
+            options={{ headerBackTitle: settingsBack }}
+          />
+          <Stack.Screen
+            name="disclaimer"
+            options={{ headerBackTitle: settingsBack }}
           />
         </Stack>
       </GestureHandlerRootView>

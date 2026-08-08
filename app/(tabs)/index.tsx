@@ -11,7 +11,8 @@ import {
 } from 'react-native';
 import { Image as ExpoImage } from 'expo-image';
 import * as Haptics from 'expo-haptics';
-import { router, Stack, useFocusEffect } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CaretRightIcon } from 'phosphor-react-native/src/icons/CaretRight';
 import { PlusIcon } from 'phosphor-react-native/src/icons/Plus';
 import { PHOTO_PRESETS, PAPER_PRESETS } from '@/core/presets';
@@ -49,6 +50,7 @@ function mediumTap() {
 
 export default function HomeScreen() {
   const { t } = useTranslation();
+  const insets = useSafeAreaInsets();
   const isPro = useIsPro();
   const photoId = useSession((s) => s.photoId);
   const paperId = useSession((s) => s.paperId);
@@ -167,47 +169,49 @@ export default function HomeScreen() {
   };
 
   return (
-    <>
-      <Stack.Screen
-        options={{
-          title: homeTitle,
-          headerBackTitle: t('common.home'),
-          headerShown: true,
-          headerTransparent: false,
-          headerShadowVisible: false,
-          headerLargeTitleEnabled: false,
-          headerTintColor: colors.ink,
-          headerStyle: { backgroundColor: GROUPED_BG },
-          headerTitleStyle: {
+    <View style={{ flex: 1, backgroundColor: GROUPED_BG }}>
+      {/* Flat under NativeTabs — nested Stack under tabs hangs Release (SDK 57). */}
+      <View
+        style={{
+          paddingTop: Math.max(insets.top, 12),
+          paddingHorizontal: 16,
+          paddingBottom: 10,
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: 12,
+          backgroundColor: GROUPED_BG,
+        }}
+      >
+        <Text
+          numberOfLines={1}
+          style={{
+            flex: 1,
+            fontFamily: fonts.semibold,
+            fontSize: 22,
             fontWeight: '600',
             color: colors.ink,
-          },
-          contentStyle: { backgroundColor: GROUPED_BG },
-        }}
-      />
-
-      <Stack.Toolbar placement="right">
-        <Stack.Toolbar.View hidesSharedBackground>
-          <View style={{ justifyContent: 'center', paddingRight: 2 }}>
-            <ProBadge
-              variant={isPro ? 'pro' : 'get'}
-              onPress={isPro ? undefined : openPro}
-            />
-          </View>
-        </Stack.Toolbar.View>
-      </Stack.Toolbar>
-
-      <View style={{ flex: 1, backgroundColor: GROUPED_BG }}>
-        <ScrollView
-          contentInsetAdjustmentBehavior="automatic"
-          style={{ flex: 1, backgroundColor: GROUPED_BG }}
-          contentContainerStyle={{
-            paddingHorizontal: 16,
-            paddingTop: space.md,
-            paddingBottom: 32,
-            gap: 28,
+            letterSpacing: -0.2,
           }}
         >
+          {homeTitle}
+        </Text>
+        <ProBadge
+          variant={isPro ? 'pro' : 'get'}
+          onPress={isPro ? undefined : openPro}
+        />
+      </View>
+
+      <ScrollView
+        contentInsetAdjustmentBehavior="automatic"
+        style={{ flex: 1, backgroundColor: GROUPED_BG }}
+        contentContainerStyle={{
+          paddingHorizontal: 16,
+          paddingTop: space.md,
+          paddingBottom: 32,
+          gap: 28,
+        }}
+      >
           {!hasPhoto ? (
             <Text style={styles.tagline}>{t('home.getStartedHint')}</Text>
           ) : null}
@@ -471,13 +475,12 @@ export default function HomeScreen() {
           ) : null}
         </ScrollView>
 
-        {showBanner ? (
-          <View style={styles.bannerDock}>
-            <AdBanner key={bannerKey} size="anchored" />
-          </View>
-        ) : null}
-      </View>
-    </>
+      {showBanner ? (
+        <View style={styles.bannerDock}>
+          <AdBanner key={bannerKey} size="anchored" />
+        </View>
+      ) : null}
+    </View>
   );
 }
 

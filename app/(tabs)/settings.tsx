@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Alert, Platform, Pressable, ScrollView, Text, View } from 'react-native';
 import Constants from 'expo-constants';
-import { Stack, router } from 'expo-router';
+import { router } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { BookmarkSimpleIcon } from 'phosphor-react-native/src/icons/BookmarkSimple';
 import { CaretRightIcon } from 'phosphor-react-native/src/icons/CaretRight';
@@ -49,6 +50,7 @@ type PickerKind = 'language' | 'dpi' | 'format' | null;
 
 export default function SettingsScreen() {
   const { t } = useTranslation();
+  const insets = useSafeAreaInsets();
   const { locale, setLocale } = useAppLocale();
   const exportDpi = useSession((s) => s.exportDpi);
   const exportFormat = useSession((s) => s.exportFormat);
@@ -107,20 +109,30 @@ export default function SettingsScreen() {
   const formatLabel = exportFormat === 'png' ? 'PNG' : 'JPG';
 
   return (
-    <>
-      <Stack.Screen
-        options={{
-          title: t('settings.title'),
-          headerStyle: { backgroundColor: GROUPED_BG },
-          contentStyle: { backgroundColor: GROUPED_BG },
+    <View style={{ flex: 1, backgroundColor: GROUPED_BG }}>
+      <View
+        style={{
+          paddingTop: Math.max(insets.top, 12),
+          paddingHorizontal: 16,
+          paddingBottom: 10,
+          backgroundColor: GROUPED_BG,
         }}
-      />
+      >
+        <Text
+          style={{
+            ...type.title,
+            color: colors.ink,
+          }}
+        >
+          {t('settings.title')}
+        </Text>
+      </View>
       <ScrollView
         contentInsetAdjustmentBehavior="automatic"
         style={{ flex: 1, backgroundColor: GROUPED_BG }}
         contentContainerStyle={{
           paddingHorizontal: 16,
-          paddingTop: space.lg,
+          paddingTop: space.md,
           paddingBottom: 64,
           gap: 28,
         }}
@@ -202,7 +214,7 @@ export default function SettingsScreen() {
                   weight="duotone"
                 />
               }
-              onPress={() => router.push('/settings/help')}
+              onPress={() => router.push('/help')}
             />
             <ListRow
               title={t('settings.faq')}
@@ -213,14 +225,14 @@ export default function SettingsScreen() {
                   weight="duotone"
                 />
               }
-              onPress={() => router.push('/settings/faq')}
+              onPress={() => router.push('/faq')}
             />
             <ListRow
               title={t('settings.about')}
               icon={
                 <InfoIcon size={18} color={colors.accent} weight="duotone" />
               }
-              onPress={() => router.push('/settings/about')}
+              onPress={() => router.push('/about')}
             />
             {Platform.OS !== 'web' ? (
               <>
@@ -269,7 +281,7 @@ export default function SettingsScreen() {
                   weight="duotone"
                 />
               }
-              onPress={() => router.push('/settings/privacy')}
+              onPress={() => router.push('/privacy')}
             />
             <ListRow
               title={t('settings.terms')}
@@ -280,7 +292,7 @@ export default function SettingsScreen() {
                   weight="duotone"
                 />
               }
-              onPress={() => router.push('/settings/terms')}
+              onPress={() => router.push('/terms')}
             />
             <ListRow
               title={t('settings.disclaimer')}
@@ -291,7 +303,7 @@ export default function SettingsScreen() {
                   weight="duotone"
                 />
               }
-              onPress={() => router.push('/settings/disclaimer')}
+              onPress={() => router.push('/disclaimer')}
             />
           </InsetGroup>
         </View>
@@ -378,7 +390,7 @@ export default function SettingsScreen() {
         onClose={() => setPicker(null)}
         title={t('settings.defaultFormat')}
       />
-    </>
+    </View>
   );
 }
 
