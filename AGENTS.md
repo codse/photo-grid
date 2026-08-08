@@ -301,6 +301,7 @@ Caps live in `src/monetization/free-limits.ts`. Paywall: `app/pro.tsx`. `__DEV__
 - After big native/env changes (AdMob app id, RC keys, new native modules): **new EAS production build + submit**, don’t rely on stale TF binaries.
 - Boot: splash can force-ready after timeout so hung font/i18n doesn’t black-screen forever (`app/_layout.tsx`).
 - **Release blank screen (CODSE gotcha):** `react-i18next` defaults `useSuspense: true`. Calling `useTranslation()` in the same root component that runs `initI18n()` in `useEffect` suspends before that effect runs → permanent blank in TestFlight/App Store (DEV often “works” via HMR-warmed i18n). Fix: `react: { useSuspense: false }` in `initI18n`, and keep boot gate free of `useTranslation` (split navigator). Also honor `fontError` from `useFonts` + splash force timeout.
+- **Nested Stack under NativeTabs (SDK 57 / RN 0.86):** a `Stack` inside `app/(tabs)/…/_layout.tsx` can hang **Release only** (dev/Metro OK) — splash fades then black window (expo#47687). Keep tab screens flat (`app/(tabs)/index.tsx`, `settings.tsx`); put Settings legal/help routes on the **root** Stack (`app/help.tsx`, `faq`, `about`, `privacy`, `terms`, `disclaimer`) with `headerBackTitle: settings`.
 - **Startup (Expo/RN practices):**
   - Critical fonts only on boot (Figtree). Commissioner (paywall display) via `ensureDisplayFonts()` after first paint / on Pro mount.
   - Defer AdMob + RevenueCat with `InteractionManager.runAfterInteractions` after splash hide — never on the critical path.
@@ -314,7 +315,7 @@ Caps live in `src/monetization/free-limits.ts`. Paywall: `app/pro.tsx`. `__DEV__
 
 - Home/Settings: iOS grouped gray `#F2F2F7`, inset groups, system-ish list type on iOS.
 - Native tabs: Home + Settings (`expo-router/unstable-native-tabs`).
-- Legal/help nested under Settings stack so back title ≠ `(tabs)`.
+- Legal/help on **root** Stack (not under tabs) so Release doesn’t hang; `headerBackTitle` = Settings.
 - Accent: soft ochre `#B8953F` — don’t regress to neon orange.
 - Granular UI polish → commit as `style(ui): …` or `feat(home): …`.
 
