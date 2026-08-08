@@ -27,7 +27,7 @@ import { SheetPreviewMark } from '@/ui/sheet-preview-mark';
 import { colors, fonts, radii, space } from '@/ui/tokens';
 import { ProBadge } from '@/monetization/pro-badge';
 import { openProPaywall } from '@/monetization/pro-route';
-import { AdBanner, usingTestAdUnits } from '@/monetization/ads';
+import { AdBanner } from '@/monetization/ads';
 import { useIsPro } from '@/monetization/purchases';
 import { useTranslation } from 'react-i18next';
 
