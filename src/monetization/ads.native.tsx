@@ -28,11 +28,17 @@ const EDV_REWARDED_INTERSTITIAL =
 
 /**
  * Test units only in DEV, or when explicitly opted in.
- * IMPORTANT: `!== '0'` is wrong — unset env is also !== '0', so Release/TF
- * was shipping Google TestIds and often no-filling on device.
+ *
+ * Google will not serve *live* AdMob inventory to an iOS app until it is
+ * listed on the App Store. TestFlight → use TestIds (`=1`). Flip to `0`
+ * (and remove ALLOW_FORCE_FREE) when the store listing is live.
  */
 const FORCE_TEST_ADS =
   __DEV__ || process.env.EXPO_PUBLIC_ADMOB_USE_TEST_IDS === '1';
+
+export function usingTestAdUnits(): boolean {
+  return FORCE_TEST_ADS;
+}
 
 const BANNER_UNIT =
   process.env.EXPO_PUBLIC_ADMOB_BANNER_UNIT_ID?.trim() ||
@@ -91,7 +97,7 @@ function ensureInterstitial() {
   });
   interstitial.addAdEventListener(AdEventType.ERROR, (err) => {
     interstitialLoaded = false;
-    if (__DEV__) console.warn('[AdMob] interstitial error', err);
+    console.warn('[AdMob] interstitial error', err);
   });
   interstitial.load();
 }
@@ -388,9 +394,10 @@ export function AdBanner({ style, size = 'large' }: BannerProps) {
           if (__DEV__) console.log('[AdMob] banner loaded');
         }}
         onAdFailedToLoad={(error) => {
-          // Keep a breadcrumb in release — no-fill / misconfig is otherwise silent.
           console.warn('[AdMob] banner failed', error);
+          // Retry once after a beat — cold init / no-fill is often transient.
           setFailed(true);
+          setTimeout(() => setFailed(false), 8_000);
         }}
       />
     </View>

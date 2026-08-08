@@ -5,12 +5,26 @@ const ADS_MUTED_UNTIL_KEY = 'passport-photo-print.ads.mutedUntil';
 const EXPORT_COUNT_KEY = 'passport-photo-print.stats.exportCount';
 const REVIEW_PROMPTED_KEY = 'passport-photo-print.review.promptedAt';
 
-/** __DEV__ only — ignore Pro and show ads for testing. */
+/**
+ * Force-free (ignore Pro, show ads) is available in __DEV__ and when
+ * EXPO_PUBLIC_ALLOW_FORCE_FREE=1 (TestFlight / pre-store). Live App Store
+ * builds should leave that unset so the toggle stays hidden.
+ */
+export function allowForceFreeAds(): boolean {
+  return (
+    __DEV__ || process.env.EXPO_PUBLIC_ALLOW_FORCE_FREE === '1'
+  );
+}
+
+/** Ignore Pro and show ads for testing. */
 let forceFreeAdsMem: boolean | null = null;
 let adsMutedUntilMem: number | null = null;
 
 export async function loadForceFreeAds(): Promise<boolean> {
-  if (!__DEV__) return false;
+  if (!allowForceFreeAds()) {
+    forceFreeAdsMem = false;
+    return false;
+  }
   if (forceFreeAdsMem != null) return forceFreeAdsMem;
   try {
     const v = await AsyncStorage.getItem(FORCE_FREE_KEY);
@@ -22,7 +36,7 @@ export async function loadForceFreeAds(): Promise<boolean> {
 }
 
 export async function setForceFreeAds(on: boolean): Promise<void> {
-  if (!__DEV__) return;
+  if (!allowForceFreeAds()) return;
   forceFreeAdsMem = on;
   try {
     await AsyncStorage.setItem(FORCE_FREE_KEY, on ? '1' : '0');
@@ -32,7 +46,7 @@ export async function setForceFreeAds(on: boolean): Promise<void> {
 }
 
 export function getForceFreeAdsSync(): boolean {
-  return __DEV__ && forceFreeAdsMem === true;
+  return allowForceFreeAds() && forceFreeAdsMem === true;
 }
 
 export async function getAdsMutedUntil(): Promise<number> {

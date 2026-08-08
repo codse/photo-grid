@@ -232,11 +232,14 @@
     "rateAppHint": "App Store review sheet",
     "developer": "Developer",
     "forceFreeAds": "Force free (show ads)",
-    "forceFreeAdsHint": "Ignore Pro entitlement — __DEV__ only",
+    "forceFreeAdsHint": "Ignore Pro — TestFlight / DEV only",
     "forceFreeOn": "Force free on",
     "forceFreeOff": "Force free off",
     "forceFreeOnBody": "Ads will show even if Pro is unlocked. Reload home to refresh banners.",
-    "forceFreeOffBody": "Back to normal Pro gating."
+    "forceFreeOffBody": "Back to normal Pro gating.",
+    "adUnitsMode": "Ad units",
+    "adUnitsTest": "Google test IDs (pre-App Store)",
+    "adUnitsLive": "Live AdMob units"
   },
   "ads": {
     "watchTitle": "Watch ad · ads off 1 hour",

@@ -232,11 +232,14 @@
     "rateAppHint": "Folha de avaliação da App Store",
     "developer": "Programador",
     "forceFreeAds": "Forçar grátis (mostrar anúncios)",
-    "forceFreeAdsHint": "Ignorar Pro — só __DEV__",
+    "forceFreeAdsHint": "Ignorar Pro — só TestFlight / DEV",
     "forceFreeOn": "Forçar grátis ligado",
     "forceFreeOff": "Forçar grátis desligado",
     "forceFreeOnBody": "Os anúncios aparecem mesmo com Pro. Recarregue Início para atualizar banners.",
-    "forceFreeOffBody": "Volta ao controlo Pro normal."
+    "forceFreeOffBody": "Volta ao controlo Pro normal.",
+    "adUnitsMode": "Unidades de anúncios",
+    "adUnitsTest": "IDs de teste Google (pré-App Store)",
+    "adUnitsLive": "Unidades AdMob reais"
   },
   "ads": {
     "watchTitle": "Ver anúncio · sem anúncios 1 h",

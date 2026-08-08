@@ -29,7 +29,7 @@ import { ProBadge } from '@/monetization/pro-badge';
 import { openProPaywall } from '@/monetization/pro-route';
 import { AdBanner } from '@/monetization/ads';
 import { useIsPro } from '@/monetization/purchases';
-import { loadForceFreeAds } from '@/monetization/ads-prefs';
+import { loadForceFreeAds, allowForceFreeAds } from '@/monetization/ads-prefs';
 import { useTranslation } from 'react-i18next';
 
 /** iOS Settings-style grouped canvas. */
@@ -69,11 +69,13 @@ export default function HomeScreen() {
   const [forceFree, setForceFree] = useState(false);
 
   useEffect(() => {
+    if (!allowForceFreeAds()) return;
     void loadForceFreeAds().then((v) => setForceFree(v));
   }, []);
 
   useFocusEffect(
     useCallback(() => {
+      if (!allowForceFreeAds()) return;
       void loadForceFreeAds().then((v) => {
         setForceFree(v);
         setBannerKey((k) => k + 1);

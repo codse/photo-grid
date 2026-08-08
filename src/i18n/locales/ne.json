@@ -232,11 +232,14 @@
     "rateAppHint": "App Store रिभ्यू पाना",
     "developer": "डेभलपर",
     "forceFreeAds": "फोर्स फ्री (विज्ञापन देखाउनुहोस्)",
-    "forceFreeAdsHint": "Pro बेवास्ता — __DEV__ मात्र",
+    "forceFreeAdsHint": "Pro बेवास्ता — TestFlight / DEV मात्र",
     "forceFreeOn": "फोर्स फ्री चालु",
     "forceFreeOff": "फोर्स फ्री अफ",
     "forceFreeOnBody": "Pro भए पनि विज्ञापन देखिन्छ। ब्यानर रिफ्रेस गर्न होम रिलोड गर्नुहोस्।",
-    "forceFreeOffBody": "सामान्य Pro नियन्त्रणमा फर्कियो।"
+    "forceFreeOffBody": "सामान्य Pro नियन्त्रणमा फर्कियो।",
+    "adUnitsMode": "विज्ञापन एकाइहरू",
+    "adUnitsTest": "Google टेस्ट IDs (App Store अघि)",
+    "adUnitsLive": "लाइभ AdMob एकाइहरू"
   },
   "ads": {
     "watchTitle": "विज्ञापन हेर्नुहोस् · १ घण्टा बन्द",

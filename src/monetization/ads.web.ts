@@ -31,3 +31,7 @@ export type BannerProps = {
 export function AdBanner(_props: BannerProps): null {
   return null;
 }
+
+export function usingTestAdUnits(): boolean {
+  return false;
+}

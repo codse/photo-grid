@@ -232,11 +232,14 @@
     "rateAppHint": "Feuille d’avis App Store",
     "developer": "Développeur",
     "forceFreeAds": "Forcer gratuit (afficher pubs)",
-    "forceFreeAdsHint": "Ignorer Pro — __DEV__ uniquement",
+    "forceFreeAdsHint": "Ignorer Pro — TestFlight / DEV uniquement",
     "forceFreeOn": "Forcer gratuit activé",
     "forceFreeOff": "Forcer gratuit désactivé",
     "forceFreeOnBody": "Les pubs s’affichent même avec Pro. Rechargez Accueil pour rafraîchir les bannières.",
-    "forceFreeOffBody": "Retour au contrôle Pro normal."
+    "forceFreeOffBody": "Retour au contrôle Pro normal.",
+    "adUnitsMode": "Unités publicitaires",
+    "adUnitsTest": "IDs de test Google (avant App Store)",
+    "adUnitsLive": "Unités AdMob live"
   },
   "ads": {
     "watchTitle": "Voir une pub · sans pub 1 h",

@@ -36,7 +36,9 @@ import {
 import {
   loadForceFreeAds,
   setForceFreeAds,
+  allowForceFreeAds,
 } from '@/monetization/ads-prefs';
+import { usingTestAdUnits } from '@/monetization/ads';
 import { requestReviewNow, shareApp } from '@/monetization/engagement';
 
 const VERSION =
@@ -61,11 +63,12 @@ export default function SettingsScreen() {
 
   const [picker, setPicker] = useState<PickerKind>(null);
   const [forceFree, setForceFree] = useState(false);
+  const showForceFree = allowForceFreeAds();
 
   useEffect(() => {
-    if (!__DEV__) return;
+    if (!showForceFree) return;
     void loadForceFreeAds().then(setForceFree);
-  }, []);
+  }, [showForceFree]);
 
   const toggleForceFree = async () => {
     const next = !forceFree;
@@ -308,7 +311,7 @@ export default function SettingsScreen() {
           </InsetGroup>
         </View>
 
-        {__DEV__ ? (
+        {showForceFree ? (
           <View style={{ gap: space.sm }}>
             <SectionHeader title={t('settings.developer')} />
             <InsetGroup>
@@ -323,6 +326,17 @@ export default function SettingsScreen() {
                   <Text style={{ ...type.caption, color: colors.accent }}>
                     {forceFree ? t('settings.on') : t('settings.off')}
                   </Text>
+                }
+              />
+              <ListRow
+                title={t('settings.adUnitsMode')}
+                subtitle={
+                  usingTestAdUnits()
+                    ? t('settings.adUnitsTest')
+                    : t('settings.adUnitsLive')
+                }
+                icon={
+                  <FlaskIcon size={18} color={colors.inkMuted} weight="duotone" />
                 }
               />
             </InsetGroup>
